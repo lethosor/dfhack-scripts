@@ -58,7 +58,7 @@ function embark_overlay:init()
     self:addviews{
         widgets.Panel{
             subviews = {
-                widgets.Label{ text="Embarking is disabled", frame={t=1,l=1} },
+                widgets.Label{ text="Embark!", frame={b=1, l=22}, text_pen={fg=COLOR_LIGHTRED}},
             }
         }
     }
@@ -69,9 +69,10 @@ function embark_overlay:onRender()
 end
 function embark_overlay:onInput(keys)
     local interceptKeys = {"SETUP_EMBARK"}
-    if keys.LEAVESCREEN then
+    if keys.OPTIONS then
         self:dismiss()
-        self:sendInputToParent('LEAVESCREEN')
+        self:sendInputToParent('OPTIONS')
+        return
     end
     for name, _ in pairs(keys) do
         if tableIndex(interceptKeys, name) ~= nil then
