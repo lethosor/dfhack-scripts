@@ -17,6 +17,10 @@ embark_site anywhere enable
 embark_site anywhere disable
 ]]
 
+local gui = require 'gui'
+local widgets = require 'gui.widgets'
+local eventful = require 'plugins.eventful'
+
 if enabled == nil then
     enabled = {
         anywhere = false,
@@ -39,6 +43,25 @@ end
 function get_embark_pos()
     return {scr.embark_pos_min.x + 1, scr.embark_pos_min.y + 1, scr.embark_pos_max.x + 1, scr.embark_pos_max.y + 1}
 end
+
+embark_overlay = defclass(embark_overlay, gui.Screen)
+function embark_overlay:init()
+    self:addviews{
+        widgets.Panel{
+            subviews = {
+                widgets.Label{ text="test label", frame={t=1,l=1} },
+            }
+        }
+    }
+end
+
+function onStateChange(...)
+    if dfhack.gui.getCurFocus() ~= 'choose_start_site' then return end
+    print('embark_site: Creating overlay')
+    screen = embark_overlay()
+    screen.show()
+end
+dfhack.onStateChange.embark_site = onStateChange
 
 function main(...)
     args = {...}
