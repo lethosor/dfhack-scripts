@@ -28,6 +28,15 @@ if enabled == nil then
     }
 end
 
+function tableIndex(tbl, value)
+    for k, v in pairs(tbl) do
+        if tbl[k] == value then
+            return k
+        end
+    end
+    return nil
+end
+
 function set_embark_size(width, height)
     width, height = tonumber(width), tonumber(height)
     if width == nil or height == nil then
@@ -49,17 +58,36 @@ function embark_overlay:init()
     self:addviews{
         widgets.Panel{
             subviews = {
-                widgets.Label{ text="test label", frame={t=1,l=1} },
+                widgets.Label{ text="Embarking is disabled", frame={t=1,l=1} },
             }
         }
     }
 end
+function embark_overlay:onRender()
+    self._native.parent:render()
+    self:render()
+end
+function embark_overlay:onInput(keys)
+    local interceptKeys = {"SETUP_EMBARK"}
+    if keys.LEAVESCREEN then
+        self:dismiss()
+        self:sendInputToParent('LEAVESCREEN')
+    end
+    for name, _ in pairs(keys) do
+        if tableIndex(interceptKeys, name) ~= nil then
+            print("Intercepting " .. name)
+        else
+            self:sendInputToParent(name)
+        end
+    end
+end
+
 
 function onStateChange(...)
     if dfhack.gui.getCurFocus() ~= 'choose_start_site' then return end
     print('embark_site: Creating overlay')
     screen = embark_overlay()
-    screen.show()
+    screen:show()
 end
 dfhack.onStateChange.embark_site = onStateChange
 
@@ -83,6 +111,8 @@ function main(...)
         for feature, state in pairs(enabled) do
             print(feature .. ':' .. string.rep(' ', 10 - #feature) .. (state and 'enabled' or 'disabled'))
         end
+    elseif args[1] == 'init' then
+        -- pass
     else
         print(usage)
     end
