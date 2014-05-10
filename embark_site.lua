@@ -21,6 +21,8 @@ local gui = require 'gui'
 local widgets = require 'gui.widgets'
 local eventful = require 'plugins.eventful'
 
+prev_state = ''
+
 if enabled == nil then
     enabled = {
         anywhere = false,
@@ -67,11 +69,13 @@ function embark_overlay:onRender()
     self._native.parent:render()
     self:render()
 end
+
 function embark_overlay:onInput(keys)
     local interceptKeys = {"SETUP_EMBARK"}
-    if keys.OPTIONS then
+    if keys.LEAVESCREEN then
+        prev_state = 'embark_overlay'
         self:dismiss()
-        self:sendInputToParent('OPTIONS')
+        self:sendInputToParent('LEAVESCREEN')
         return
     end
     for name, _ in pairs(keys) do
@@ -83,9 +87,12 @@ function embark_overlay:onInput(keys)
     end
 end
 
-
 function onStateChange(...)
-    if dfhack.gui.getCurFocus() ~= 'choose_start_site' then return end
+    if dfhack.gui.getCurFocus() ~= 'choose_start_site' or prev_state == 'embark_overlay' then
+        prev_state = ''
+        return
+    end
+    prev_state = ''
     print('embark_site: Creating overlay')
     screen = embark_overlay()
     screen:show()
