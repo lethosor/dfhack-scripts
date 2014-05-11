@@ -83,10 +83,10 @@ function embark_settings:onRenderBody(body)
     body:string(': Done', COLOR_WHITE)
 end
 function embark_settings:onInput(keys)
-    if keys.CUSTOM_A then
+    if keys.STRING_A225 or keys.CUSTOM_A then
         enabled.anywhere = not enabled.anywhere
     end
-    if keys.CUSTOM_N then
+    if keys.STRING_A223 or keys.CUSTOM_N then
         enabled.nano = not enabled.nano
     end
     if keys.LEAVESCREEN then
@@ -169,7 +169,6 @@ dfhack.onStateChange.embark_site = onStateChange
 function handle_key(key)
     scr = dfhack.gui.getCurViewscreen().parent
     if key == "SETUP_EMBARK" then
-        --overlay:dismiss()
         scr.in_embark_normal = true
     elseif key == "CUSTOM_ALT_E" then
         embark_settings:show()
