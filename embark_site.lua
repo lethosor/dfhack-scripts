@@ -57,16 +57,25 @@ end
 
 embark_overlay = defclass(embark_overlay, gui.Screen)
 function embark_overlay:init()
+    self.embark_label = widgets.Label{text="-", frame={b=1, l=20}, text_pen={fg=COLOR_WHITE}}
+    self.enabled_label = widgets.Label{text="-", frame={b=4, l=1}, text_pen={fg=COLOR_LIGHTMAGENTA}}
     self:addviews{
         widgets.Panel{
             subviews = {
-                widgets.Label{ text="Embark!", frame={b=1, l=22}, text_pen={fg=COLOR_LIGHTRED}},
+                self.embark_label,
+                self.enabled_label,
             }
         }
     }
 end
 function embark_overlay:onRender()
     self._native.parent:render()
+    if enabled.anywhere then
+        self.embark_label:setText(': Embark!')
+    else
+        self.embark_label:setText('')
+    end
+    self.enabled_label:setText('Enabled')
     self:render()
 end
 
@@ -94,8 +103,8 @@ function onStateChange(...)
     end
     prev_state = ''
     print('embark_site: Creating overlay')
-    screen = embark_overlay()
-    screen:show()
+    overlay = embark_overlay()
+    overlay:show()
 end
 dfhack.onStateChange.embark_site = onStateChange
 
