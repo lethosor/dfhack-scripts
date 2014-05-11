@@ -55,6 +55,45 @@ function get_embark_pos()
     return {scr.embark_pos_min.x + 1, scr.embark_pos_min.y + 1, scr.embark_pos_max.x + 1, scr.embark_pos_max.y + 1}
 end
 
+embark_settings = gui.FramedScreen{
+    frame_style = gui.GREY_LINE_FRAME,
+    frame_title = 'Embark settings',
+    frame_width = 32,
+    frame_height = 8,
+    frame_inset = 1,
+}
+function embark_settings:onRenderBody(body)
+    body:string('a', COLOR_LIGHTGREEN)
+    body:string(': Embark anywhere ', COLOR_WHITE)
+    if enabled.anywhere then
+        body:string('(enabled)', COLOR_WHITE)
+    else
+        body:string('(disabled)', COLOR_WHITE)
+    end
+    body:newline()
+    body:string('n', COLOR_LIGHTGREEN)
+    body:string(': Nano embark ', COLOR_WHITE)
+    if enabled.nano then
+        body:string('(enabled)', COLOR_WHITE)
+    else
+        body:string('(disabled)', COLOR_WHITE)
+    end
+    body:seek(0, 7)
+    body:string('Esc', COLOR_LIGHTGREEN)
+    body:string(': Done', COLOR_WHITE)
+end
+function embark_settings:onInput(keys)
+    if keys.CUSTOM_A then
+        enabled.anywhere = not enabled.anywhere
+    end
+    if keys.CUSTOM_N then
+        enabled.nano = not enabled.nano
+    end
+    if keys.LEAVESCREEN then
+        self:dismiss()
+    end
+end
+
 embark_overlay = defclass(embark_overlay, gui.Screen)
 function embark_overlay:init()
     self.embark_label = widgets.Label{text="-", frame={b=1, l=20}, text_pen={fg=COLOR_WHITE}}
@@ -64,6 +103,10 @@ function embark_overlay:init()
             subviews = {
                 self.embark_label,
                 self.enabled_label,
+                widgets.Label{text="Esc", frame={b=5, l=52}, text_pen={fg=COLOR_LIGHTRED}},
+                widgets.Label{text=": Disable", frame={b=5, l=52+3}, text_pen={fg=COLOR_WHITE}},
+                widgets.Label{text="Alt+e", frame={b=4, l=52}, text_pen={fg=COLOR_LIGHTRED}},
+                widgets.Label{text=": Options", frame={b=4, l=52+5}, text_pen={fg=COLOR_WHITE}},
             }
         }
     }
@@ -75,12 +118,26 @@ function embark_overlay:onRender()
     else
         self.embark_label:setText('')
     end
-    self.enabled_label:setText('Enabled')
+    enabled_text = 'Enabled: '
+    if enabled.anywhere then
+        enabled_text = enabled_text .. 'Embark anywhere'
+    end
+    if enabled.nano then
+        if enabled.anywhere then enabled_text = enabled_text .. ', ' end
+        enabled_text = enabled_text .. 'Nano embark'
+    end
+    if enabled_text == 'Enabled: ' then
+        enabled_text = ''
+    end
+    self.enabled_label:setText(enabled_text)
     self:render()
 end
 
 function embark_overlay:onInput(keys)
-    local interceptKeys = {"SETUP_EMBARK"}
+    local interceptKeys = {"CUSTOM_ALT_E"}
+    if enabled.anywhere then
+        table.insert(interceptKeys, "SETUP_EMBARK")
+    end
     if keys.LEAVESCREEN then
         prev_state = 'embark_overlay'
         self:dismiss()
@@ -90,6 +147,7 @@ function embark_overlay:onInput(keys)
     for name, _ in pairs(keys) do
         if tableIndex(interceptKeys, name) ~= nil then
             print("Intercepting " .. name)
+            handle_key(name)
         else
             self:sendInputToParent(name)
         end
@@ -107,6 +165,16 @@ function onStateChange(...)
     overlay:show()
 end
 dfhack.onStateChange.embark_site = onStateChange
+
+function handle_key(key)
+    scr = dfhack.gui.getCurViewscreen().parent
+    if key == "SETUP_EMBARK" then
+        --overlay:dismiss()
+        scr.in_embark_normal = true
+    elseif key == "CUSTOM_ALT_E" then
+        embark_settings:show()
+    end
+end
 
 function main(...)
     args = {...}
