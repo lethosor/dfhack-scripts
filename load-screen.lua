@@ -91,7 +91,7 @@ function load_screen:onRender()
             pen.fg = pen.fg + 8
         end
         pen.bg = (i == self.sel_idx and COLOR_BLUE) or COLOR_BLACK
-        
+
         y = y + 2
         year = save.year .. ''
         dfhack.screen.fillRect(pen, 2, y, max_x, y + 1)
@@ -106,6 +106,8 @@ function load_screen:onInput(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
         dfhack.screen.dismiss(self._native.parent)
+    elseif keys.SELECT then
+        load_screen_options:display(self, self:get_saves()[self.sel_idx])
     elseif keys.CURSOR_DOWN then
         self:scroll(1)
     elseif keys.CURSOR_UP then
@@ -121,6 +123,56 @@ function load_screen:scroll(dist)
     if self.sel_idx > #saves then self.sel_idx = 1
     elseif self.sel_idx < 1 then self.sel_idx = #saves
     end
+end
+
+function load_screen:load_game(folder_name)
+    if not folder_name then return end
+    parent = self._native.parent
+    parent.saves[0].folder_name = folder_name
+    parent.sel_idx = 0
+    parent.loading = 1
+    self:dismiss()
+end
+
+load_screen_options = gui.FramedScreen{
+    frame_width = 40,
+    frame_height = 6,
+    frame_title = "",
+    frame_inset = 1,
+}
+
+function load_screen_options:onRenderBody(painter)
+    if self.load_state ~= 0 then
+        dfhack.screen.clear()
+        paintString({ch=' ', fg=COLOR_WHITE, bg=COLOR_BLACK}, 2, 2, "Loading game...")
+    end
+    if self.load_state == 1 then
+        self.load_state = 2
+    elseif self.load_state == 2 then
+        self.parent:load_game(self.save.folder_name)
+        self.load_state = 0
+        self:dismiss()
+        return
+    end
+    painter:string('Esc: Cancel')
+    painter:newline()
+    painter:string('Enter: Load')
+end
+
+function load_screen_options:onInput(keys)
+    if keys.LEAVESCREEN then
+        self:dismiss()
+    elseif keys.SELECT then
+        self.load_state = 1
+    end
+end
+
+function load_screen_options:display(parent, save)
+    self.parent = parent
+    self.save = save
+    self.frame_title = "Load game: " .. self.save.folder_name
+    self.load_state = 0
+    self:show()
 end
 
 local prev_focus
