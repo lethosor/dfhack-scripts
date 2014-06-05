@@ -51,8 +51,11 @@ function set_embark_size(width, height)
     scr.embark_pos_min.y = math.max(0, scr.embark_pos_max.y - height + 1)
 end
 
-function get_embark_pos()
-    return {scr.embark_pos_min.x + 1, scr.embark_pos_min.y + 1, scr.embark_pos_max.x + 1, scr.embark_pos_max.y + 1}
+function get_embark_size()
+    return {
+        scr.embark_pos_max.x - scr.embark_pos_min.x + 1,
+        scr.embark_pos_max.y - scr.embark_pos_min.y + 1
+    }
 end
 
 embark_settings = gui.FramedScreen{
@@ -126,8 +129,8 @@ function embark_overlay:onRender()
         if enabled.anywhere then enabled_text = enabled_text .. ', ' end
         enabled_text = enabled_text .. 'Nano embark'
     end
-    if enabled_text == 'Enabled: ' then
-        enabled_text = ''
+    if not (enabled.anywhere or enabled.nano) then
+        enabled_text = enabled_text .. '(none)'
     end
     self.enabled_label:setText(enabled_text)
     self:render()
@@ -139,9 +142,7 @@ function embark_overlay:onInput(keys)
         table.insert(interceptKeys, "SETUP_EMBARK")
     end
     if keys.LEAVESCREEN then
-        prev_state = 'embark_overlay'
-        self:dismiss()
-        self:sendInputToParent('LEAVESCREEN')
+        self:destroy()
         return
     end
     for name, _ in pairs(keys) do
@@ -153,9 +154,21 @@ function embark_overlay:onInput(keys)
         end
     end
 end
+function embark_overlay:destroy()
+    -- Custom dismiss() method
+    print('Destroying overlay')
+    prev_state = 'embark_overlay'
+    self:dismiss()
+    self:sendInputToParent('LEAVESCREEN')
+end
 
 function onStateChange(...)
-    if dfhack.gui.getCurFocus() ~= 'choose_start_site' or prev_state == 'embark_overlay' then
+    local context = dfhack.gui.getCurFocus()
+    print('new state: ' .. context)
+    if context == 'setupdwarfgame' then
+        overlay:destroy()
+    end
+    if context ~= 'choose_start_site' or prev_state == 'embark_overlay' then
         prev_state = ''
         return
     end
@@ -167,7 +180,7 @@ end
 dfhack.onStateChange.embark_site = onStateChange
 
 function handle_key(key)
-    scr = dfhack.gui.getCurViewscreen().parent
+    local scr = dfhack.gui.getCurViewscreen().parent
     if key == "SETUP_EMBARK" then
         scr.in_embark_normal = true
     elseif key == "CUSTOM_ALT_E" then
@@ -197,6 +210,10 @@ function main(...)
         end
     elseif args[1] == 'init' then
         -- pass
+    elseif args[1] == 'x' then
+        --printall(get_embark_size())
+        printall(overlay)
+        overlay:destroy()
     else
         print(usage)
     end
