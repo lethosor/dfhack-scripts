@@ -3,6 +3,11 @@
 local gui = require 'gui'
 local widgets = require 'gui.widgets'
 
+paintString = dfhack.screen.paintString
+function paintStringCenter(pen, y, str)
+    cols, rows = dfhack.screen.getWindowSize()
+    paintString(pen, math.floor((cols - #str) / 2), y, str)
+end
 function string:split(sep)
     local sep, fields = sep or " ", {}
     local pattern = string.format("([^%s]+)", sep)
@@ -59,11 +64,41 @@ function load_screen:onRender()
     pen = {ch=' ', fg=COLOR_GREY}
     saves = self:get_saves()
     dfhack.screen.clear()
-    for i = 1, #saves do
+    cols, rows = dfhack.screen.getWindowSize()
+    max_rows = math.floor((rows - 5) / 2)
+    min = self.sel_idx - math.floor(max_rows / 2)
+    max = self.sel_idx + math.ceil(max_rows / 2)
+    if max > #saves then
+        d = max - #saves
+        max = max - d
+        min = min - d
+    end
+    if min < 1 then
+        d = 1 - min
+        min = min + d
+        max = max + d
+    end
+    max = math.min(max, #saves)
+
+    paintStringCenter(pen, 0, "Load game (DFHack)")
+    y = 0
+    max_x = 77
+    for i = min, max do
         save = saves[i]
-        pen.fg = (i == self.sel_idx and COLOR_WHITE) or COLOR_GREY
+        pen.fg = COLOR_GREY
+        if self:is_backup(save.folder_name) then pen.fg = COLOR_RED end
+        if i == self.sel_idx then
+            pen.fg = pen.fg + 8
+        end
         pen.bg = (i == self.sel_idx and COLOR_BLUE) or COLOR_BLACK
-        dfhack.screen.paintString(pen, 2, i+1, save.folder_name)
+        
+        y = y + 2
+        year = save.year .. ''
+        dfhack.screen.fillRect(pen, 2, y, max_x, y + 1)
+        paintString(pen, 2, y, save.fort_name)
+        paintString(pen, max_x - #save.world_name, y, save.world_name)
+        paintString(pen, 3, y + 1, "Folder: " .. save.folder_name)
+        paintString(pen, max_x - #year, y + 1, year)
     end
 end
 
@@ -75,21 +110,31 @@ function load_screen:onInput(keys)
         self:scroll(1)
     elseif keys.CURSOR_UP then
         self:scroll(-1)
+    elseif keys.CUSTOM_B then
+        self.opts.backups = not self.opts.backups
     end
 end
 
 function load_screen:scroll(dist)
     self.sel_idx = self.sel_idx + dist
-    if self.sel_idx > #self.saves then self.sel_idx = 0
-    elseif self.sel_idx < 1 then self.sel_idx = #self.saves
+    saves = self:get_saves()
+    if self.sel_idx > #saves then self.sel_idx = 1
+    elseif self.sel_idx < 1 then self.sel_idx = #saves
     end
 end
 
-prev_focus = ''
-dfhack.onStateChange.load_screen = function()
-    cur_focus = dfhack.gui.getCurFocus()
-    if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua' then
-        load_screen():show()
+local prev_focus
+function init()
+    prev_focus = ''
+    dfhack.onStateChange.load_screen = function()
+        cur_focus = dfhack.gui.getCurFocus()
+        if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua' then
+            load_screen():show()
+        end
+        prev_focus = cur_focus
     end
-    prev_focus = cur_focus
+end
+if initialized == nil then
+    init()
+    initialized = true
 end
