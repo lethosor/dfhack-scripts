@@ -17,6 +17,27 @@ function paintKeyString(x, y, key, str, opts)
     paintString({ch=' ', fg=COLOR_WHITE}, x + #key_str, y, ": " .. str)
 end
 
+function gametypeString(gametype, overrides, p)
+    overrides = overrides or {}
+    if overrides[df.game_type[gametype]] then return overrides[df.game_type[gametype]] end
+    if gametype == df.game_type.DWARF_MAIN then
+        return "Fortress mode"
+    elseif gametype == df.game_type.DWARF_RECLAIM then
+        return "Reclaim fortress mode"
+    elseif gametype == df.game_type.ADVENTURE_MAIN then
+        return "Adventure mode"
+    elseif gametype == df.game_type.NONE then
+        return "None"
+    else
+        return "Unknown mode"
+    end
+end
+gametypes = {'NONE', 'DWARF_MAIN', 'DWARF_RECLAIM', 'ADVENTURE_MAIN'}
+gametypeMap = {}
+for i, t in pairs(gametypes) do
+    gametypeMap[t] = gametypes[i + 1] or gametypes[1]
+end
+
 paintString = dfhack.screen.paintString
 function paintStringCenter(pen, y, str)
     cols, rows = dfhack.screen.getWindowSize()
@@ -37,6 +58,7 @@ function load_screen:init()
     self.opts = {
         backups = false,
         filter = '',
+        filter_mode = df.game_type.NONE,
     }
     self.search_active = false
 end
@@ -66,7 +88,8 @@ function load_screen:get_saves()
     for i = 1, #self.saves do
         save = self.saves[i]
         if (self:is_backup(save.folder_name) and not self.opts.backups) or
-            (#self.opts.filter and not save.folder_name:lower():find(self.opts.filter:lower())) then
+            (#self.opts.filter and not save.folder_name:lower():find(self.opts.filter:lower())) or
+            (self.opts.filter_mode ~= df.game_type.NONE and self.opts.filter_mode ~= save.game_type) then
             --pass
         else
             table.insert(saves, save)
@@ -103,6 +126,11 @@ function load_screen:onRender()
         save = saves[i]
         pen.fg = COLOR_GREY
         if self:is_backup(save.folder_name) then pen.fg = COLOR_RED end
+        if save.game_type == df.game_type.DWARF_RECLAIM then
+            pen.fg = COLOR_MAGENTA
+        elseif save.game_type == df.game_type.ADVENTURE_MAIN then
+            pen.fg = COLOR_CYAN
+        end
         if i == self.sel_idx then
             pen.fg = pen.fg + 8
         end
@@ -111,19 +139,23 @@ function load_screen:onRender()
         y = y + 2
         year = save.year .. ''
         dfhack.screen.fillRect(pen, 2, y, max_x, y + 1)
-        paintString(pen, 2, y, save.fort_name)
+        paintString(pen, 2, y, save.fort_name .. " - " .. gametypeString(save.game_type))
         paintString(pen, max_x - #save.world_name, y, save.world_name)
         paintString(pen, 3, y + 1, "Folder: " .. save.folder_name)
         paintString(pen, max_x - #year, y + 1, year)
     end
-    filter = self.opts.filter
+    label = self.opts.filter
+    if #label > 20 then
+        label = '\027' .. label:sub(-20)
+    end
     if self.search_active then
-        paintKeyString(1, rows - 1, 'CUSTOM_S', filter, {key_color = COLOR_RED})
-        x = keyStringLength('CUSTOM_S', filter) + 1
+        paintKeyString(1, rows - 1, 'CUSTOM_S', label, {key_color = COLOR_RED})
+        x = keyStringLength('CUSTOM_S', label) + 1
         paintString({ch=' ', fg=COLOR_LIGHTGREEN}, x, rows - 1, '_')
     else
-        paintKeyString(1, rows - 1, 'CUSTOM_S', #filter > 0 and filter or "Search")
+        paintKeyString(1, rows - 1, 'CUSTOM_S', #label > 0 and label or "Search")
     end
+    paintKeyString(30, rows - 1, 'CUSTOM_T', 'Type: ' .. gametypeString(self.opts.filter_mode, {NONE = "Any"}))
 end
 
 function load_screen:onInput(keys)
@@ -156,6 +188,8 @@ function load_screen:onInput(keys)
         self.opts.backups = not self.opts.backups
     elseif keys.CUSTOM_S then
         self.search_active = true
+    elseif keys.CUSTOM_T then
+        self.opts.filter_mode = df.game_type[gametypeMap[df.game_type[self.opts.filter_mode]]]
     end
 end
 
