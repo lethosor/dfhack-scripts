@@ -3,6 +3,20 @@
 local gui = require 'gui'
 local widgets = require 'gui.widgets'
 
+function gui.Painter:keyString(key, str)
+    self:string(gui.getKeyDisplay(df.interface_key[key]), COLOR_LIGHTRED)
+    self:string(": " .. str, COLOR_WHITE)
+end
+function keyStringLength(key, str)
+    return #(gui.getKeyDisplay(df.interface_key[key]) .. ": " .. str)
+end
+function paintKeyString(x, y, key, str, opts)
+    opts = opts or {}
+    key_str = gui.getKeyDisplay(df.interface_key[key])
+    paintString({ch=' ', fg=opts.key_color or COLOR_LIGHTRED}, x, y, key_str)
+    paintString({ch=' ', fg=COLOR_WHITE}, x + #key_str, y, ": " .. str)
+end
+
 paintString = dfhack.screen.paintString
 function paintStringCenter(pen, y, str)
     cols, rows = dfhack.screen.getWindowSize()
@@ -24,6 +38,7 @@ function load_screen:init()
         backups = false,
         filter = '',
     }
+    self.search_active = false
 end
 
 function load_screen:is_backup(folder_name)
@@ -62,6 +77,7 @@ end
 
 function load_screen:onRender()
     pen = {ch=' ', fg=COLOR_GREY}
+    key_pen = {ch=' ', fg=COLOR_LIGHTRED}
     saves = self:get_saves()
     dfhack.screen.clear()
     cols, rows = dfhack.screen.getWindowSize()
@@ -100,9 +116,33 @@ function load_screen:onRender()
         paintString(pen, 3, y + 1, "Folder: " .. save.folder_name)
         paintString(pen, max_x - #year, y + 1, year)
     end
+    filter = self.opts.filter
+    if self.search_active then
+        paintKeyString(1, rows - 1, 'CUSTOM_S', filter, {key_color = COLOR_RED})
+        x = keyStringLength('CUSTOM_S', filter) + 1
+        paintString({ch=' ', fg=COLOR_LIGHTGREEN}, x, rows - 1, '_')
+    else
+        paintKeyString(1, rows - 1, 'CUSTOM_S', #filter > 0 and filter or "Search")
+    end
 end
 
 function load_screen:onInput(keys)
+    if self.search_active then
+        if keys.LEAVESCREEN then
+            self.search_active = false
+            self.opts.filter = ''
+        elseif keys.SELECT then
+            self.search_active = false
+        elseif keys.STRING_A000 then
+            self.opts.filter = self.opts.filter:sub(0, -2)
+        elseif keys._STRING then
+            self.opts.filter = self.opts.filter .. string.char(keys._STRING)
+        elseif keys.CURSOR_DOWN or keys.CURSOR_UP then
+            self.search_active = false
+            self:onInput(keys)
+        end
+        return
+    end
     if keys.LEAVESCREEN then
         self:dismiss()
         dfhack.screen.dismiss(self._native.parent)
@@ -114,6 +154,8 @@ function load_screen:onInput(keys)
         self:scroll(-1)
     elseif keys.CUSTOM_B then
         self.opts.backups = not self.opts.backups
+    elseif keys.CUSTOM_S then
+        self.search_active = true
     end
 end
 
@@ -154,9 +196,10 @@ function load_screen_options:onRenderBody(painter)
         self:dismiss()
         return
     end
-    painter:string('Esc: Cancel')
-    painter:newline()
-    painter:string('Enter: Load')
+    painter:seek(0, self.frame_height - 1)
+    painter:keyString('LEAVESCREEN', 'Cancel')
+    painter:seek(self.frame_width - keyStringLength('SELECT', 'Play now'), self.frame_height - 1)
+    painter:keyString('SELECT', 'Play now')
 end
 
 function load_screen_options:onInput(keys)
