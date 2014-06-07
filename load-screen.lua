@@ -32,14 +32,21 @@ function gametypeString(gametype, overrides, p)
         return "Unknown mode"
     end
 end
-gametypes = {'NONE', 'DWARF_MAIN', 'DWARF_RECLAIM', 'ADVENTURE_MAIN'}
-gametypeMap = {}
-for i, t in pairs(gametypes) do
-    gametypeMap[t] = gametypes[i + 1] or gametypes[1]
-end
+gametypeMap = (function()
+    gametypes = {'NONE', 'DWARF_MAIN', 'DWARF_RECLAIM', 'ADVENTURE_MAIN'}
+    ret = {}
+    for i, t in pairs(gametypes) do
+        ret[t] = gametypes[i + 1] or gametypes[1]
+    end
+    return ret
+end)()
 
 paintString = dfhack.screen.paintString
 function paintStringCenter(pen, y, str)
+    if tonumber(pen) ~= nil then
+        pen = math.max(0, math.min(15, pen))
+        pen = {ch=' ', fg=pen}
+    end
     cols, rows = dfhack.screen.getWindowSize()
     paintString(pen, math.floor((cols - #str) / 2), y, str)
 end
@@ -54,6 +61,10 @@ load_screen = defclass(load_screen, gui.Screen)
 
 function load_screen:init()
     self.saves = nil
+    self:reset()
+end
+
+function load_screen:reset()
     self.sel_idx = 1
     self.opts = {
         backups = false,
@@ -145,6 +156,10 @@ function load_screen:onRender()
         paintString(pen, 3, y + 1, "Folder: " .. save.folder_name)
         paintString(pen, max_x - #year, y + 1, year)
     end
+    if #saves == 0 then
+        paintString(COLOR_WHITE, 1, 3, "No results found")
+        paintKeyString(1, 5, "CUSTOM_ALT_C", "Clear filters")
+    end
     label = self.opts.filter
     if #label > 20 then
         label = '\027' .. label:sub(-20)
@@ -156,7 +171,7 @@ function load_screen:onRender()
     else
         paintKeyString(1, rows - 1, 'CUSTOM_S', #label > 0 and label or "Search")
     end
-    paintKeyString(30, rows - 1, 'CUSTOM_T', 'Type: ' .. gametypeString(self.opts.filter_mode, {NONE = "Any"}))
+    paintKeyString(27, rows - 1, 'CUSTOM_T', gametypeString(self.opts.filter_mode, {NONE = "Any mode"}))
 end
 
 function load_screen:onInput(keys)
@@ -173,6 +188,8 @@ function load_screen:onInput(keys)
         elseif keys.CURSOR_DOWN or keys.CURSOR_UP then
             self.search_active = false
             self:onInput(keys)
+        elseif keys.CUSTOM_ALT_C then
+            self.opts.filter = ''
         end
         return
     end
@@ -191,6 +208,8 @@ function load_screen:onInput(keys)
         self.search_active = true
     elseif keys.CUSTOM_T then
         self.opts.filter_mode = df.game_type[gametypeMap[df.game_type[self.opts.filter_mode]]]
+    elseif keys.CUSTOM_ALT_C then
+        self:reset()
     end
 end
 
