@@ -102,6 +102,7 @@ function load_screen:onRender()
     pen = {ch=' ', fg=COLOR_GREY}
     key_pen = {ch=' ', fg=COLOR_LIGHTRED}
     saves = self:get_saves()
+    self.sel_idx = math.max(1, math.min(#saves, self.sel_idx))
     dfhack.screen.clear()
     cols, rows = dfhack.screen.getWindowSize()
     max_rows = math.floor((rows - 5) / 2)
@@ -245,6 +246,7 @@ function load_screen_options:onInput(keys)
 end
 
 function load_screen_options:display(parent, save)
+    if not save then return end
     self.parent = parent
     self.save = save
     self.frame_title = "Load game: " .. self.save.folder_name
