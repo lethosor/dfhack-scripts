@@ -6,16 +6,16 @@ local widgets = require "gui.widgets"
 SETTINGS = {
     init = {
         {id = 'SOUND', type = 'bool', desc = 'Sound enabled'},
-        {id = 'VOLUME', type = 'int', desc = 'Volume'},
+        {id = 'VOLUME', type = 'int', desc = 'Volume', min = 0, max = 255},
         {id = 'INTRO', type = 'bool', desc = 'Display intro movies'},
         {id = 'WINDOWED', type = 'select', desc = 'Start in windowed mode',
-            choices = {{'YES', 'Yes'}, {'NO', 'No'}, {'PROMPT', 'Prompt'}}
+            choices = {{'YES', 'Yes'}, {'PROMPT', 'Prompt'}, {'NO', 'No'}}
         },
         {id = 'WINDOWEDX', type = 'int', desc = 'Window X dimension (rows)'},
         {id = 'WINDOWEDY', type = 'int', desc = 'Window Y dimension (columns)'},
         {id = 'RESIZABLE', type = 'bool', desc = 'Allow resizing window'},
         {id = 'FONT', type = 'string', desc = 'Font (windowed)', validate = function(s)
-            return dfhack.filesystem.exists('data/init/' .. s)
+            return #s > 0 and file_exists('data/art/' .. s)
         end},
         
     },
@@ -24,33 +24,36 @@ SETTINGS = {
     }
 }
 
-BoolPrompt = defclass(BoolPrompt, dialog.MessageBox)
-
-BoolPrompt.ATTRS{
-    frame_style = gui.GREY_LINE_FRAME,
-    frame_inset = 1,
-    on_accept = DEFAULT_NIL,
-    on_cancel = DEFAULT_NIL,
-    on_close = DEFAULT_NIL,
-}
-function BoolPrompt:init(info)
-    self:addviews{
-        widgets.Label{
-            view_id = 'label',
-            text = {
-                {text='Yes', key='CUSTOM_Y', key_sep=':'},
-                NEWLINE,
-                {text='No', key='CUSTOM_N', key_sep=':'},
-            },
-            text_pen = info.text_pen,
-            frame = {l = 10, t = 10},
-            auto_height = true
-        }
-    }
+function file_exists(path)
+    local f = io.open(path, "r")
+    if f ~= nil then io.close(f) return true
+    else return false
+    end
 end
 
-function BoolPrompt:onRenderFrame(dc, rect)
-    dialog.MessageBox.super.onRenderFrame(self, dc, rect)
+function settings_load()
+    for file, settings in pairs(SETTINGS) do
+        local contents = io.open('data/init/' .. file .. '.txt'):read('*all')
+        for i, s in pairs(settings) do
+            local a, b = contents:find('[' .. s.id .. ':', 1, true)
+            if a ~= nil then
+                s.value = contents:sub(b + 1, contents:find(']', b, true) - 1)
+            else
+                return false, 'Could not find ' .. s.id .. ' in ' .. file .. '.txt'
+            end
+        end
+    end
+    return true
+end
+
+function settings_save()
+    for file, settings in pairs(SETTINGS) do
+        
+    end
+end
+
+function dialog.showValidationError(str)
+    dialog.showMessage('Error', str, COLOR_LIGHTRED)
 end
 
 settings_manager = defclass(settings_manager, gui.FramedScreen)
@@ -86,7 +89,7 @@ function settings_manager:init()
         },
     }
     local settings_list = widgets.List{
-        choices = {'a','b','c'},
+        choices = {},
         text_pen = {fg = COLOR_GREEN},
         cursor_pen = {fg = COLOR_LIGHTGREEN},
         on_submit = self:callback("edit_setting"),
@@ -128,16 +131,37 @@ function settings_manager:onInput(keys)
 end
 
 function settings_manager:select_file(index, choice)
+    local res, err = settings_load()
+    if not res then
+        dialog.showMessage('Error loading settings', err, COLOR_LIGHTRED, self:callback('dismiss'))
+    end
+    self.frame_title = choice.text
     self.file = choice.text:sub(1, choice.text:find('.', 1, true) - 1)
     self.subviews.pages:setSelected(2)
     self.subviews.settings_list:setChoices(self:get_choice_strings(self.file))
+end
+
+function settings_manager:get_value_string(opt)
+    local value_str = '<unknown>'
+    if opt.type == 'int' or opt.type == 'string' then
+        value_str = opt.value
+    elseif opt.type == 'bool' then
+        value_str = opt.value:lower():gsub("^%l", string.upper)
+    elseif opt.type == 'select' then
+        for i, c in pairs(opt.choices) do
+            if c[1] == opt.value then
+                value_str = c[2]
+            end
+        end
+    end
+    return value_str
 end
 
 function settings_manager:get_choice_strings(file)
     local settings = SETTINGS[file] or error('Invalid settings file: ' .. file)
     local choices = {}
     for i, opt in pairs(settings) do
-        table.insert(choices, ('%-40s %s'):format(opt.desc, opt.type))
+        table.insert(choices, ('%-40s %s'):format(opt.desc, self:get_value_string(opt)))
     end
     return choices
 end
@@ -145,12 +169,85 @@ end
 function settings_manager:edit_setting(index, choice)
     local setting = SETTINGS[self.file][index]
     if setting.type == 'bool' then
-        BoolPrompt{frame_title=setting.desc}:show()
+        dialog.showListPrompt(
+            setting.desc,
+            nil,
+            COLOR_WHITE,
+            {'Yes', 'No'},
+            self:callback('commit_edit', index)
+        )
+    elseif setting.type == 'int' then
+        local text = ''
+        if setting.min then
+            text = text .. 'min: ' .. setting.min
+        end
+        if setting.max then
+            text = text .. ', max: ' .. setting.max
+        end
+        while text:sub(1, 1) == ' ' or text:sub(1, 1) == ',' do
+            text = text:sub(2)
+        end
+        dialog.showInputPrompt(
+            setting.desc,
+            text,
+            COLOR_WHITE,
+            '',
+            self:callback('commit_edit', index)
+        )
+    elseif setting.type == 'string' then
+        dialog.showInputPrompt(
+            setting.desc,
+            nil,
+            COLOR_WHITE,
+            setting.value,
+            self:callback('commit_edit', index)
+        )
+    elseif setting.type == 'select' then
+        local choices = {}
+        for i, c in pairs(setting.choices) do
+            table.insert(choices, c[2])
+        end
+        dialog.showListPrompt(
+            setting.desc,
+            nil,
+            COLOR_WHITE,
+            choices,
+            self:callback('commit_edit', index)
+        )
     end
 end
 
 function settings_manager:commit_edit(index, value)
-    
+    local setting = SETTINGS[self.file][index]
+    if setting.type == 'bool' then
+        if value == 1 then
+            value = 'YES'
+        else
+            value = 'NO'
+        end
+    elseif setting.type == 'int' then
+        value = tonumber(value)
+        if value == nil or value ~= math.floor(value) then
+            dialog.showValidationError('Must be a number!')
+            return false
+        end
+        if setting.min and value < setting.min then
+            dialog.showValidationError(value .. ' is too low!')
+            return false
+        end
+        if setting.max and value > setting.max then
+            dialog.showValidationError(value .. ' is too high!')
+            return false
+        end
+    elseif setting.type == 'string' then
+        if setting.validate and not setting.validate(value) then
+            dialog.showValidationError('Invalid value')
+            return false
+        end
+    elseif setting.type == 'select' then
+        value = setting.choices[value][1]
+    end
+    print(index, setting.id .. ' =', value)
 end
 
 if dfhack.gui.getCurFocus() == 'dfhack/lua' then
