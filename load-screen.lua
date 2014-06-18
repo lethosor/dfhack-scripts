@@ -17,7 +17,7 @@ function paintKeyString(x, y, key, str, opts)
     paintString({ch=' ', fg=COLOR_WHITE}, x + #key_str, y, ": " .. str)
 end
 
-function gametypeString(gametype, overrides, p)
+function gametypeString(gametype, overrides)
     overrides = overrides or {}
     if overrides[df.game_type[gametype]] then return overrides[df.game_type[gametype]] end
     if gametype == df.game_type.DWARF_MAIN then
