@@ -57,7 +57,7 @@ SETTINGS = {
 
         {id = 'PRIORITY', type = 'select', desc = 'Process priority',
             choices = dup_table({'REALTIME', 'HIGH', 'ABOVE_NORMAL', 'NORMAL', 'BELOW_NORMAL', 'IDLE'})
-        }
+        },
     },
     d_init = {
 
@@ -77,15 +77,17 @@ end
 
 function settings_load()
     for file, settings in pairs(SETTINGS) do
-        local contents = io.open('data/init/' .. file .. '.txt'):read('*all')
+        local f = io.open('data/init/' .. file .. '.txt')
+        local contents = f:read('*all')
         for i, s in pairs(settings) do
             local a, b = contents:find('[' .. s.id .. ':', 1, true)
             if a ~= nil then
                 s.value = contents:sub(b + 1, contents:find(']', b, true) - 1)
             else
-                return false, 'Could not find ' .. s.id .. ' in ' .. file .. '.txt'
+                return false, 'Could not find "' .. s.id .. '" in ' .. file .. '.txt'
             end
         end
+        f:close()
     end
     return true
 end
@@ -93,7 +95,8 @@ end
 function settings_save()
     for file, settings in pairs(SETTINGS) do
         local path = 'data/init/' .. file .. '.txt'
-        local contents = io.open(path):read('*all')
+        local f = io.open(path, 'r')
+        local contents = f:read('*all')
         for i, s in pairs(settings) do
             local a, b = contents:find('[' .. s.id .. ':', 1, true)
             if a ~= nil then
@@ -103,7 +106,10 @@ function settings_save()
                 return false, 'Could not find ' .. s.id .. ' in ' .. file .. '.txt'
             end
         end
-        io.open(path, 'w'):write(contents)
+        f:close()
+        f = io.open(path, 'w')
+        f:write(contents)
+        f:close()
     end
 end
 
@@ -176,10 +182,28 @@ function settings_manager:onInput(keys)
     local page = self.subviews.pages:getSelected()
     if keys.LEAVESCREEN then
         if page == 2 then
+            settings_save()
             self.subviews.pages:setSelected(1)
             self:reset()
         else
             self:dismiss()
+        end
+    elseif keys.CURSOR_RIGHT or keys.CURSOR_LEFT or keys.CURSOR_RIGHT_FAST or keys.CURSOR_LEFT_FAST then
+        local incr
+        if keys.CURSOR_RIGHT then incr = 1
+        elseif keys.CURSOR_RIGHT_FAST then incr = 10
+        elseif keys.CURSOR_LEFT then incr = -1
+        elseif keys.CURSOR_LEFT_FAST then incr = -10
+        end
+        local setting = self:get_selected_setting()
+        if setting.type == 'int' then
+            setting.value = setting.value + incr
+            if setting.min ~= nil then setting.value = math.max(setting.min, setting.value) end
+            if setting.max ~= nil then setting.value = math.min(setting.max, setting.value) end
+            self:refresh_settings_list()
+        elseif setting.type == 'bool' then
+            setting.value = (setting.value == 'YES' and 'NO') or 'YES'
+            self:refresh_settings_list()
         end
     end
     self.super.onInput(self, keys)
@@ -225,6 +249,10 @@ function settings_manager:get_choice_strings(file)
         table.insert(choices, ('%-40s %s'):format(opt.desc, self:get_value_string(opt)))
     end
     return choices
+end
+
+function settings_manager:get_selected_setting()
+    return SETTINGS[self.file][self.subviews.settings_list:getSelected()]
 end
 
 function settings_manager:edit_setting(index, choice)
@@ -279,7 +307,7 @@ function settings_manager:edit_setting(index, choice)
 end
 
 function settings_manager:commit_edit(index, value)
-    local setting = SETTINGS[self.file][index]
+    local setting = self:get_selected_setting()
     if setting.type == 'bool' then
         if value == 1 then
             value = 'YES'
@@ -309,9 +337,11 @@ function settings_manager:commit_edit(index, value)
     elseif setting.type == 'select' then
         value = setting.choices[value][1]
     end
-    print(index, setting.id .. ' =', value)
-    SETTINGS[self.file][index].value = value
-    settings_save()
+    self:save_setting(value)
+end
+
+function settings_manager:save_setting(value)
+    self:get_selected_setting().value = value
     self:refresh_settings_list()
 end
 
