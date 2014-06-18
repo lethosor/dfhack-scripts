@@ -3,24 +3,64 @@ local gui = require "gui"
 local dialog = require 'gui.dialogs'
 local widgets = require "gui.widgets"
 
+function dup_table(tbl)
+    local t = {}
+    for i = 1, #tbl do
+        table.insert(t, {tbl[i], tbl[i]})
+    end
+    return t
+end
+
+
 SETTINGS = {
     init = {
-        {id = 'SOUND', type = 'bool', desc = 'Sound enabled'},
+        {id = 'SOUND', type = 'bool', desc = 'Enable sound'},
         {id = 'VOLUME', type = 'int', desc = 'Volume', min = 0, max = 255},
         {id = 'INTRO', type = 'bool', desc = 'Display intro movies'},
         {id = 'WINDOWED', type = 'select', desc = 'Start in windowed mode',
             choices = {{'YES', 'Yes'}, {'PROMPT', 'Prompt'}, {'NO', 'No'}}
         },
-        {id = 'WINDOWEDX', type = 'int', desc = 'Window X dimension (columns)', min = 80},
-        {id = 'WINDOWEDY', type = 'int', desc = 'Window Y dimension (rows)', min = 25},
+        {id = 'WINDOWEDX', type = 'int', desc = 'Windowed X dimension (columns)', min = 80},
+        {id = 'WINDOWEDY', type = 'int', desc = 'Windowed Y dimension (rows)', min = 25},
         {id = 'RESIZABLE', type = 'bool', desc = 'Allow resizing window'},
-        {id = 'FONT', type = 'string', desc = 'Font (windowed)', validate = function(s)
-            return #s > 0 and file_exists('data/art/' .. s)
-        end},
-        
+        {id = 'FONT', type = 'string', desc = 'Font (windowed)', validate = font_exists},
+        {id = 'FULLSCREENX', type = 'int', desc = 'Fullscreen X dimension (columns)', min = 0},
+        {id = 'FULLSCREENY', type = 'int', desc = 'Fullscreen Y dimension (rows)', min = 0},
+        {id = 'FULLFONT', type = 'string', desc = 'Font (fullscreen)', validate = font_exists},
+        {id = 'BLACK_SPACE', type = 'select', desc = 'Mismatched resolution behavior',
+            choices = {{'YES', 'Pad with black space'}, {'NO', 'Stretch tiles'}}
+        },
+        {id = 'GRAPHICS', type = 'bool', desc = 'Enable graphics'},
+        {id = 'GRAPHICS_WINDOWEDX', type = 'int', desc = '  Windowed X dimension (columns)', min = 80},
+        {id = 'GRAPHICS_WINDOWEDY', type = 'int', desc = '  Windowed Y dimension (rows)', min = 25},
+        {id = 'GRAPHICS_FONT', type = 'string', desc = '  Font (windowed)', validate = font_exists},
+        {id = 'GRAPHICS_FULLSCREENX', type = 'int', desc = '  Fullscreen X dimension (columns)', min = 0},
+        {id = 'GRAPHICS_FULLSCREENY', type = 'int', desc = '  Fullscreen Y dimension (rows)', min = 0},
+        {id = 'GRAPHICS_FULLFONT', type = 'string', desc = '  Font (fullscreen)', validate = font_exists},
+
+        {id = 'PRINT_MODE', type = 'select', desc = 'Print mode', choices = {
+            {'2D', '2D (default)'}, {'2DSW', '2DSW'}, {'2DASYNC', '2DASYNC'},
+            {'STANDARD', 'STANDARD (OpenGL)'}, {'ACCUM_BUFFER', 'ACCUM_BUFFER'},
+            {'FRAME_BUFFER', 'FRAME_BUFFER'}, {'VBO', 'VBO'}
+        }},
+        {id = 'SINGLE_BUFFER', type = 'bool', desc = '  Single-buffer'},
+        {id = 'ARB_SYNC', type = 'bool', desc = '  Enable ARB_sync (unstable)'},
+        {id = 'VSYNC', type = 'bool', desc = '  Enable vertical synchronization'},
+        {id = 'TEXTURE_PARAM', type = 'select', desc = '  Texture value behavior', choices = {
+            {'NEAREST', 'Use nearest pixel'}, {'LINEAR', 'Average over adjacent pixels'}
+        }},
+
+        {id = 'TOPMOST', type = 'bool', desc = 'Make DF topmost window'},
+        {id = 'FPS', type = 'bool', desc = 'Show FPS indicator'},
+        {id = 'FPS_CAP', type = 'int', desc = 'Computational FPS cap', min = 0},
+        {id = 'G_FPS_CAP', type = 'int', desc = 'Graphical FPS cap', min = 0},
+
+        {id = 'PRIORITY', type = 'select', desc = 'Process priority',
+            choices = dup_table({'REALTIME', 'HIGH', 'ABOVE_NORMAL', 'NORMAL', 'BELOW_NORMAL', 'IDLE'})
+        }
     },
     d_init = {
-        
+
     }
 }
 
@@ -29,6 +69,10 @@ function file_exists(path)
     if f ~= nil then io.close(f) return true
     else return false
     end
+end
+
+function font_exists(font)
+    return font ~= '' and file_exists('data/art/' .. s)
 end
 
 function settings_load()
@@ -158,14 +202,16 @@ end
 
 function settings_manager:get_value_string(opt)
     local value_str = '<unknown>'
-    if opt.type == 'int' or opt.type == 'string' then
-        value_str = opt.value
-    elseif opt.type == 'bool' then
-        value_str = opt.value:lower():gsub("^%l", string.upper)
-    elseif opt.type == 'select' then
-        for i, c in pairs(opt.choices) do
-            if c[1] == opt.value then
-                value_str = c[2]
+    if opt.value ~= nil then
+        if opt.type == 'int' or opt.type == 'string' then
+            value_str = opt.value
+        elseif opt.type == 'bool' then
+            value_str = opt.value:lower():gsub("^%l", string.upper)
+        elseif opt.type == 'select' then
+            for i, c in pairs(opt.choices) do
+                if c[1] == opt.value then
+                    value_str = c[2]
+                end
             end
         end
     end
