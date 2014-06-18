@@ -272,6 +272,21 @@ function settings_manager:onInput(keys)
             setting.value = (setting.value == 'YES' and 'NO') or 'YES'
             self:refresh_settings_list()
         end
+    elseif keys._MOUSE_L then
+        local mouse_y = df.global.gps.mouse_y
+        local list = nil
+        if page == 1 then
+            list = self.subviews.file_list
+        elseif page == 2 then
+            list = self.subviews.settings_list
+        end
+        if list then
+            local idx = mouse_y - list.frame.t
+            if idx <= #list:getChoices() and idx >= 1 then
+                list:setSelected(idx)
+                list:submit()
+            end
+        end
     end
     self.super.onInput(self, keys)
 end
