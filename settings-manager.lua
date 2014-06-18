@@ -11,7 +11,11 @@ function dup_table(tbl)
     return t
 end
 
-
+local nickname_choices = {
+    {'REPLACE_FIRST', 'Replace first name'},
+    {'CENTRALIZE', 'Display between first and last name'},
+    {'REPLACE_ALL', 'Replace entire name'}
+}
 SETTINGS = {
     init = {
         {id = 'SOUND', type = 'bool', desc = 'Enable sound'},
@@ -31,22 +35,22 @@ SETTINGS = {
             choices = {{'YES', 'Pad with black space'}, {'NO', 'Stretch tiles'}}
         },
         {id = 'GRAPHICS', type = 'bool', desc = 'Enable graphics'},
-        {id = 'GRAPHICS_WINDOWEDX', type = 'int', desc = '  Windowed X dimension (columns)', min = 80},
-        {id = 'GRAPHICS_WINDOWEDY', type = 'int', desc = '  Windowed Y dimension (rows)', min = 25},
-        {id = 'GRAPHICS_FONT', type = 'string', desc = '  Font (windowed)', validate = font_exists},
-        {id = 'GRAPHICS_FULLSCREENX', type = 'int', desc = '  Fullscreen X dimension (columns)', min = 0},
-        {id = 'GRAPHICS_FULLSCREENY', type = 'int', desc = '  Fullscreen Y dimension (rows)', min = 0},
-        {id = 'GRAPHICS_FULLFONT', type = 'string', desc = '  Font (fullscreen)', validate = font_exists},
+        {id = 'GRAPHICS_WINDOWEDX', type = 'int', desc = '>>Windowed X dimension (columns)', min = 80},
+        {id = 'GRAPHICS_WINDOWEDY', type = 'int', desc = '>>Windowed Y dimension (rows)', min = 25},
+        {id = 'GRAPHICS_FONT', type = 'string', desc = '>>Font (windowed)', validate = font_exists},
+        {id = 'GRAPHICS_FULLSCREENX', type = 'int', desc = '>>Fullscreen X dimension (columns)', min = 0},
+        {id = 'GRAPHICS_FULLSCREENY', type = 'int', desc = '>>Fullscreen Y dimension (rows)', min = 0},
+        {id = 'GRAPHICS_FULLFONT', type = 'string', desc = '>>Font (fullscreen)', validate = font_exists},
 
         {id = 'PRINT_MODE', type = 'select', desc = 'Print mode', choices = {
             {'2D', '2D (default)'}, {'2DSW', '2DSW'}, {'2DASYNC', '2DASYNC'},
             {'STANDARD', 'STANDARD (OpenGL)'}, {'ACCUM_BUFFER', 'ACCUM_BUFFER'},
             {'FRAME_BUFFER', 'FRAME_BUFFER'}, {'VBO', 'VBO'}
         }},
-        {id = 'SINGLE_BUFFER', type = 'bool', desc = '  Single-buffer'},
-        {id = 'ARB_SYNC', type = 'bool', desc = '  Enable ARB_sync (unstable)'},
-        {id = 'VSYNC', type = 'bool', desc = '  Enable vertical synchronization'},
-        {id = 'TEXTURE_PARAM', type = 'select', desc = '  Texture value behavior', choices = {
+        {id = 'SINGLE_BUFFER', type = 'bool', desc = '>>Single-buffer'},
+        {id = 'ARB_SYNC', type = 'bool', desc = '>>Enable ARB_sync (unstable)'},
+        {id = 'VSYNC', type = 'bool', desc = '>>Enable vertical synchronization'},
+        {id = 'TEXTURE_PARAM', type = 'select', desc = '>>Texture value behavior', choices = {
             {'NEAREST', 'Use nearest pixel'}, {'LINEAR', 'Average over adjacent pixels'}
         }},
 
@@ -58,9 +62,72 @@ SETTINGS = {
         {id = 'PRIORITY', type = 'select', desc = 'Process priority',
             choices = dup_table({'REALTIME', 'HIGH', 'ABOVE_NORMAL', 'NORMAL', 'BELOW_NORMAL', 'IDLE'})
         },
+
+        {id = 'ZOOM_SPEED', type = 'int', desc = 'Zoom speed', min = 1},
+        {id = 'MOUSE', type = 'bool', desc = 'Enable mouse'},
+        {id = 'MOUSE_PICTURE', type = 'bool', desc = '>>Use custom cursor'},
+
+        {id = 'KEY_HOLD_MS', type = 'int', desc = 'Key repeat delay (ms)'},
+        {id = 'KEY_REPEAT_ACCEL_LIMIT', type = 'int', desc = '>>Maximum key acceleration (multiple)', min = 1},
+        {id = 'KEY_REPEAT_ACCEL_START', type = 'int', desc = '>>Key acceleration delay', min = 1},
+        {id = 'MACRO_MS', type = 'int', desc = 'Macro instruction delay (ms)', min = 0},
+        {id = 'RECENTER_INTERFACE_SHUTDOWN_MS', type = 'int', desc = 'Delay after recentering (ms)', min = 0},
+
+        {id = 'COMPRESSED_SAVES', type = 'bool', desc = 'Enable compressed saves'},
     },
     d_init = {
+        {id = 'AUTOSAVE', type = 'select', desc = 'Autosave', choices = {
+            {'NONE', 'Disabled'}, {'SEASONAL', 'Seasonal'}, {'YEARLY', 'Yearly'}
+        }},
+        {id = 'AUTOBACKUP', type = 'bool', desc = 'Make backup copies of automatic saves'},
+        {id = 'AUTOSAVE_PAUSE', type = 'bool', desc = 'Pause after autosaving'},
+        {id = 'INITIAL_SAVE', type = 'bool', desc = 'Save after embarking'},
+        {id = 'EMBARK_WARNING_ALWAYS', type = 'bool', desc = 'Always prompt before embark'},
+        {id = 'SHOW_EMBARK_TUNNEL', type = 'select', desc = 'Local feature visibility', choices = {
+            {'ALWAYS', 'Always'}, {'FINDER', 'Only in site finder'}, {'NO', 'Never'}
+        }},
 
+        {id = 'TEMPERATURE', type = 'bool', desc = 'Enable temperature'},
+        {id = 'WEATHER', type = 'bool', desc = 'Enable weather'},
+        {id = 'INVADERS', type = 'bool', desc = 'Enable invaders'},
+        {id = 'CAVEINS', type = 'bool', desc = 'Enable cave-ins'},
+        {id = 'ARTIFACTS', type = 'bool', desc = 'Enable artifacts'},
+        {id = 'TESTING_ARENA', type = 'bool', desc = 'Enable object testing arena'},
+        {id = 'WALKING_SPREADS_SPATTER_DWF', type = 'bool', desc = 'Walking spreads spatter (fort mode)'},
+        {id = 'WALKING_SPREADS_SPATTER_ADV', type = 'bool', desc = 'Walking spreads spatter (adv mode)'},
+
+        {id = 'LOG_MAP_REJECTS', type = 'bool', desc = 'Log map rejects'},
+        {id = 'EMBARK_RECTANGLE', type = 'string', desc = 'Default embark size (x:y)', validate = function(s)
+            local parts = s:split(':')
+            if #parts == 2 then
+                a, b = tonumber(parts[1]), tonumber(parts[2])
+                if a~= nil and b ~= nil and a >= 2 and a <= 16 and b >= 2 and b <= 16 then
+                    return true
+                end
+            end
+            return false
+        end},
+        {id = 'IDLERS', type = 'select', desc = 'Idlers indicator (fortress mode)', choices = {
+            {'TOP', 'Top'}, {'BOTTOM', 'Bottom'}, {'OFF', 'Disabled'}
+        }},
+        {id = 'SET_LABOR_LISTS', type = 'select', desc = 'Automatically set labors', choices = {
+            {'SKILLS', 'By skill'}, {'BY_UNIT_TYPE', 'By unit type'}, {'NO', 'Disabled'}
+        }},
+        {id = 'POPULATION_CAP', type = 'int', desc = 'Population cap', min = 0},
+        {id = 'VARIED_GROUND_TILES', type = 'bool', desc = 'Varied ground tiles'},
+        {id = 'ENGRAVINGS_START_OBSCURED', type = 'bool', desc = 'Obscure engravings by default'},
+        {id = 'SHOW_IMP_QUALITY', type = 'bool', desc = 'Show item quality indicators'},
+        {id = 'SHOW_FLOW_AMOUNTS', type = 'select', desc = 'Liquid display', choices = {
+            {'NO', 'Symbols (' .. string.char(247) .. ')'}, {'YES', 'Numbers (1-7)'}
+        }},
+        {id = 'SHOW_ALL_HISTORY_IN_DWARF_MODE', type = 'bool', desc = 'Show all history (fortress mode)'},
+        {id = 'MORE', type = 'bool', desc = '"More" indicator (adventure mode)'},
+        {id = 'DISPLAY_LENGTH', type = 'bool', desc = '>>Announcement display length'},
+        {id = 'ADVENTURER_TRAPS', type = 'bool', desc = 'Enable traps in adventure mode'},
+        {id = 'ADVENTURER_ALWAYS_CENTER', type = 'bool', desc = 'Center screen on adventurer'},
+        {id = 'NICKNAME_DWARF', type = 'select', desc = 'Nickname behavior (fortress mode)', choices = nickname_choices},
+        {id = 'NICKNAME_ADVENTURE', type = 'select', desc = 'Nickname behavior (adventure mode)', choices = nickname_choices},
+        {id = 'NICKNAME_LEGENDS', type = 'select', desc = 'Nickname behavior (legends mode)', choices = nickname_choices},
     }
 }
 
@@ -246,7 +313,7 @@ function settings_manager:get_choice_strings(file)
     local settings = SETTINGS[file] or error('Invalid settings file: ' .. file)
     local choices = {}
     for i, opt in pairs(settings) do
-        table.insert(choices, ('%-40s %s'):format(opt.desc, self:get_value_string(opt)))
+        table.insert(choices, ('%-40s %s'):format(opt.desc:gsub('>>', string.char(192) .. ' '), self:get_value_string(opt)))
     end
     return choices
 end
@@ -257,9 +324,10 @@ end
 
 function settings_manager:edit_setting(index, choice)
     local setting = SETTINGS[self.file][index]
+    local desc = setting.desc:gsub('>>', '')
     if setting.type == 'bool' then
         dialog.showListPrompt(
-            setting.desc,
+            desc,
             nil,
             COLOR_WHITE,
             {'Yes', 'No'},
@@ -277,7 +345,7 @@ function settings_manager:edit_setting(index, choice)
             text = text:sub(2)
         end
         dialog.showInputPrompt(
-            setting.desc,
+            desc,
             text,
             COLOR_WHITE,
             '',
@@ -285,7 +353,7 @@ function settings_manager:edit_setting(index, choice)
         )
     elseif setting.type == 'string' then
         dialog.showInputPrompt(
-            setting.desc,
+            desc,
             nil,
             COLOR_WHITE,
             setting.value,
@@ -297,7 +365,7 @@ function settings_manager:edit_setting(index, choice)
             table.insert(choices, c[2])
         end
         dialog.showListPrompt(
-            setting.desc,
+            desc,
             nil,
             COLOR_WHITE,
             choices,
