@@ -11,8 +11,8 @@ SETTINGS = {
         {id = 'WINDOWED', type = 'select', desc = 'Start in windowed mode',
             choices = {{'YES', 'Yes'}, {'PROMPT', 'Prompt'}, {'NO', 'No'}}
         },
-        {id = 'WINDOWEDX', type = 'int', desc = 'Window X dimension (rows)'},
-        {id = 'WINDOWEDY', type = 'int', desc = 'Window Y dimension (columns)'},
+        {id = 'WINDOWEDX', type = 'int', desc = 'Window X dimension (columns)', min = 80},
+        {id = 'WINDOWEDY', type = 'int', desc = 'Window Y dimension (rows)', min = 25},
         {id = 'RESIZABLE', type = 'bool', desc = 'Allow resizing window'},
         {id = 'FONT', type = 'string', desc = 'Font (windowed)', validate = function(s)
             return #s > 0 and file_exists('data/art/' .. s)
@@ -48,7 +48,18 @@ end
 
 function settings_save()
     for file, settings in pairs(SETTINGS) do
-        
+        local path = 'data/init/' .. file .. '.txt'
+        local contents = io.open(path):read('*all')
+        for i, s in pairs(settings) do
+            local a, b = contents:find('[' .. s.id .. ':', 1, true)
+            if a ~= nil then
+                local e = contents:find(']', b, true)
+                contents = contents:sub(1, b) .. s.value .. contents:sub(e)
+            else
+                return false, 'Could not find ' .. s.id .. ' in ' .. file .. '.txt'
+            end
+        end
+        io.open(path, 'w'):write(contents)
     end
 end
 
@@ -138,6 +149,10 @@ function settings_manager:select_file(index, choice)
     self.frame_title = choice.text
     self.file = choice.text:sub(1, choice.text:find('.', 1, true) - 1)
     self.subviews.pages:setSelected(2)
+    self:refresh_settings_list()
+end
+
+function settings_manager:refresh_settings_list()
     self.subviews.settings_list:setChoices(self:get_choice_strings(self.file))
 end
 
@@ -226,6 +241,7 @@ function settings_manager:commit_edit(index, value)
             value = 'NO'
         end
     elseif setting.type == 'int' then
+        if value == '' then return false end
         value = tonumber(value)
         if value == nil or value ~= math.floor(value) then
             dialog.showValidationError('Must be a number!')
@@ -248,6 +264,9 @@ function settings_manager:commit_edit(index, value)
         value = setting.choices[value][1]
     end
     print(index, setting.id .. ' =', value)
+    SETTINGS[self.file][index].value = value
+    settings_save()
+    self:refresh_settings_list()
 end
 
 if dfhack.gui.getCurFocus() == 'dfhack/lua' then
