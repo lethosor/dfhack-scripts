@@ -3,12 +3,25 @@ local gui = require "gui"
 local dialog = require 'gui.dialogs'
 local widgets = require "gui.widgets"
 
+settings = {
+    color = COLOR_GREEN,
+    highlightcolor = COLOR_LIGHTGREEN,
+}
+
 function dup_table(tbl)
     local t = {}
     for i = 1, #tbl do
         table.insert(t, {tbl[i], tbl[i]})
     end
     return t
+end
+
+function font_exists(font)
+    if font ~= '' and file_exists('data/art/' .. font) then
+        return true
+    else
+        return false, '"' .. font .. '" does not exist'
+    end
 end
 
 local nickname_choices = {
@@ -19,7 +32,7 @@ local nickname_choices = {
 SETTINGS = {
     init = {
         {id = 'SOUND', type = 'bool', desc = 'Enable sound'},
-        {id = 'VOLUME', type = 'int', desc = 'Volume', min = 0, max = 255},
+        {id = 'VOLUME', type = 'int', desc = '>>Volume', min = 0, max = 255},
         {id = 'INTRO', type = 'bool', desc = 'Display intro movies'},
         {id = 'WINDOWED', type = 'select', desc = 'Start in windowed mode',
             choices = {{'YES', 'Yes'}, {'PROMPT', 'Prompt'}, {'NO', 'No'}}
@@ -138,10 +151,6 @@ function file_exists(path)
     end
 end
 
-function font_exists(font)
-    return font ~= '' and file_exists('data/art/' .. s)
-end
-
 function settings_load()
     for file, settings in pairs(SETTINGS) do
         local f = io.open('data/init/' .. file .. '.txt')
@@ -195,8 +204,8 @@ function settings_manager:init()
     self:reset()
     local file_list = widgets.List{
         choices = {"init.txt", "d_init.txt"},
-        text_pen = {fg = COLOR_GREEN},
-        cursor_pen = {fg = COLOR_LIGHTGREEN},
+        text_pen = {fg = settings.color},
+        cursor_pen = {fg = settings.highlightcolor},
         on_submit = self:callback("select_file"),
         frame = {l = 1, t = 3},
         view_id = "file_list",
@@ -218,8 +227,8 @@ function settings_manager:init()
     }
     local settings_list = widgets.List{
         choices = {},
-        text_pen = {fg = COLOR_GREEN},
-        cursor_pen = {fg = COLOR_LIGHTGREEN},
+        text_pen = {fg = settings.color},
+        cursor_pen = {fg = settings.highlightcolor},
         on_submit = self:callback("edit_setting"),
         frame = {l = 1, t = 1, b = 3},
         view_id = "settings_list",
@@ -413,9 +422,12 @@ function settings_manager:commit_edit(index, value)
             return false
         end
     elseif setting.type == 'string' then
-        if setting.validate and not setting.validate(value) then
-            dialog.showValidationError('Invalid value')
-            return false
+        if setting.validate then
+            res, err = setting.validate(value)
+            if not res then
+                dialog.showValidationError(err)
+                return false
+            end
         end
     elseif setting.type == 'select' then
         value = setting.choices[value][1]
