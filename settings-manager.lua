@@ -134,8 +134,8 @@ SETTINGS = {
             {'NO', 'Symbols (' .. string.char(247) .. ')'}, {'YES', 'Numbers (1-7)'}
         }},
         {id = 'SHOW_ALL_HISTORY_IN_DWARF_MODE', type = 'bool', desc = 'Show all history (fortress mode)'},
-        {id = 'MORE', type = 'bool', desc = '"More" indicator (adventure mode)'},
-        {id = 'DISPLAY_LENGTH', type = 'bool', desc = '>>Announcement display length'},
+        {id = 'DISPLAY_LENGTH', type = 'int', desc = 'Announcement display length (adv mode)', min = 1},
+        {id = 'MORE', type = 'bool', desc = '>>"More" indicator'},
         {id = 'ADVENTURER_TRAPS', type = 'bool', desc = 'Enable traps in adventure mode'},
         {id = 'ADVENTURER_ALWAYS_CENTER', type = 'bool', desc = 'Center screen on adventurer'},
         {id = 'NICKNAME_DWARF', type = 'select', desc = 'Nickname behavior (fortress mode)', choices = nickname_choices},
