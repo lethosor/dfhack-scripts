@@ -117,8 +117,10 @@ SETTINGS = {
                 if a~= nil and b ~= nil and a >= 2 and a <= 16 and b >= 2 and b <= 16 then
                     return true
                 end
+            else
+                return false, 'Must be in format "x:y"'
             end
-            return false
+            return false, 'Dimensions must be integers\nbetween 2 and 16'
         end},
         {id = 'IDLERS', type = 'select', desc = 'Idlers indicator (fortress mode)', choices = {
             {'TOP', 'Top'}, {'BOTTOM', 'Bottom'}, {'OFF', 'Disabled'}
