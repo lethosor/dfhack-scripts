@@ -61,8 +61,6 @@ load_screen = defclass(load_screen, gui.Screen)
 
 function load_screen:init()
     self.saves = nil
-    self.old_fps = df.global.gps.display_frames
-    df.global.gps.display_frames = 0
     self:reset()
 end
 
@@ -230,10 +228,6 @@ function load_screen:load_game(folder_name)
     parent.sel_idx = 0
     parent.loading = 1
     self:dismiss()
-end
-
-function load_screen:onDismiss()
-    df.global.gps.display_frames = self.old_fps
 end
 
 load_screen_options = gui.FramedScreen{
