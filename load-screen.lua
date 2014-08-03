@@ -222,12 +222,17 @@ function load_screen:scroll(dist)
 end
 
 function load_screen:load_game(folder_name)
-    if not folder_name then return end
+    if not folder_name then return false end
     parent = self._native.parent
-    parent.saves[0].folder_name = folder_name
-    parent.sel_idx = 0
-    parent.loading = 1
-    self:dismiss()
+    for i = 0, #parent.saves - 1 do
+        if parent.saves[i].folder_name == folder_name then
+            parent.sel_idx = i
+            self:dismiss()
+            gui.simulateInput(parent, {df.interface_key.SELECT})
+            return true
+        end
+    end
+    return false
 end
 
 load_screen_options = gui.FramedScreen{
@@ -238,15 +243,9 @@ load_screen_options = gui.FramedScreen{
 }
 
 function load_screen_options:onRenderBody(painter)
-    if self.load_state ~= 0 then
-        dfhack.screen.clear()
-        paintString({ch=' ', fg=COLOR_WHITE, bg=COLOR_BLACK}, 2, 2, "Loading game...")
-    end
-    if self.load_state == 1 then
-        self.load_state = 2
-    elseif self.load_state == 2 then
+    if self.loading == true then
+        self.loading = false
         self.parent:load_game(self.save.folder_name)
-        self.load_state = 0
         self:dismiss()
         return
     end
@@ -260,7 +259,7 @@ function load_screen_options:onInput(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
     elseif keys.SELECT then
-        self.load_state = 1
+        self.loading = true
     end
 end
 
@@ -269,16 +268,15 @@ function load_screen_options:display(parent, save)
     self.parent = parent
     self.save = save
     self.frame_title = "Load game: " .. self.save.folder_name
-    self.load_state = 0
     self:show()
 end
 
-local prev_focus
 function init()
     prev_focus = ''
     dfhack.onStateChange.load_screen = function()
         cur_focus = dfhack.gui.getCurFocus()
-        if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua' then
+        print(cur_focus)
+        if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua' and prev_focus ~= 'loadgame' and enabled then
             load_screen():show()
         end
         prev_focus = cur_focus
@@ -287,4 +285,12 @@ end
 if initialized == nil then
     init()
     initialized = true
+    enabled = true
+end
+
+args = {...}
+if #args == 1 then
+    if args[1] == 'enable' then enabled = true
+    elseif args[1] == 'disable' then enabled = false
+    end
 end
