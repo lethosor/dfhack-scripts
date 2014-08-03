@@ -77,6 +77,8 @@ load_screen = defclass(load_screen, gui.Screen)
 
 function load_screen:init()
     self.saves = nil
+    self.old_fps = df.global.gps.display_frames
+    df.global.gps.display_frames = 0
     self:reset()
 end
 
@@ -251,6 +253,10 @@ function load_screen:load_game(folder_name)
     return false
 end
 
+function load_screen:onDismiss()
+    df.global.gps.display_frames = self.old_fps
+end
+
 load_screen_options = gui.FramedScreen{
     frame_width = 40,
     frame_height = 6,
@@ -294,8 +300,6 @@ function load_screen_options:onInput(keys)
             self.save.folder_name .. '-copy',
             'do_copy'
         )
-    else
-        printall(keys)
     end
 end
 
