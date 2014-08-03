@@ -1,7 +1,12 @@
 -- load-screen
 
 local gui = require 'gui'
+local dialog = require 'gui.dialogs'
 local widgets = require 'gui.widgets'
+
+function dialog.showError(title, text)
+    dialog.showMessage(title, text, COLOR_RED)
+end
 
 function gui.Painter:keyString(key, str)
     self:string(gui.getKeyDisplay(df.interface_key[key]), COLOR_LIGHTRED)
@@ -56,6 +61,17 @@ function string:split(sep)
     self:gsub(pattern, function(c) fields[#fields+1] = c end)
     return fields
 end
+
+--CustomInputBox = defclass(CustomInputBox, dialog.InputBox)
+--function CustomInputBox:init(info)
+--    CustomInputBox.super.init(self, info)
+--    local mw, mh = CustomInputBox.super.getWantedFrameSize(self)
+--    self.frame_size = {info.frame_width or mw, info.frame_height or mh}
+--end
+--function CustomInputBox:getWantedFrameSize()
+--    CustomInputBox.super.getWantedFrameSize(self)
+--    return self.frame_size[1], self.frame_size[2]
+--end
 
 load_screen = defclass(load_screen, gui.Screen)
 
@@ -249,6 +265,8 @@ function load_screen_options:onRenderBody(painter)
         self:dismiss()
         return
     end
+    painter:seek(0, 0)
+    painter:keyString('CUSTOM_R', 'Rename')
     painter:seek(0, self.frame_height - 1)
     painter:keyString('LEAVESCREEN', 'Cancel')
     painter:seek(self.frame_width - keyStringLength('SELECT', 'Play now'), self.frame_height - 1)
@@ -260,7 +278,36 @@ function load_screen_options:onInput(keys)
         self:dismiss()
     elseif keys.SELECT then
         self.loading = true
+    elseif keys.CUSTOM_R then
+        self:rename_dialog()
     end
+end
+
+function load_screen_options:rename_dialog()
+    dialog.InputBox{
+        frame_title = 'Rename "' .. self.save.folder_name .. '"',
+        text = 'New folder name:',
+        text_pen = COLOR_WHITE,
+        input = self.save.folder_name,
+        on_input = self:callback('do_rename'),
+        frame_width = self.frame_width,
+        frame_height = self.frame_height,
+    }:show()
+end
+
+function load_screen_options:do_rename(new_folder)
+    old_path = 'data/save/' .. self.save.folder_name
+    new_path = 'data/save/' .. new_folder
+    if not dfhack.filesystem.isdir(old_path) then
+        dialog.showError('Folder missing', 'Cannot find ' .. old_path)
+    end
+    if dfhack.filesystem.exists(new_path) then
+        dialog.showError('Destination folder exists', new_path .. ' already exists!')
+        return false
+    end
+    os.rename('data/save/' .. self.save.folder_name, new_path)
+    self.save.folder_name = new_folder
+    return true;
 end
 
 function load_screen_options:display(parent, save)
@@ -275,7 +322,6 @@ function init()
     prev_focus = ''
     dfhack.onStateChange.load_screen = function()
         cur_focus = dfhack.gui.getCurFocus()
-        print(cur_focus)
         if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua' and prev_focus ~= 'loadgame' and enabled then
             load_screen():show()
         end
