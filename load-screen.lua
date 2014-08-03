@@ -283,6 +283,10 @@ function load_screen_options:onInput(keys)
     end
 end
 
+function load_screen_options:refresh()
+    self.frame_title = "Load game: " .. self.save.folder_name
+end
+
 function load_screen_options:rename_dialog()
     dialog.InputBox{
         frame_title = 'Rename "' .. self.save.folder_name .. '"',
@@ -307,14 +311,15 @@ function load_screen_options:do_rename(new_folder)
     end
     os.rename('data/save/' .. self.save.folder_name, new_path)
     self.save.folder_name = new_folder
-    return true;
+    self:refresh()
+    return true
 end
 
 function load_screen_options:display(parent, save)
     if not save then return end
     self.parent = parent
     self.save = save
-    self.frame_title = "Load game: " .. self.save.folder_name
+    self:refresh()
     self:show()
 end
 
