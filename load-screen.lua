@@ -5,7 +5,7 @@ local dialog = require 'gui.dialogs'
 local widgets = require 'gui.widgets'
 
 function dialog.showError(title, text)
-    dialog.showMessage(title, text, COLOR_RED)
+    dialog.showMessage(title, text, COLOR_LIGHTRED)
 end
 
 function gui.Painter:keyString(key, str)
@@ -267,6 +267,8 @@ function load_screen_options:onRenderBody(painter)
     end
     painter:seek(0, 0)
     painter:keyString('CUSTOM_R', 'Rename')
+    painter:seek(0, 1)
+    painter:keyString('CUSTOM_C', 'Copy')
     painter:seek(0, self.frame_height - 1)
     painter:keyString('LEAVESCREEN', 'Cancel')
     painter:seek(self.frame_width - keyStringLength('SELECT', 'Play now'), self.frame_height - 1)
@@ -279,7 +281,21 @@ function load_screen_options:onInput(keys)
     elseif keys.SELECT then
         self.loading = true
     elseif keys.CUSTOM_R then
-        self:rename_dialog()
+        self:dialog(
+            'Rename "' .. self.save.folder_name .. '"',
+            "New folder name:",
+            self.save.folder_name,
+            'do_rename'
+        )
+    elseif keys.CUSTOM_C then
+        self:dialog(
+            'Copy "' .. self.save.folder_name .. '"',
+            "New folder name:",
+            self.save.folder_name .. '-copy',
+            'do_copy'
+        )
+    else
+        printall(keys)
     end
 end
 
@@ -287,32 +303,45 @@ function load_screen_options:refresh()
     self.frame_title = "Load game: " .. self.save.folder_name
 end
 
-function load_screen_options:rename_dialog()
+function load_screen_options:dialog(title, text, input, callback)
     dialog.InputBox{
-        frame_title = 'Rename "' .. self.save.folder_name .. '"',
-        text = 'New folder name:',
+        frame_title = title,
+        text = text,
         text_pen = COLOR_WHITE,
-        input = self.save.folder_name,
-        on_input = self:callback('do_rename'),
+        input = input,
+        on_input = self:callback(callback),
         frame_width = self.frame_width,
         frame_height = self.frame_height,
     }:show()
 end
 
-function load_screen_options:do_rename(new_folder)
-    old_path = 'data/save/' .. self.save.folder_name
+function load_screen_options:validate_folders(old_folder, new_folder)
+    old_path = 'data/save/' .. old_folder
     new_path = 'data/save/' .. new_folder
     if not dfhack.filesystem.isdir(old_path) then
         dialog.showError('Folder missing', 'Cannot find ' .. old_path)
+        return false
     end
     if dfhack.filesystem.exists(new_path) then
         dialog.showError('Destination folder exists', new_path .. ' already exists!')
         return false
     end
-    os.rename('data/save/' .. self.save.folder_name, new_path)
+    return true, old_path, new_path
+end
+
+function load_screen_options:do_rename(new_folder)
+    ok, old_path, new_path = self:validate_folders(self.save.folder_name, new_folder)
+    if not ok then return false end
+    os.rename(old_path, new_path)
     self.save.folder_name = new_folder
     self:refresh()
     return true
+end
+
+function load_screen_options:do_copy(new_folder)
+    ok, old_path, new_path = self:validate_folders(self.save.folder_name, new_folder)
+    if not ok then return false end
+
 end
 
 function load_screen_options:display(parent, save)
