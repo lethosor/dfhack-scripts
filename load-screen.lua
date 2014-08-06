@@ -5,6 +5,7 @@ local dialog = require 'gui.dialogs'
 local widgets = require 'gui.widgets'
 
 function dialog.showError(title, text)
+    if text == nil then title, text = 'Error', title end
     dialog.showMessage(title, text, COLOR_LIGHTRED)
 end
 
@@ -314,12 +315,20 @@ function load_screen_options:dialog(title, text, input, callback)
         text_pen = COLOR_WHITE,
         input = input,
         on_input = self:callback(callback),
-        frame_width = self.frame_width,
+        frame_width = self.frame_width - 2,
         frame_height = self.frame_height,
     }:show()
 end
 
 function load_screen_options:validate_folders(old_folder, new_folder)
+    if old_folder == new_folder then
+        -- no change - treat as ''esc', fail silently
+        return false
+    end
+    if (old_folder .. new_folder):match('[/\\:]') ~= nil then
+        dialog.showError('Invalid path!')
+        return false
+    end
     old_path = 'data/save/' .. old_folder
     new_path = 'data/save/' .. new_folder
     if not dfhack.filesystem.isdir(old_path) then
@@ -336,7 +345,10 @@ end
 function load_screen_options:do_rename(new_folder)
     ok, old_path, new_path = self:validate_folders(self.save.folder_name, new_folder)
     if not ok then return false end
-    os.rename(old_path, new_path)
+    if not os.rename(old_path, new_path) then
+        dialog.showError('Rename failed!')
+        return
+    end
     self.save.folder_name = new_folder
     self:refresh()
     return true
