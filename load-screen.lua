@@ -243,15 +243,12 @@ end
 function load_screen:load_game(folder_name)
     if not folder_name then return false end
     parent = self._native.parent
-    for i = 0, #parent.saves - 1 do
-        if parent.saves[i].folder_name == folder_name then
-            parent.sel_idx = i
-            self:dismiss()
-            gui.simulateInput(parent, {df.interface_key.SELECT})
-            return true
-        end
-    end
-    return false
+    if #parent.saves < 1 then return false end
+    parent.sel_idx = 0
+    parent.saves[0].folder_name = folder_name
+    self:dismiss()
+    gui.simulateInput(parent, {df.interface_key.SELECT})
+    return true
 end
 
 function load_screen:onDismiss()
