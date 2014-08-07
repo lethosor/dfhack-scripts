@@ -61,7 +61,7 @@ end
 function viewscreen_test_backspace:onRender()
     dfhack.screen.clear()
     if self.completed then
-        text(0, "Completed!")
+        text(0, "Completed! " .. VERSION)
         for i, test in pairs(self.tests) do
             text(i, 'Test ' .. i .. test.id .. ' : ' .. test.result)
         end
@@ -92,10 +92,10 @@ function viewscreen_test_backspace:onInput(keys)
             local keycode = df.interface_key[k]
             if keycode ~= nil then
                 keycode = keycode - key_offset
-                if self.cur_test.ch(keycode) then
-                    self.entry = self.entry .. string.char(keycode)
-                elseif self.cur_test.bs(keycode) and #self.entry > 0 then
+                if self.cur_test.bs(keycode) and #self.entry > 0 then
                     self.entry = self.entry:sub(1, #self.entry - 1)
+                elseif self.cur_test.ch(keycode) then
+                    self.entry = self.entry .. string.char(keycode)
                 end
             end
         end
