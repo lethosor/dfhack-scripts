@@ -204,7 +204,7 @@ function load_screen:onInput(keys)
             self.opts.filter = self.opts.filter:sub(0, -2)
         elseif keys._STRING then
             self.opts.filter = self.opts.filter .. string.char(keys._STRING)
-        elseif keys.CURSOR_DOWN or keys.CURSOR_UP then
+        elseif keys.STANDARDSCROLL_DOWN or keys.STANDARDSCROLL_UP then
             self.search_active = false
             self:onInput(keys)
         elseif keys.CUSTOM_ALT_C then
@@ -217,9 +217,9 @@ function load_screen:onInput(keys)
         dfhack.screen.dismiss(self._native.parent)
     elseif keys.SELECT then
         load_screen_options:display(self, self:get_saves()[self.sel_idx])
-    elseif keys.CURSOR_DOWN then
+    elseif keys.STANDARDSCROLL_DOWN then
         self:scroll(1)
-    elseif keys.CURSOR_UP then
+    elseif keys.STANDARDSCROLL_UP then
         self:scroll(-1)
     elseif keys.CUSTOM_B then
         self.opts.backups = not self.opts.backups
