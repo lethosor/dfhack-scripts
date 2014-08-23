@@ -181,7 +181,7 @@ function load_screen:onRender()
     end
     label = self.opts.filter
     if #label > 20 then
-        label = '\027' .. label:sub(-20)
+        label = '\027' .. label:sub(-20 + 1)
     end
     if self.search_active then
         paintKeyString(1, rows - 1, 'CUSTOM_S', label, {key_color = COLOR_RED})
