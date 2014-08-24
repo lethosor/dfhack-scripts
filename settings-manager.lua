@@ -3,12 +3,14 @@ local gui = require "gui"
 local dialog = require 'gui.dialogs'
 local widgets = require "gui.widgets"
 
-settings = {
+-- settings-manager display settings
+ui_settings = {
     color = COLOR_GREEN,
     highlightcolor = COLOR_LIGHTGREEN,
 }
 
 function dup_table(tbl)
+    -- Given {a, b, c}, returns {{a, a}, {b, b}, {c, c}}
     local t = {}
     for i = 1, #tbl do
         table.insert(t, {tbl[i], tbl[i]})
@@ -16,6 +18,7 @@ function dup_table(tbl)
     return t
 end
 
+-- Validation, used in FONT, FULLFONT, GRAPHICS_FONT, and GRAPHICS_FULLFONT
 function font_exists(font)
     if font ~= '' and file_exists('data/art/' .. font) then
         return true
@@ -24,11 +27,38 @@ function font_exists(font)
     end
 end
 
+-- Validation, used in NICKNAME_DWARF, NICKNAME_ADVENTURE, and NICKNAME_LEGENDS
 local nickname_choices = {
     {'REPLACE_FIRST', 'Replace first name'},
     {'CENTRALIZE', 'Display between first and last name'},
     {'REPLACE_ALL', 'Replace entire name'}
 }
+--[[
+Setting descriptions
+
+Settings listed MUST exist, but settings not listed will be ignored
+
+Fields:
+- id: "Tag name" in file (e.g. [id:params])
+- type: Data type (used for entry). Valid choices:
+  - 'bool' - boolean - "Yes" and "No", saved as "YES" and "NO"
+  - 'int' - integer
+  - 'string'
+  - 'select' - string input restricted to the values given in the 'choices' field
+- desc: Human-readable description
+    '>>' is converted to string.char(192) .. ' '
+- min: Minimum
+    Requires type 'int'
+- max: Maximum
+    Requires type 'int'
+- choices: A list of valid options
+    Requires type 'select'
+- validate: Validation function - recieves string as input, should return true or false
+    Requires type 'string'
+
+Reserved field names:
+- value (set to current setting value when settings are loaded)
+]]
 SETTINGS = {
     init = {
         {id = 'SOUND', type = 'bool', desc = 'Enable sound'},
@@ -206,8 +236,8 @@ function settings_manager:init()
     self:reset()
     local file_list = widgets.List{
         choices = {"init.txt", "d_init.txt"},
-        text_pen = {fg = settings.color},
-        cursor_pen = {fg = settings.highlightcolor},
+        text_pen = {fg = ui_settings.color},
+        cursor_pen = {fg = ui_settings.highlightcolor},
         on_submit = self:callback("select_file"),
         frame = {l = 1, t = 3},
         view_id = "file_list",
@@ -229,8 +259,8 @@ function settings_manager:init()
     }
     local settings_list = widgets.List{
         choices = {},
-        text_pen = {fg = settings.color},
-        cursor_pen = {fg = settings.highlightcolor},
+        text_pen = {fg = ui_settings.color},
+        cursor_pen = {fg = ui_settings.highlightcolor},
         on_submit = self:callback("edit_setting"),
         frame = {l = 1, t = 1, b = 3},
         view_id = "settings_list",
