@@ -18,6 +18,17 @@ function dup_table(tbl)
     return t
 end
 
+function set_variable(name, value)
+    -- Sets a global variable specified by 'name' to 'value'
+    local parts = name:split('.')
+    local last_field = table.remove(parts, #parts)
+    parent = _G
+    for _, field in pairs(parts) do
+        parent = parent[field]
+    end
+    parent[last_field] = value
+end
+
 -- Validation, used in FONT, FULLFONT, GRAPHICS_FONT, and GRAPHICS_FULLFONT
 function font_exists(font)
     if font ~= '' and file_exists('data/art/' .. font) then
@@ -47,14 +58,20 @@ Fields:
   - 'select' - string input restricted to the values given in the 'choices' field
 - desc: Human-readable description
     '>>' is converted to string.char(192) .. ' '
-- min: Minimum
+- min (optional): Minimum
     Requires type 'int'
-- max: Maximum
+- max (optional): Maximum
     Requires type 'int'
 - choices: A list of valid options
     Requires type 'select'
-- validate: Validation function - recieves string as input, should return true or false
+    Each choice should be a table of the following format:
+    { "RAW_VALUE", "Human-readable value" [, "Enum value"] }
+- validate (optional): Function that recieves string as input, should return true or false
     Requires type 'string'
+- in_game (optional): Value to modify to change setting in-game (as a string)
+    For type 'select', requires 'enum' to be specified
+- enum: Enum to convert string setting values to in-game (numeric) values
+    Uses "Enum value" specified in 'choices', or "RAW_VALUE" if not specified
 
 Reserved field names:
 - value (set to current setting value when settings are loaded)
@@ -98,7 +115,10 @@ SETTINGS = {
         }},
 
         {id = 'TOPMOST', type = 'bool', desc = 'Make DF topmost window'},
-        {id = 'FPS', type = 'bool', desc = 'Show FPS indicator'},
+        {id = 'FPS', type = 'bool', desc = 'Show FPS indicator',
+            in_game = 'df.global.gps.display_frames',
+            in_game_type = 'int',
+        },
         {id = 'FPS_CAP', type = 'int', desc = 'Computational FPS cap', min = 0},
         {id = 'G_FPS_CAP', type = 'int', desc = 'Graphical FPS cap', min = 0},
 
@@ -430,13 +450,22 @@ function settings_manager:edit_setting(index, choice)
     end
 end
 
+local bool_value_map = {
+    YES = {bool = true, int = 1},
+    NO = {bool = false, int = 0},
+}
 function settings_manager:commit_edit(index, value)
     local setting = self:get_selected_setting()
     if setting.type == 'bool' then
+        print(setting.desc)
         if value == 1 then
             value = 'YES'
         else
             value = 'NO'
+        end
+        if setting.in_game ~= nil then
+            set_variable(setting.in_game, bool_value_map[value][setting.in_game_type or 'bool'])
+            print(setting.in_game)
         end
     elseif setting.type == 'int' then
         if value == '' then return false end
