@@ -239,6 +239,7 @@ function settings_save()
         f:write(contents)
         f:close()
     end
+    print('Saved settings')
 end
 
 function dialog.showValidationError(str)
@@ -324,14 +325,15 @@ function settings_manager:onInput(keys)
         elseif keys.CURSOR_LEFT_FAST then incr = -10
         end
         local setting = self:get_selected_setting()
+        val = setting.value
         if setting.type == 'int' then
-            setting.value = setting.value + incr
-            if setting.min ~= nil then setting.value = math.max(setting.min, setting.value) end
-            if setting.max ~= nil then setting.value = math.min(setting.max, setting.value) end
-            self:refresh_settings_list()
+            val = val + incr
+            if setting.min ~= nil then val = math.max(setting.min, val) end
+            if setting.max ~= nil then val = math.min(setting.max, val) end
+            self:commit_edit(nil, val)
         elseif setting.type == 'bool' then
-            setting.value = (setting.value == 'YES' and 'NO') or 'YES'
-            self:refresh_settings_list()
+            val = (val == 'YES' and 0) or 1
+            self:commit_edit(nil, val)
         end
     elseif keys._MOUSE_L then
         local mouse_y = df.global.gps.mouse_y
@@ -457,7 +459,6 @@ local bool_value_map = {
 function settings_manager:commit_edit(index, value)
     local setting = self:get_selected_setting()
     if setting.type == 'bool' then
-        print(setting.desc)
         if value == 1 then
             value = 'YES'
         else
@@ -465,7 +466,6 @@ function settings_manager:commit_edit(index, value)
         end
         if setting.in_game ~= nil then
             set_variable(setting.in_game, bool_value_map[value][setting.in_game_type or 'bool'])
-            print(setting.in_game)
         end
     elseif setting.type == 'int' then
         if value == '' then return false end
