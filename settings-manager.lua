@@ -119,8 +119,12 @@ SETTINGS = {
             in_game = 'df.global.gps.display_frames',
             in_game_type = 'int',
         },
-        {id = 'FPS_CAP', type = 'int', desc = 'Computational FPS cap', min = 0},
-        {id = 'G_FPS_CAP', type = 'int', desc = 'Graphical FPS cap', min = 0},
+        {id = 'FPS_CAP', type = 'int', desc = 'Computational FPS cap', min = 1,
+            in_game = 'df.global.enabler.fps', -- can't be set to 0
+        },
+        {id = 'G_FPS_CAP', type = 'int', desc = 'Graphical FPS cap', min = 1,
+            in_game = 'df.global.enabler.gfps',
+        },
 
         {id = 'PRIORITY', type = 'select', desc = 'Process priority',
             choices = dup_table({'REALTIME', 'HIGH', 'ABOVE_NORMAL', 'NORMAL', 'BELOW_NORMAL', 'IDLE'})
@@ -481,6 +485,9 @@ function settings_manager:commit_edit(index, value)
         if setting.max and value > setting.max then
             dialog.showValidationError(value .. ' is too high!')
             return false
+        end
+        if setting.in_game ~= nil then
+            set_variable(setting.in_game, value)
         end
     elseif setting.type == 'string' then
         if setting.validate then
