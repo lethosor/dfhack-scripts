@@ -25,7 +25,7 @@ function check_click()
         end
     end
     if s ~= '' then
-        s = ('x = %2.i, y = %2.i  '):format(df.global.gps.mouse_x, df.global.gps.mouse_y) .. s
+        s = ('x = %2i, y = %2i  '):format(df.global.gps.mouse_x, df.global.gps.mouse_y) .. s
         log(s)
     end
     if active then set_timeout() end
