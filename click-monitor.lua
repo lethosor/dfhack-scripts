@@ -8,9 +8,10 @@ function set_timeout()
     dfhack.timeout(1, 'frames', check_click)
 end
 
-function log(s)
+function log(s, color)
     -- prevent duplicate output
     if s ~= last_msg then
+        dfhack.color(color)
         print(s)
         last_msg = s
     end
@@ -18,6 +19,7 @@ end
 
 function check_click()
     local s = ''
+    local color = COLOR_RESET
     for _, attr in pairs({'mouse_lbut', 'mouse_rbut', 'mouse_lbut_down',
         'mouse_rbut_down', 'mouse_lbut_lift', 'mouse_rbut_lift'}) do
         if df.global.enabler[attr] ~= 0 then
@@ -26,7 +28,11 @@ function check_click()
     end
     if s ~= '' then
         s = ('x = %2i, y = %2i  '):format(df.global.gps.mouse_x, df.global.gps.mouse_y) .. s
-        log(s)
+        if s:find('rbut') then
+            color = (s:find('lbut') and COLOR_GREEN) or COLOR_BLUE
+        end
+        if df.global.gps.mouse_x == -1 then color = COLOR_RED end
+        log(s, color)
     else
         last_msg = nil
     end
