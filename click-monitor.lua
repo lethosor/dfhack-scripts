@@ -18,11 +18,14 @@ end
 
 function check_click()
     local s = ''
-    if df.global.enabler.mouse_lbut ~= 0 then s = s .. '<left> ' end
-    if df.global.enabler.mouse_rbut ~= 0 then s = s .. '<right> ' end
+    for _, attr in pairs({'mouse_lbut', 'mouse_rbut', 'mouse_lbut_down',
+        'mouse_rbut_down', 'mouse_lbut_lift', 'mouse_rbut_lift'}) do
+        if df.global.enabler[attr] ~= 0 then
+            s = s .. '[' .. attr .. ']  '
+        end
+    end
     if s ~= '' then
-        s = ('%-15s'):format(s) ..
-            ('x = %2.i, y = %2.i'):format(df.global.gps.mouse_x, df.global.gps.mouse_y)
+        s = ('x = %2.i, y = %2.i  '):format(df.global.gps.mouse_x, df.global.gps.mouse_y) .. s
         log(s)
     end
     if active then set_timeout() end
