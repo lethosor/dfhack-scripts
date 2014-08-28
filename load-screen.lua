@@ -128,16 +128,13 @@ function load_screen:get_saves()
     return saves
 end
 
-function load_screen:onRender()
-    pen = {ch=' ', fg=COLOR_GREY}
-    key_pen = {ch=' ', fg=COLOR_LIGHTRED}
-    saves = self:get_saves()
-    self.sel_idx = math.max(1, math.min(#saves, self.sel_idx))
-    dfhack.screen.clear()
-    cols, rows = dfhack.screen.getWindowSize()
-    max_rows = math.floor((rows - 5) / 2)
-    min = self.sel_idx - math.floor(max_rows / 2)
-    max = self.sel_idx + math.ceil(max_rows / 2)
+function load_screen:visible_save_bounds()
+    local saves = self:get_saves()
+    local cols, rows = dfhack.screen.getWindowSize()
+    local max_rows = math.floor((rows - 5) / 2)
+    local min = self.sel_idx - math.floor(max_rows / 2)
+    local max = self.sel_idx + math.ceil(max_rows / 2)
+    local d
     if max > #saves then
         d = max - #saves
         max = max - d
@@ -149,7 +146,39 @@ function load_screen:onRender()
         max = max + d
     end
     max = math.min(max, #saves)
+    return min, max
+end
 
+function load_screen:draw_scrollbar()
+    local cols, rows = dfhack.screen.getWindowSize()
+    local x = cols - 1
+    local y1, y2
+    local min, max = self:visible_save_bounds()
+    local saves = self:get_saves()
+    local pen = {fg = COLOR_CYAN, bg = COLOR_LIGHTGREEN}
+    local r_pen = {fg = pen.bg, bg = pen.fg}
+    if #saves > max - min + 1 then
+        paintString(r_pen, x, 0, (min > 1 and string.char(24)) or ' ')  -- up arrow
+        paintString(r_pen, x, rows - 1, (max < #saves and string.char(25)) or ' ')  -- down arrow
+        y1 = ((min - 1) / #saves) * (rows - 2) + 1
+        y2 = (max / #saves) * (rows - 2) + 1
+        for y = 1, rows - 2 do
+            if y >= y1 and y <= y2 then
+                paintString(pen, x, y, string.char(8))
+            else
+                paintString(COLOR_CYAN, x, y, string.char(179))
+            end
+        end
+    end
+end
+
+function load_screen:onRender()
+    local pen = {ch=' ', fg=COLOR_GREY}
+    local key_pen = {ch=' ', fg=COLOR_LIGHTRED}
+    local saves = self:get_saves()
+    self.sel_idx = math.max(1, math.min(#saves, self.sel_idx))
+    dfhack.screen.clear()
+    local min, max = self:visible_save_bounds()
     paintStringCenter(pen, 0, "Load game (DFHack)")
     y = 0
     max_x = 77
@@ -175,6 +204,7 @@ function load_screen:onRender()
         paintString(pen, 3, y + 1, "Folder: " .. save.folder_name)
         paintString(pen, max_x - #year, y + 1, year)
     end
+    self:draw_scrollbar()
     if #saves == 0 then
         paintString(COLOR_WHITE, 1, 3, "No results found")
         paintKeyString(1, 5, "CUSTOM_ALT_C", "Clear filters")
