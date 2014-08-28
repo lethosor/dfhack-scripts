@@ -1,7 +1,5 @@
 -- Displays the mouse (grid) coordinates when the mouse is clicked
 
-local active
-local last_msg
 if active == nil then active = false end
 
 function set_timeout()
