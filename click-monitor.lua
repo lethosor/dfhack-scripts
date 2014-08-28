@@ -21,7 +21,7 @@ function check_click()
     for _, attr in pairs({'mouse_lbut', 'mouse_rbut', 'mouse_lbut_down',
         'mouse_rbut_down', 'mouse_lbut_lift', 'mouse_rbut_lift'}) do
         if df.global.enabler[attr] ~= 0 then
-            s = s .. '[' .. attr .. ']  '
+            s = s .. '[' .. attr:sub(7) .. ']  '
         end
     end
     if s ~= '' then
