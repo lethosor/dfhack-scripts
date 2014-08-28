@@ -376,6 +376,9 @@ function init()
     end
 end
 if initialized == nil then
+    if dfhack.getDFVersion():split('.')[2] ~= '40' then
+        qerror('This script only supports DF 0.40.xx!')
+    end
     init()
     initialized = true
     enabled = true
