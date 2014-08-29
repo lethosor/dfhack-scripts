@@ -178,6 +178,7 @@ function load_screen:onRender()
     local saves = self:get_saves()
     self.sel_idx = math.max(1, math.min(#saves, self.sel_idx))
     dfhack.screen.clear()
+    local cols, rows = dfhack.screen.getWindowSize()
     local min, max = self:visible_save_bounds()
     paintStringCenter(pen, 0, "Load game (DFHack)")
     y = 0
@@ -207,7 +208,8 @@ function load_screen:onRender()
     self:draw_scrollbar()
     if #saves == 0 then
         paintString(COLOR_WHITE, 1, 3, "No results found")
-        paintKeyString(1, 5, "CUSTOM_ALT_C", "Clear filters")
+        paintKeyString(1, 5, "CUSTOM_ALT_C",
+            "Clear " .. (self.search_active and "search" or "filters"))
     end
     label = self.opts.filter
     if #label > 20 then
