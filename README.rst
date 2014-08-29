@@ -31,6 +31,23 @@ A replacement for the "continue game" screen. See the `forum thread <http://www.
 * ``load-screen enable`` to enable
 * ``load-screen disable`` to disable
 
+manager-quantity
+----------------
+Allows changing the desired quantity of the currently-selected manager job.
+
+Recommended for use as a keybinding:
+
+* ``keybinding add Alt-Q@jobmanagement manager-quantity``
+
+settings-manager
+----------------
+An in-game settings manager (init.txt/d_init.txt)
+
+Recommended for use as a keybinding:
+
+* ``keybinding add Alt-S@title settings-manager``
+* ``keybinding add Alt-S@dwarfmode/Default settings-manager``
+
 title-version
 -------------
 Displays the DFHack version on the title screen next to the version number.
