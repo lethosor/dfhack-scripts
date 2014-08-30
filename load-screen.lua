@@ -148,6 +148,10 @@ function load_screen:visible_save_bounds()
     max = math.min(max, #saves)
     return min, max
 end
+function load_screen:visible_save_count()
+    local min, max = self:visible_save_bounds()
+    return max - min + 1
+end
 
 function load_screen:draw_scrollbar()
     local cols, rows = dfhack.screen.getWindowSize()
@@ -236,7 +240,8 @@ function load_screen:onInput(keys)
             self.opts.filter = self.opts.filter:sub(0, -2)
         elseif keys._STRING then
             self.opts.filter = self.opts.filter .. string.char(keys._STRING)
-        elseif keys.STANDARDSCROLL_DOWN or keys.STANDARDSCROLL_UP then
+        elseif keys.STANDARDSCROLL_DOWN or keys.STANDARDSCROLL_UP or
+                keys.STANDARDSCROLL_PAGEDOWN or keys.STANDARDSCROLL_PAGEUP then
             self.search_active = false
             self:onInput(keys)
         elseif keys.CUSTOM_ALT_C then
@@ -253,6 +258,10 @@ function load_screen:onInput(keys)
         self:scroll(1)
     elseif keys.STANDARDSCROLL_UP then
         self:scroll(-1)
+    elseif keys.STANDARDSCROLL_PAGEDOWN then
+        self:scroll(self:visible_save_count())
+    elseif keys.STANDARDSCROLL_PAGEUP then
+        self:scroll(-self:visible_save_count())
     elseif keys.CUSTOM_B then
         self.opts.backups = not self.opts.backups
     elseif keys.CUSTOM_S then
@@ -265,10 +274,21 @@ function load_screen:onInput(keys)
 end
 
 function load_screen:scroll(dist)
+    local old_idx = self.sel_idx
     self.sel_idx = self.sel_idx + dist
     saves = self:get_saves()
-    if self.sel_idx > #saves then self.sel_idx = 1
-    elseif self.sel_idx < 1 then self.sel_idx = #saves
+    if self.sel_idx > #saves then
+        if old_idx == #saves then
+            self.sel_idx = 1
+        else
+            self.sel_idx = #saves
+        end
+    elseif self.sel_idx < 1 then
+        if old_idx == 1 then
+            self.sel_idx = #saves
+        else
+            self.sel_idx = 1
+        end
     end
 end
 
