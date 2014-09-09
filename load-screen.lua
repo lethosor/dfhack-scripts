@@ -1,4 +1,9 @@
--- load-screen
+-- A replacement for the "load game" screen
+--[[ By Lethosor
+Usage: `load-screen enable` to enable, `load-screen disable` to disable
+Last tested on 0.40.11-r1
+]]
+
 
 local gui = require 'gui'
 local dialog = require 'gui.dialogs'

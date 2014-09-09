@@ -1,3 +1,11 @@
+-- An in-game init file editor
+--[[ By Lethosor
+Sample usage:
+    keybinding add Alt-S@title settings-manager
+    keybinding add Alt-S@dwarfmode/Default settings-manager
+
+Last tested on 0.40.11-r1
+]]
 
 local gui = require "gui"
 local dialog = require 'gui.dialogs'
