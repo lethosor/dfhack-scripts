@@ -9,6 +9,34 @@ ui_settings = {
     highlightcolor = COLOR_LIGHTGREEN,
 }
 
+ANNC_FLAGS = {
+    {id = 'D_D', in_game = 'D_DISPLAY', short = 'Dwf'},
+    {id = 'A_D', in_game = 'A_DISPLAY', short = 'Adv'},
+    {id = 'BOX', in_game = 'DO_MEGA', short = 'Box'},
+    {id = 'P', in_game = 'PAUSE', short = 'Pause'},
+    {id = 'R', in_game = 'RECENTER', short = 'Rec'},
+    {id = 'UCR', in_game = 'UNIT_COMBAT_REPORT', short = 'Rep'},
+    {id = 'UCR_A', in_game = 'UNIT_COMBAT_REPORT_ALL_ACTIVE', short = 'ActRep'},
+}
+
+annc_header_text = ''
+for _, annc in pairs(ANNC_FLAGS) do
+    annc_header_text = annc_header_text .. annc.short .. ' '
+end
+annc_header_text = annc_header_text:sub(0, -1)
+
+annc_flags = defclass(annc_flags)
+function annc_flags:init()
+end
+
+function annc_to_string(raw)
+    flags = raw:split(':')
+    for _, flag in pairs(flags) do
+        --for _, annc in 
+    end
+    return raw
+end
+
 function dup_table(tbl)
     -- Given {a, b, c}, returns {{a, a}, {b, b}, {c, c}}
     local t = {}
@@ -197,7 +225,188 @@ SETTINGS = {
         {id = 'NICKNAME_DWARF', type = 'select', desc = 'Nickname behavior (fortress mode)', choices = nickname_choices},
         {id = 'NICKNAME_ADVENTURE', type = 'select', desc = 'Nickname behavior (adventure mode)', choices = nickname_choices},
         {id = 'NICKNAME_LEGENDS', type = 'select', desc = 'Nickname behavior (legends mode)', choices = nickname_choices},
-    }
+    },
+    announcements = {
+        {id = 'REACHED_PEAK', type = 'annc', desc = 'REACHED_PEAK'},
+        {id = 'ERA_CHANGE', type = 'annc', desc = 'ERA_CHANGE'},
+        {id = 'ENDGAME_EVENT_1', type = 'annc', desc = 'ENDGAME_EVENT_1'},
+        {id = 'ENDGAME_EVENT_2', type = 'annc', desc = 'ENDGAME_EVENT_2'},
+        {id = 'FEATURE_DISCOVERY', type = 'annc', desc = 'FEATURE_DISCOVERY'},
+        {id = 'STRUCK_DEEP_METAL', type = 'annc', desc = 'STRUCK_DEEP_METAL'},
+        {id = 'STRUCK_MINERAL', type = 'annc', desc = 'STRUCK_MINERAL'},
+        {id = 'STRUCK_ECONOMIC_MINERAL', type = 'annc', desc = 'STRUCK_ECONOMIC_MINERAL'},
+        {id = 'COMBAT_TWIST_WEAPON', type = 'annc', desc = 'COMBAT_TWIST_WEAPON'},
+        {id = 'COMBAT_LET_ITEM_DROP', type = 'annc', desc = 'COMBAT_LET_ITEM_DROP'},
+        {id = 'COMBAT_START_CHARGE', type = 'annc', desc = 'COMBAT_START_CHARGE'},
+        {id = 'COMBAT_SURPRISE_CHARGE', type = 'annc', desc = 'COMBAT_SURPRISE_CHARGE'},
+        {id = 'COMBAT_JUMP_DODGE_PROJ', type = 'annc', desc = 'COMBAT_JUMP_DODGE_PROJ'},
+        {id = 'COMBAT_JUMP_DODGE_STRIKE', type = 'annc', desc = 'COMBAT_JUMP_DODGE_STRIKE'},
+        {id = 'COMBAT_DODGE', type = 'annc', desc = 'COMBAT_DODGE'},
+        {id = 'COMBAT_COUNTERSTRIKE', type = 'annc', desc = 'COMBAT_COUNTERSTRIKE'},
+        {id = 'COMBAT_BLOCK', type = 'annc', desc = 'COMBAT_BLOCK'},
+        {id = 'COMBAT_PARRY', type = 'annc', desc = 'COMBAT_PARRY'},
+        {id = 'COMBAT_CHARGE_COLLISION', type = 'annc', desc = 'COMBAT_CHARGE_COLLISION'},
+        {id = 'COMBAT_CHARGE_DEFENDER_TUMBLES', type = 'annc', desc = 'COMBAT_CHARGE_DEFENDER_TUMBLES'},
+        {id = 'COMBAT_CHARGE_DEFENDER_KNOCKED_OVER', type = 'annc', desc = 'COMBAT_CHARGE_DEFENDER_KNOCKED_OVER'},
+        {id = 'COMBAT_CHARGE_ATTACKER_TUMBLES', type = 'annc', desc = 'COMBAT_CHARGE_ATTACKER_TUMBLES'},
+        {id = 'COMBAT_CHARGE_ATTACKER_BOUNCE_BACK', type = 'annc', desc = 'COMBAT_CHARGE_ATTACKER_BOUNCE_BACK'},
+        {id = 'COMBAT_CHARGE_TANGLE_TOGETHER', type = 'annc', desc = 'COMBAT_CHARGE_TANGLE_TOGETHER'},
+        {id = 'COMBAT_CHARGE_TANGLE_TUMBLE', type = 'annc', desc = 'COMBAT_CHARGE_TANGLE_TUMBLE'},
+        {id = 'COMBAT_CHARGE_RUSH_BY', type = 'annc', desc = 'COMBAT_CHARGE_RUSH_BY'},
+        {id = 'COMBAT_CHARGE_MANAGE_STOP', type = 'annc', desc = 'COMBAT_CHARGE_MANAGE_STOP'},
+        {id = 'COMBAT_CHARGE_OBSTACLE_SLAM', type = 'annc', desc = 'COMBAT_CHARGE_OBSTACLE_SLAM'},
+        {id = 'COMBAT_WRESTLE_LOCK', type = 'annc', desc = 'COMBAT_WRESTLE_LOCK'},
+        {id = 'COMBAT_WRESTLE_CHOKEHOLD', type = 'annc', desc = 'COMBAT_WRESTLE_CHOKEHOLD'},
+        {id = 'COMBAT_WRESTLE_TAKEDOWN', type = 'annc', desc = 'COMBAT_WRESTLE_TAKEDOWN'},
+        {id = 'COMBAT_WRESTLE_THROW', type = 'annc', desc = 'COMBAT_WRESTLE_THROW'},
+        {id = 'COMBAT_WRESTLE_RELEASE_LOCK', type = 'annc', desc = 'COMBAT_WRESTLE_RELEASE_LOCK'},
+        {id = 'COMBAT_WRESTLE_RELEASE_CHOKE', type = 'annc', desc = 'COMBAT_WRESTLE_RELEASE_CHOKE'},
+        {id = 'COMBAT_WRESTLE_RELEASE_GRIP', type = 'annc', desc = 'COMBAT_WRESTLE_RELEASE_GRIP'},
+        {id = 'COMBAT_WRESTLE_STRUGGLE', type = 'annc', desc = 'COMBAT_WRESTLE_STRUGGLE'},
+        {id = 'COMBAT_WRESTLE_RELEASE_LATCH', type = 'annc', desc = 'COMBAT_WRESTLE_RELEASE_LATCH'},
+        {id = 'COMBAT_WRESTLE_STRANGLE_KO', type = 'annc', desc = 'COMBAT_WRESTLE_STRANGLE_KO'},
+        {id = 'COMBAT_WRESTLE_ADJUST_GRIP', type = 'annc', desc = 'COMBAT_WRESTLE_ADJUST_GRIP'},
+        {id = 'COMBAT_GRAB_TEAR', type = 'annc', desc = 'COMBAT_GRAB_TEAR'},
+        {id = 'COMBAT_STRIKE_DETAILS', type = 'annc', desc = 'COMBAT_STRIKE_DETAILS'},
+        {id = 'COMBAT_STRIKE_DETAILS_2', type = 'annc', desc = 'COMBAT_STRIKE_DETAILS_2'},
+        {id = 'COMBAT_EVENT_ENRAGED', type = 'annc', desc = 'COMBAT_EVENT_ENRAGED'},
+        {id = 'COMBAT_EVENT_STUCKIN', type = 'annc', desc = 'COMBAT_EVENT_STUCKIN'},
+        {id = 'COMBAT_EVENT_LATCH_BP', type = 'annc', desc = 'COMBAT_EVENT_LATCH_BP'},
+        {id = 'COMBAT_EVENT_LATCH_GENERAL', type = 'annc', desc = 'COMBAT_EVENT_LATCH_GENERAL'},
+        {id = 'COMBAT_EVENT_PROPELLED_AWAY', type = 'annc', desc = 'COMBAT_EVENT_PROPELLED_AWAY'},
+        {id = 'COMBAT_EVENT_KNOCKED_OUT', type = 'annc', desc = 'COMBAT_EVENT_KNOCKED_OUT'},
+        {id = 'COMBAT_EVENT_STUNNED', type = 'annc', desc = 'COMBAT_EVENT_STUNNED'},
+        {id = 'COMBAT_EVENT_WINDED', type = 'annc', desc = 'COMBAT_EVENT_WINDED'},
+        {id = 'COMBAT_EVENT_NAUSEATED', type = 'annc', desc = 'COMBAT_EVENT_NAUSEATED'},
+        {id = 'MIGRANT_ARRIVAL_NAMED', type = 'annc', desc = 'MIGRANT_ARRIVAL_NAMED'},
+        {id = 'MIGRANT_ARRIVAL', type = 'annc', desc = 'MIGRANT_ARRIVAL'},
+        {id = 'DIG_CANCEL_WARM', type = 'annc', desc = 'DIG_CANCEL_WARM'},
+        {id = 'DIG_CANCEL_DAMP', type = 'annc', desc = 'DIG_CANCEL_DAMP'},
+        {id = 'AMBUSH_DEFENDER', type = 'annc', desc = 'AMBUSH_DEFENDER'},
+        {id = 'AMBUSH_RESIDENT', type = 'annc', desc = 'AMBUSH_RESIDENT'},
+        {id = 'AMBUSH_THIEF', type = 'annc', desc = 'AMBUSH_THIEF'},
+        {id = 'AMBUSH_THIEF_SUPPORT_SKULKING', type = 'annc', desc = 'AMBUSH_THIEF_SUPPORT_SKULKING'},
+        {id = 'AMBUSH_THIEF_SUPPORT_NATURE', type = 'annc', desc = 'AMBUSH_THIEF_SUPPORT_NATURE'},
+        {id = 'AMBUSH_THIEF_SUPPORT', type = 'annc', desc = 'AMBUSH_THIEF_SUPPORT'},
+        {id = 'AMBUSH_MISCHIEVOUS', type = 'annc', desc = 'AMBUSH_MISCHIEVOUS'},
+        {id = 'AMBUSH_SNATCHER', type = 'annc', desc = 'AMBUSH_SNATCHER'},
+        {id = 'AMBUSH_SNATCHER_SUPPORT', type = 'annc', desc = 'AMBUSH_SNATCHER_SUPPORT'},
+        {id = 'AMBUSH_AMBUSHER_NATURE', type = 'annc', desc = 'AMBUSH_AMBUSHER_NATURE'},
+        {id = 'AMBUSH_AMBUSHER', type = 'annc', desc = 'AMBUSH_AMBUSHER'},
+        {id = 'AMBUSH_INJURED', type = 'annc', desc = 'AMBUSH_INJURED'},
+        {id = 'AMBUSH_OTHER', type = 'annc', desc = 'AMBUSH_OTHER'},
+        {id = 'AMBUSH_INCAPACITATED', type = 'annc', desc = 'AMBUSH_INCAPACITATED'},
+        {id = 'CARAVAN_ARRIVAL', type = 'annc', desc = 'CARAVAN_ARRIVAL'},
+        {id = 'NOBLE_ARRIVAL', type = 'annc', desc = 'NOBLE_ARRIVAL'},
+        {id = 'D_MIGRANTS_ARRIVAL', type = 'annc', desc = 'D_MIGRANTS_ARRIVAL'},
+        {id = 'D_MIGRANT_ARRIVAL', type = 'annc', desc = 'D_MIGRANT_ARRIVAL'},
+        {id = 'D_MIGRANT_ARRIVAL_DISCOURAGED', type = 'annc', desc = 'D_MIGRANT_ARRIVAL_DISCOURAGED'},
+        {id = 'D_NO_MIGRANT_ARRIVAL', type = 'annc', desc = 'D_NO_MIGRANT_ARRIVAL'},
+        {id = 'ANIMAL_TRAP_CATCH', type = 'annc', desc = 'ANIMAL_TRAP_CATCH'},
+        {id = 'ANIMAL_TRAP_ROBBED', type = 'annc', desc = 'ANIMAL_TRAP_ROBBED'},
+        {id = 'MISCHIEF_LEVER', type = 'annc', desc = 'MISCHIEF_LEVER'},
+        {id = 'MISCHIEF_PLATE', type = 'annc', desc = 'MISCHIEF_PLATE'},
+        {id = 'MISCHIEF_CAGE', type = 'annc', desc = 'MISCHIEF_CAGE'},
+        {id = 'MISCHIEF_CHAIN', type = 'annc', desc = 'MISCHIEF_CHAIN'},
+        {id = 'DIPLOMAT_ARRIVAL', type = 'annc', desc = 'DIPLOMAT_ARRIVAL'},
+        {id = 'LIAISON_ARRIVAL', type = 'annc', desc = 'LIAISON_ARRIVAL'},
+        {id = 'TRADE_DIPLOMAT_ARRIVAL', type = 'annc', desc = 'TRADE_DIPLOMAT_ARRIVAL'},
+        {id = 'CAVE_COLLAPSE', type = 'annc', desc = 'CAVE_COLLAPSE'},
+        {id = 'BIRTH_CITIZEN', type = 'annc', desc = 'BIRTH_CITIZEN'},
+        {id = 'BIRTH_ANIMAL', type = 'annc', desc = 'BIRTH_ANIMAL'},
+        {id = 'BIRTH_WILD_ANIMAL', type = 'annc', desc = 'BIRTH_WILD_ANIMAL'},
+        {id = 'STRANGE_MOOD', type = 'annc', desc = 'STRANGE_MOOD'},
+        {id = 'MADE_ARTIFACT', type = 'annc', desc = 'MADE_ARTIFACT'},
+        {id = 'NAMED_ARTIFACT', type = 'annc', desc = 'NAMED_ARTIFACT'},
+        {id = 'ITEM_ATTACHMENT', type = 'annc', desc = 'ITEM_ATTACHMENT'},
+        {id = 'VERMIN_CAGE_ESCAPE', type = 'annc', desc = 'VERMIN_CAGE_ESCAPE'},
+        {id = 'TRIGGER_WEB', type = 'annc', desc = 'TRIGGER_WEB'},
+        {id = 'MOOD_BUILDING_CLAIMED', type = 'annc', desc = 'MOOD_BUILDING_CLAIMED'},
+        {id = 'ARTIFACT_BEGUN', type = 'annc', desc = 'ARTIFACT_BEGUN'},
+        {id = 'MEGABEAST_ARRIVAL', type = 'annc', desc = 'MEGABEAST_ARRIVAL'},
+        {id = 'BERSERK_CITIZEN', type = 'annc', desc = 'BERSERK_CITIZEN'},
+        {id = 'MAGMA_DEFACES_ENGRAVING', type = 'annc', desc = 'MAGMA_DEFACES_ENGRAVING'},
+        {id = 'ENGRAVING_MELTS', type = 'annc', desc = 'ENGRAVING_MELTS'},
+        {id = 'MASTERPIECE_ARCHITECTURE', type = 'annc', desc = 'MASTERPIECE_ARCHITECTURE'},
+        {id = 'MASTERPIECE_CONSTRUCTION', type = 'annc', desc = 'MASTERPIECE_CONSTRUCTION'},
+        {id = 'MASTER_ARCHITECTURE_LOST', type = 'annc', desc = 'MASTER_ARCHITECTURE_LOST'},
+        {id = 'MASTER_CONSTRUCTION_LOST', type = 'annc', desc = 'MASTER_CONSTRUCTION_LOST'},
+        {id = 'ADV_AWAKEN', type = 'annc', desc = 'ADV_AWAKEN'},
+        {id = 'ADV_SLEEP_INTERRUPTED', type = 'annc', desc = 'ADV_SLEEP_INTERRUPTED'},
+        {id = 'ADV_REACTION_PRODUCTS', type = 'annc', desc = 'ADV_REACTION_PRODUCTS'},
+        {id = 'CANCEL_JOB', type = 'annc', desc = 'CANCEL_JOB'},
+        {id = 'ADV_CREATURE_DEATH', type = 'annc', desc = 'ADV_CREATURE_DEATH'},
+        {id = 'CITIZEN_DEATH', type = 'annc', desc = 'CITIZEN_DEATH'},
+        {id = 'PET_DEATH', type = 'annc', desc = 'PET_DEATH'},
+        {id = 'FALL_OVER', type = 'annc', desc = 'FALL_OVER'},
+        {id = 'CAUGHT_IN_FLAMES', type = 'annc', desc = 'CAUGHT_IN_FLAMES'},
+        {id = 'CAUGHT_IN_WEB', type = 'annc', desc = 'CAUGHT_IN_WEB'},
+        {id = 'UNIT_PROJECTILE_SLAM_BLOW_APART', type = 'annc', desc = 'UNIT_PROJECTILE_SLAM_BLOW_APART'},
+        {id = 'UNIT_PROJECTILE_SLAM', type = 'annc', desc = 'UNIT_PROJECTILE_SLAM'},
+        {id = 'UNIT_PROJECTILE_SLAM_INTO_UNIT', type = 'annc', desc = 'UNIT_PROJECTILE_SLAM_INTO_UNIT'},
+        {id = 'VOMIT', type = 'annc', desc = 'VOMIT'},
+        {id = 'LOSE_HOLD_OF_ITEM', type = 'annc', desc = 'LOSE_HOLD_OF_ITEM'},
+        {id = 'REGAIN_CONSCIOUSNESS', type = 'annc', desc = 'REGAIN_CONSCIOUSNESS'},
+        {id = 'FREE_FROM_WEB', type = 'annc', desc = 'FREE_FROM_WEB'},
+        {id = 'PARALYZED', type = 'annc', desc = 'PARALYZED'},
+        {id = 'OVERCOME_PARALYSIS', type = 'annc', desc = 'OVERCOME_PARALYSIS'},
+        {id = 'NOT_STUNNED', type = 'annc', desc = 'NOT_STUNNED'},
+        {id = 'EXHAUSTION', type = 'annc', desc = 'EXHAUSTION'},
+        {id = 'PAIN_KO', type = 'annc', desc = 'PAIN_KO'},
+        {id = 'BREAK_GRIP', type = 'annc', desc = 'BREAK_GRIP'},
+        {id = 'NO_BREAK_GRIP', type = 'annc', desc = 'NO_BREAK_GRIP'},
+        {id = 'BLOCK_FIRE', type = 'annc', desc = 'BLOCK_FIRE'},
+        {id = 'BREATHE_FIRE', type = 'annc', desc = 'BREATHE_FIRE'},
+        {id = 'SHOOT_WEB', type = 'annc', desc = 'SHOOT_WEB'},
+        {id = 'PULL_OUT_DROP', type = 'annc', desc = 'PULL_OUT_DROP'},
+        {id = 'STAND_UP', type = 'annc', desc = 'STAND_UP'},
+        {id = 'MARTIAL_TRANCE', type = 'annc', desc = 'MARTIAL_TRANCE'},
+        {id = 'MAT_BREATH', type = 'annc', desc = 'MAT_BREATH'},
+        {id = 'NIGHT_ATTACK_STARTS', type = 'annc', desc = 'NIGHT_ATTACK_STARTS'},
+        {id = 'NIGHT_ATTACK_ENDS', type = 'annc', desc = 'NIGHT_ATTACK_ENDS'},
+        {id = 'NIGHT_ATTACK_TRAVEL', type = 'annc', desc = 'NIGHT_ATTACK_TRAVEL'},
+        {id = 'GHOST_ATTACK', type = 'annc', desc = 'GHOST_ATTACK'},
+        {id = 'TRAVEL_SITE_DISCOVERY', type = 'annc', desc = 'TRAVEL_SITE_DISCOVERY'},
+        {id = 'TRAVEL_SITE_BUMP', type = 'annc', desc = 'TRAVEL_SITE_BUMP'},
+        {id = 'ADVENTURE_INTRO', type = 'annc', desc = 'ADVENTURE_INTRO'},
+        {id = 'CREATURE_SOUND', type = 'annc', desc = 'CREATURE_SOUND'},
+        {id = 'MECHANISM_SOUND', type = 'annc', desc = 'MECHANISM_SOUND'},
+        {id = 'CREATURE_STEALS_OBJECT', type = 'annc', desc = 'CREATURE_STEALS_OBJECT'},
+        {id = 'FOUND_TRAP', type = 'annc', desc = 'FOUND_TRAP'},
+        {id = 'BODY_TRANSFORMATION', type = 'annc', desc = 'BODY_TRANSFORMATION'},
+        {id = 'INTERACTION_ACTOR', type = 'annc', desc = 'INTERACTION_ACTOR'},
+        {id = 'INTERACTION_TARGET', type = 'annc', desc = 'INTERACTION_TARGET'},
+        {id = 'UNDEAD_ATTACK', type = 'annc', desc = 'UNDEAD_ATTACK'},
+        {id = 'CITIZEN_MISSING', type = 'annc', desc = 'CITIZEN_MISSING'},
+        {id = 'PET_MISSING', type = 'annc', desc = 'PET_MISSING'},
+        {id = 'STRANGE_RAIN_SNOW', type = 'annc', desc = 'STRANGE_RAIN_SNOW'},
+        {id = 'STRANGE_CLOUD', type = 'annc', desc = 'STRANGE_CLOUD'},
+        {id = 'SIMPLE_ANIMAL_ACTION', type = 'annc', desc = 'SIMPLE_ANIMAL_ACTION'},
+        {id = 'FLOUNDER_IN_LIQUID', type = 'annc', desc = 'FLOUNDER_IN_LIQUID'},
+        {id = 'TRAINING_DOWN_TO_SEMI_WILD', type = 'annc', desc = 'TRAINING_DOWN_TO_SEMI_WILD'},
+        {id = 'TRAINING_FULL_REVERSION', type = 'annc', desc = 'TRAINING_FULL_REVERSION'},
+        {id = 'ANIMAL_TRAINING_KNOWLEDGE', type = 'annc', desc = 'ANIMAL_TRAINING_KNOWLEDGE'},
+        {id = 'SKIP_ON_LIQUID', type = 'annc', desc = 'SKIP_ON_LIQUID'},
+        {id = 'DODGE_FLYING_OBJECT', type = 'annc', desc = 'DODGE_FLYING_OBJECT'},
+        {id = 'REGULAR_CONVERSATION', type = 'annc', desc = 'REGULAR_CONVERSATION'},
+        {id = 'CONFLICT_CONVERSATION', type = 'annc', desc = 'CONFLICT_CONVERSATION'},
+        {id = 'FLAME_HIT', type = 'annc', desc = 'FLAME_HIT'},
+        {id = 'EMBRACE', type = 'annc', desc = 'EMBRACE'},
+        {id = 'BANDIT_EMPTY_CONTAINER', type = 'annc', desc = 'BANDIT_EMPTY_CONTAINER'},
+        {id = 'BANDIT_GRAB_ITEM', type = 'annc', desc = 'BANDIT_GRAB_ITEM'},
+        {id = 'COMBAT_EVENT_ATTACK_INTERRUPTED', type = 'annc', desc = 'COMBAT_EVENT_ATTACK_INTERRUPTED'},
+        {id = 'COMBAT_WRESTLE_CATCH_ATTACK', type = 'annc', desc = 'COMBAT_WRESTLE_CATCH_ATTACK'},
+        {id = 'FAIL_TO_GRAB_SURFACE', type = 'annc', desc = 'FAIL_TO_GRAB_SURFACE'},
+        {id = 'LOSE_HOLD_OF_SURFACE', type = 'annc', desc = 'LOSE_HOLD_OF_SURFACE'},
+        {id = 'TRAVEL_COMPLAINT', type = 'annc', desc = 'TRAVEL_COMPLAINT'},
+        {id = 'LOSE_EMOTION', type = 'annc', desc = 'LOSE_EMOTION'},
+        {id = 'REORGANIZE_POSSESSIONS', type = 'annc', desc = 'REORGANIZE_POSSESSIONS'},
+        {id = 'PUSH_ITEM', type = 'annc', desc = 'PUSH_ITEM'},
+        {id = 'DRAW_ITEM', type = 'annc', desc = 'DRAW_ITEM'},
+        {id = 'STRAP_ITEM', type = 'annc', desc = 'STRAP_ITEM'},
+        {id = 'GAIN_SITE_CONTROL', type = 'annc', desc = 'GAIN_SITE_CONTROL'},
+        {id = 'FORT_POSITION_SUCCESSION', type = 'annc', desc = 'FORT_POSITION_SUCCESSION'},
+    },
 }
 
 function file_exists(path)
@@ -260,7 +469,7 @@ end
 function settings_manager:init()
     self:reset()
     local file_list = widgets.List{
-        choices = {"init.txt", "d_init.txt"},
+        choices = {"init.txt", "d_init.txt", "announcements.txt"},
         text_pen = {fg = ui_settings.color},
         cursor_pen = {fg = ui_settings.highlightcolor},
         on_submit = self:callback("select_file"),
@@ -278,7 +487,7 @@ function settings_manager:init()
                 text = {
                     {key = 'LEAVESCREEN', text = ': Back'}
                 },
-                frame = {l = 1, t = 6},
+                frame = {l = 1, t = #file_list.choices + 4},
             },
         },
     }
@@ -292,6 +501,11 @@ function settings_manager:init()
     }
     local settings_page = widgets.Panel{
         subviews = {
+            widgets.Label{
+                text = "aaaaaaaa",
+                frame = {t = 0, l = 42},
+                view_id = "header",
+            },
             settings_list,
             widgets.Label{
                 text = {
@@ -365,6 +579,11 @@ function settings_manager:select_file(index, choice)
     end
     self.frame_title = choice.text
     self.file = choice.text:sub(1, choice.text:find('.', 1, true) - 1)
+    self.subviews.header:setText('')
+    if self.file == 'announcements' then
+        self.subviews.header:setText(annc_header_text)
+        print(self.subviews.header.text)
+    end
     self.subviews.pages:setSelected(2)
     self:refresh_settings_list()
 end
@@ -386,6 +605,8 @@ function settings_manager:get_value_string(opt)
                     value_str = c[2]
                 end
             end
+        elseif opt.type == 'annc' then
+            value_str = annc_to_string(opt.value)
         end
     end
     return value_str
