@@ -8,4 +8,10 @@ for i = 0,15 do
     	df.global.enabler.ccolor[i][j] = 1-df.global.enabler.ccolor[i][j]
     end
 end
-df.global.gps.force_full_display_count = 1
+args = {}
+for k, v in pairs({...}) do
+    args[v] = true
+end
+if not args['no-redraw'] then
+    df.global.gps.force_full_display_count = 1
+end
