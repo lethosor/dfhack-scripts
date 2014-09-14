@@ -84,6 +84,7 @@ load_screen.focus_path = 'load_screen'
 
 function load_screen:init()
     self.saves = nil
+    self.backup_opts = {[0] = "No backups", "Show backups", "Backups only"}
     self.old_fps = df.global.gps.display_frames
     df.global.gps.display_frames = 0
     self:reset()
@@ -92,7 +93,7 @@ end
 function load_screen:reset()
     self.sel_idx = 1
     self.opts = {
-        backups = false,
+        backups = 0,
         filter = '',
         filter_mode = df.game_type.NONE,
     }
@@ -123,7 +124,8 @@ function load_screen:get_saves()
     saves = {}
     for i = 1, #self.saves do
         save = self.saves[i]
-        if (self:is_backup(save.folder_name) and not self.opts.backups) or
+        if (self:is_backup(save.folder_name) and self.opts.backups == 0) or
+            (not self:is_backup(save.folder_name) and self.opts.backups == 2) or
             (#self.opts.filter and not save.folder_name:lower():find(self.opts.filter:lower())) or
             (self.opts.filter_mode ~= df.game_type.NONE and self.opts.filter_mode ~= save.game_type) then
             --pass
@@ -233,6 +235,7 @@ function load_screen:onRender()
         paintKeyString(1, rows - 1, 'CUSTOM_S', #label > 0 and label or "Search")
     end
     paintKeyString(27, rows - 1, 'CUSTOM_T', gametypeString(self.opts.filter_mode, {NONE = "Any mode"}))
+    paintKeyString(52, rows - 1, 'CUSTOM_B', self.backup_opts[self.opts.backups])
 end
 
 function load_screen:onInput(keys)
@@ -269,7 +272,8 @@ function load_screen:onInput(keys)
     elseif keys.STANDARDSCROLL_PAGEUP then
         self:scroll(-self:visible_save_count())
     elseif keys.CUSTOM_B then
-        self.opts.backups = not self.opts.backups
+        self.opts.backups = self.opts.backups + 1
+        if self.opts.backups > 2 then self.opts.backups = 0 end
     elseif keys.CUSTOM_S then
         self.search_active = true
     elseif keys.CUSTOM_T then
