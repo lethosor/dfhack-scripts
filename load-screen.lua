@@ -80,6 +80,7 @@ end
 --end
 
 load_screen = defclass(load_screen, gui.Screen)
+load_screen.focus_path = 'load_screen'
 
 function load_screen:init()
     self.saves = nil
@@ -426,7 +427,8 @@ function init()
     prev_focus = ''
     dfhack.onStateChange.load_screen = function()
         cur_focus = dfhack.gui.getCurFocus()
-        if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua' and prev_focus ~= 'loadgame' and enabled then
+        if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua/load_screen'
+            and prev_focus ~= 'loadgame' and enabled then
             load_screen():show()
         end
         prev_focus = cur_focus
