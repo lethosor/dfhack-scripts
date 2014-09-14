@@ -24,8 +24,8 @@ end
 function paintKeyString(x, y, key, str, opts)
     opts = opts or {}
     key_str = gui.getKeyDisplay(df.interface_key[key])
-    paintString({ch=' ', fg=opts.key_color or COLOR_LIGHTRED}, x, y, key_str)
-    paintString({ch=' ', fg=COLOR_WHITE}, x + #key_str, y, ": " .. str)
+    paintString(opts.key_color or COLOR_LIGHTRED, x, y, key_str)
+    paintString(COLOR_WHITE, x + #key_str, y, ": " .. str)
 end
 
 function gametypeString(gametype, overrides)
@@ -228,7 +228,7 @@ function load_screen:onRender()
     if self.search_active then
         paintKeyString(1, rows - 1, 'CUSTOM_S', label, {key_color = COLOR_RED})
         x = keyStringLength('CUSTOM_S', label) + 1
-        paintString({ch=' ', fg=COLOR_LIGHTGREEN}, x, rows - 1, '_')
+        paintString(COLOR_LIGHTGREEN, x, rows - 1, '_')
     else
         paintKeyString(1, rows - 1, 'CUSTOM_S', #label > 0 and label or "Search")
     end
