@@ -3,7 +3,16 @@
 Usage: `load-screen enable` to enable, `load-screen disable` to disable
 Last tested on 0.40.11-r1
 ]]
+VERSION = '0.8'
 
+function usage()
+    print([[Usage:
+    load-screen enable:    Enable load-screen
+    load-screen disable:   Disable load-screen
+    load-screen version:   Show version information
+    load-screen [help]:    Show this help
+]])
+end
 
 local gui = require 'gui'
 local dialog = require 'gui.dialogs'
@@ -193,6 +202,7 @@ function load_screen:onRender()
     local cols, rows = dfhack.screen.getWindowSize()
     local min, max = self:visible_save_bounds()
     paintStringCenter(pen, 0, "Load game (DFHack)")
+    paintString(pen, cols - #VERSION - 3, 0, "v" .. VERSION)
     y = 0
     max_x = 77
     for i = min, max do
@@ -451,5 +461,8 @@ args = {...}
 if #args == 1 then
     if args[1] == 'enable' then enabled = true
     elseif args[1] == 'disable' then enabled = false
+    elseif args[1] == 'version' then print('load-screen version ' .. VERSION)
+    else usage()
     end
+else usage()
 end
