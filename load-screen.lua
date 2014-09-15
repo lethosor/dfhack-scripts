@@ -416,7 +416,7 @@ end
 function load_screen_options:do_copy(new_folder)
     ok, old_path, new_path = self:validate_folders(self.save.folder_name, new_folder)
     if not ok then return false end
-
+    dialog.showError('Not implemented')
 end
 
 function load_screen_options:display(parent, save)
