@@ -10,6 +10,8 @@ def die(s):
 if len(sys.argv) < 3:
     die('Usage: version-bump.py FILE VERSION')
 path = sys.argv[1]
+short_filename = os.path.splitext(os.path.split(path)[-1])[0]
+print(short_filename)
 new_version = sys.argv[2]
 if not os.path.isfile(path):
     die('Not found: ' + path)
@@ -24,4 +26,5 @@ contents = re.sub(r"VERSION = '[^']+'", "VERSION = '%s'" % new_version, contents
 with open(path, 'w') as f:
     f.write(contents)
 
-
+subprocess.call(["git", "add", path])
+subprocess.call(["git", "commit", "-m", "Bump %s to %s" % (short_filename, new_version)])
