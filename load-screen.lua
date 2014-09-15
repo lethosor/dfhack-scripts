@@ -84,7 +84,7 @@ load_screen.focus_path = 'load_screen'
 
 function load_screen:init()
     self.saves = nil
-    self.backup_opts = {[0] = "No backups", "Show backups", "Backups only"}
+    self.backup_opts = {[0] = "No backups", "Backups visible", "Backups only"}
     self.old_fps = df.global.gps.display_frames
     df.global.gps.display_frames = 0
     self:reset()
