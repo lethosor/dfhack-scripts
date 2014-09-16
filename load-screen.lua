@@ -245,6 +245,9 @@ function load_screen:onRender()
 end
 
 function load_screen:onInput(keys)
+    if keys._MOUSE_L then
+        return self:onMouseInput(df.global.gps.mouse_x, df.global.gps.mouse_y)
+    end
     if self.search_active then
         if keys.LEAVESCREEN then
             self.search_active = false
@@ -286,6 +289,22 @@ function load_screen:onInput(keys)
         self.opts.filter_mode = df.game_type[gametypeMap[df.game_type[self.opts.filter_mode]]]
     elseif keys.CUSTOM_ALT_C then
         self:reset()
+    end
+end
+
+function load_screen:onMouseInput(x, y)
+    local cols, rows = dfhack.screen.getWindowSize()
+    if y == rows - 1 then
+        if x <= 26 then
+            self.search_active = true
+        else
+            self.search_active = false
+            if x <= 51 then
+                self:onInput({CUSTOM_T = true})
+            else
+                self:onInput({CUSTOM_B = true})
+            end
+        end
     end
 end
 

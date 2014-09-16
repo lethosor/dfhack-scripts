@@ -11,7 +11,6 @@ if len(sys.argv) < 3:
     die('Usage: version-bump.py FILE VERSION')
 path = sys.argv[1]
 short_filename = os.path.splitext(os.path.split(path)[-1])[0]
-print(short_filename)
 new_version = sys.argv[2]
 if not os.path.isfile(path):
     die('Not found: ' + path)
