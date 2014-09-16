@@ -110,14 +110,10 @@ function load_screen:reset()
 end
 
 function load_screen:is_backup(folder_name)
-    parts = folder_name:split('-')
-    if #parts >= 3 and
-        (string.find('spr,sum,aut,win', parts[#parts - 1])) and
-        (parts[#parts]:match('^%d+$')) then
+    if folder_name:match('%-%d%d%d%d%d%-%d%d%-%d%d$') ~= nil then
         return true
-    else
-        return false
     end
+    return false
 end
 
 function load_screen:init_saves()
