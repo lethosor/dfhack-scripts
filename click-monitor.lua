@@ -1,6 +1,20 @@
 -- Displays the mouse (grid) coordinates when the mouse is clicked
+--[[ By Lethosor
+Usage: click-monitor [start/stop]
+Last tested on 0.40.12-r1
+]]
+
+VERSION = '0.2'
 
 if active == nil then active = false end
+
+function usage()
+    print [[
+Usage:
+    click-monitor start: Begin monitoring
+    click-monitor stop: End monitoring
+]]
+end
 
 function set_timeout()
     dfhack.timeout(1, 'frames', check_click)
@@ -35,14 +49,6 @@ function check_click()
         last_msg = nil
     end
     if active then set_timeout() end
-end
-
-function usage()
-    print [[
-Usage:
-    click-monitor start: Begin monitoring
-    click-monitor stop: End monitoring
-]]
 end
 
 args = {...}
