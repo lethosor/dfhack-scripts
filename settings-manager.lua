@@ -4,8 +4,10 @@ Sample usage:
     keybinding add Alt-S@title settings-manager
     keybinding add Alt-S@dwarfmode/Default settings-manager
 
-Last tested on 0.40.11-r1
+Last tested on 0.40.12-r1
 ]]
+
+VERSION = '0.5'
 
 local gui = require "gui"
 local dialog = require 'gui.dialogs'
@@ -288,6 +290,11 @@ function settings_manager:init()
                     {key = 'LEAVESCREEN', text = ': Back'}
                 },
                 frame = {l = 1, t = 6},
+            },
+            widgets.Label{
+                text = 'settings-manager v' .. VERSION,
+                frame = {l = 1, b = 0},
+                text_pen = {fg = COLOR_GREY},
             },
         },
     }
