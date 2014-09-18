@@ -259,6 +259,7 @@ function dialog.showValidationError(str)
 end
 
 settings_manager = defclass(settings_manager, gui.FramedScreen)
+settings_manager.focus_path = 'settings_manager'
 
 function settings_manager:reset()
     self.frame_title = "Settings"
@@ -516,7 +517,7 @@ function settings_manager:save_setting(value)
     self:refresh_settings_list()
 end
 
-if dfhack.gui.getCurFocus() == 'dfhack/lua' then
+if dfhack.gui.getCurFocus() == 'dfhack/lua/settings_manager' then
     dfhack.screen.dismiss(dfhack.gui.getCurViewscreen())
 end
 settings_manager():show()
