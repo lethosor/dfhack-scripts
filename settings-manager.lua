@@ -4,7 +4,7 @@ Sample usage:
     keybinding add Alt-S@title settings-manager
     keybinding add Alt-S@dwarfmode/Default settings-manager
 
-Last tested on 0.40.12-r1
+Last tested on 0.40.13-r1
 ]]
 
 VERSION = '0.5.1'
