@@ -3,6 +3,10 @@ dfhack-scripts
 
 A collection of DFHack scripts
 
+Links: `Issue tracker <https://github.com/lethosor/dfhack-scripts/issues>`_ | 
+`Wiki <https://github.com/lethosor/dfhack-scripts/wiki>`_ |
+`Forum thread <http://www.bay12forums.com/smf/index.php?topic=143875.0>`_
+
 .. contents ::
 
 adv-max-skills
