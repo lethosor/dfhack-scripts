@@ -3,8 +3,6 @@ dfhack-scripts
 
 A collection of DFHack scripts
 
-Per-script changelogs can be found in the `changelogs <https://github.com/lethosor/dfhack-scripts/tree/master/changelogs>`_ folder.
-
 .. contents ::
 
 adv-max-skills
