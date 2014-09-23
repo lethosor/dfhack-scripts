@@ -58,8 +58,8 @@ local nickname_choices = {
 -- Used in PRINT_MODE
 local print_modes = {
     {'2D', '2D (default)'}, {'2DSW', '2DSW'}, {'2DASYNC', '2DASYNC'},
-    {'STANDARD', 'STANDARD (OpenGL)'}, {'ACCUM_BUFFER', 'ACCUM_BUFFER'},
-    {'FRAME_BUFFER', 'FRAME_BUFFER'}, {'VBO', 'VBO'}
+    {'STANDARD', 'STANDARD (OpenGL)'}, {'PROMPT', 'Prompt (STANDARD/2D)'},
+    {'ACCUM_BUFFER', 'ACCUM_BUFFER'}, {'FRAME_BUFFER', 'FRAME_BUFFER'}, {'VBO', 'VBO'}
 }
 if dfhack.getOSType() == 'linux' then
     table.insert(print_modes, {'TEXT', 'TEXT (ncurses)'})
