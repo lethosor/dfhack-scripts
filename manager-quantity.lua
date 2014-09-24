@@ -1,7 +1,17 @@
 -- Sets the quantity of the selected manager job
+--[[ By Lethosor
+Sample usage:
+    keybinding add Alt-Q@jobmanagement manager-quantity
+
+Last tested on 0.40.11-r1
+]]
 
 local dialog = require 'gui.dialogs'
 local args = {...}
+
+function show_error(text)
+    dialog.showMessage("Error", text, COLOR_LIGHTRED)
+end
 
 if dfhack.gui.getCurFocus() == 'jobmanagement' then
     local scr = dfhack.gui.getCurViewscreen()
@@ -13,7 +23,7 @@ if dfhack.gui.getCurFocus() == 'jobmanagement' then
             orders[i].amount_total = math.max(1, value)
             orders[i].amount_left = math.max(1, orders[i].amount_left + (value - old_total))
         else
-            dfhack.printerr(value .. " is not a number!")
+            show_error(value .. " is not a number!")
         end
     end
     if scr.sel_idx < #orders then
@@ -29,7 +39,7 @@ if dfhack.gui.getCurFocus() == 'jobmanagement' then
             )
         end
     else
-        dfhack.printerr("Invalid order selected")
+        show_error("Invalid order selected")
     end
 else
     dfhack.printerr('Must be called on the manager screen (j-m or u-m)')

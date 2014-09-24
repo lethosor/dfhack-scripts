@@ -1,10 +1,21 @@
 -- Displays announcements in the DFHack console
 
+VERSION = '0.1'
+
 if world_loaded == nil then
     world_loaded = false
     enabled = false
     next_annc_id = 0
     timeout_interval = 2
+end
+
+function usage()
+    print [[
+Usage:
+    annc-monitor start: Begin monitoring
+    annc-monitor stop: End monitoring
+    annc-monitor interval NUMBER: Set poll interval (frames)
+]]
 end
 
 function set_timeout()
@@ -30,15 +41,6 @@ function check_announcements()
         end
     end
     if enabled then set_timeout() end
-end
-
-function usage()
-    print [[
-Usage:
-    annc-monitor start: Begin monitoring
-    annc-monitor stop: End monitoring
-    annc-monitor interval NUMBER: Set poll interval (frames)
-]]
 end
 
 args = {...}

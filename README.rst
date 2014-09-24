@@ -3,6 +3,10 @@ dfhack-scripts
 
 A collection of DFHack scripts
 
+Links: `Issue tracker <https://github.com/lethosor/dfhack-scripts/issues>`_ | 
+`Wiki <https://github.com/lethosor/dfhack-scripts/wiki>`_ |
+`Forum thread <http://www.bay12forums.com/smf/index.php?topic=143875.0>`_
+
 .. contents ::
 
 adv-max-skills
@@ -18,6 +22,19 @@ Displays the grid coordinates of mouse clicks in the console. Useful for plugin/
 * ``click-monitor start`` to begin monitoring
 * ``click-monitor stop`` to stop
 
+embark-skills
+-------------
+Adjusts dwarves' skills when embarking.
+
+Note that already-used skill points are not taken into account or reset.
+
+* ``embark-skills points N``: Sets the skill points remaining of the selected dwarf to ``N``.
+* ``embark-skills points N all``: Sets the skill points remaining of all dwarves to ``N``.
+* ``embark-skills max``: Sets all skills of the selected dwarf to "Proficient".
+* ``embark-skills max all``: Sets all skills of all dwarves to "Proficient".
+* ``embark-skills legendary``: Sets all skills of the selected dwarf to "Legendary".
+* ``embark-skills legendary all``: Sets all skills of all dwarves to "Legendary".
+
 invert-colors
 -------------
 Proof-of-concept script that inverts the color scheme while DF is running.
@@ -26,7 +43,7 @@ Proof-of-concept script that inverts the color scheme while DF is running.
 
 load-screen
 -----------
-A replacement for the "continue game" screen. See the `forum thread <http://www.bay12forums.com/smf/index.php?topic=138776>`_ for more details.
+A replacement for the "continue game" screen.
 
 * ``load-screen enable`` to enable
 * ``load-screen disable`` to disable
