@@ -12,6 +12,7 @@ VERSION = '0.5.2'
 local gui = require "gui"
 local dialog = require 'gui.dialogs'
 local widgets = require "gui.widgets"
+local utils = require "utils"
 
 -- settings-manager display settings
 ui_settings = {
@@ -36,15 +37,21 @@ end
 annc_header_text = annc_header_text:sub(0, -1)
 
 annc_flags = defclass(annc_flags)
-function annc_flags:init()
+function annc_flags:init(str)
+    -- Convert long names to short names
+    for _, flag in pairs(ANNC_FLAGS) do
+        str = str:gsub(flag.in_game, flag.id)
+    end
+    self.raw = str
 end
 
-function annc_to_string(raw)
-    flags = raw:split(':')
-    for _, flag in pairs(flags) do
-        --for _, annc in 
+function annc_flags:display_string()
+    local flags = utils.invert(utils.split_string(self.raw, ':'))
+    local disp = ''
+    for _, flag in pairs(ANNC_FLAGS) do
+        disp = disp .. (flags[flag.id] and string.char(219) or ' '):rep(#flag.short) .. ' '
     end
-    return raw
+    return disp:sub(1, #disp - 1)
 end
 
 function dup_table(tbl)
@@ -58,7 +65,7 @@ end
 
 function set_variable(name, value)
     -- Sets a global variable specified by 'name' to 'value'
-    local parts = name:split('.')
+    local parts = utils.split_string(name, '%.')
     local last_field = table.remove(parts, #parts)
     parent = _G
     for _, field in pairs(parts) do
@@ -214,7 +221,7 @@ SETTINGS = {
 
         {id = 'LOG_MAP_REJECTS', type = 'bool', desc = 'Log map rejects'},
         {id = 'EMBARK_RECTANGLE', type = 'string', desc = 'Default embark size (x:y)', validate = function(s)
-            local parts = s:split(':')
+            local parts = utils.split_string(s, ':')
             if #parts == 2 then
                 a, b = tonumber(parts[1]), tonumber(parts[2])
                 if a~= nil and b ~= nil and a >= 2 and a <= 16 and b >= 2 and b <= 16 then
@@ -448,6 +455,9 @@ function settings_load()
             else
                 return false, 'Could not find "' .. s.id .. '" in ' .. file .. '.txt'
             end
+            if file == 'announcements' then
+                s.flags = annc_flags(s.value)
+            end
         end
         f:close()
     end
@@ -633,7 +643,7 @@ function settings_manager:get_value_string(opt)
                 end
             end
         elseif opt.type == 'annc' then
-            value_str = annc_to_string(opt.value)
+            value_str = opt.flags:display_string()
         end
     end
     return value_str
