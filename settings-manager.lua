@@ -29,6 +29,11 @@ ANNC_FLAGS = {
     {id = 'UCR', in_game = 'UNIT_COMBAT_REPORT', short = 'Rep'},
     {id = 'UCR_A', in_game = 'UNIT_COMBAT_REPORT_ALL_ACTIVE', short = 'ActRep'},
 }
+ANNC_VALID_FLAGS = (function()
+    local ids = {}
+    for _, flag in pairs(ANNC_FLAGS) do ids[flag.id] = true end
+    return ids
+end)()
 
 annc_header_text = ''
 for _, annc in pairs(ANNC_FLAGS) do
@@ -52,6 +57,17 @@ function annc_flags:display_string()
         disp = disp .. (flags[flag.id] and string.char(219) or ' '):rep(#flag.short) .. ' '
     end
     return disp:sub(1, #disp - 1)
+end
+
+function annc_flags:add_flag(flag)
+    if not ANNC_VALID_FLAGS[flag] then return false end
+    self:remove_flag(flag)
+    self.raw = self.raw .. ":" .. flag
+    return true
+end
+
+function annc_flags:remove_flag(flag)
+    self.raw = self.raw:gsub(flag, ''):gsub('::', ':')
 end
 
 function dup_table(tbl)
