@@ -2,7 +2,17 @@
 --[[ By Lethosor
 Last tested on 0.40.13-r1
 ]]
-VERSION = '0.1'
+VERSION = '0.2'
+
+if original_colors == nil then
+    original_colors = {}
+    for i = 0, 15 do
+        original_colors[i] = {}
+        for j = 0, 2 do
+            original_colors[i][j] = df.global.enabler.ccolor[i][j]
+        end
+    end
+end
 
 utils = require 'utils'
 
@@ -23,10 +33,20 @@ function adjust_colors(components, multiplier)
     end
 end
 
+function reset_colors()
+    for i = 0, 15 do
+        for j = 0, 2 do
+            df.global.enabler.ccolor[i][j] = original_colors[i][j]
+        end
+    end
+end
+
 args = utils.processArgs({...})
 if args['all'] then args['a'] = args['all'] end
 if args['a'] then
     adjust_colors('rgb', args['a'])
+elseif args['reset'] then
+    reset_colors()
 else
     for k, v in pairs(args) do
         adjust_colors(k, v)
