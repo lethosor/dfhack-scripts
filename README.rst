@@ -15,6 +15,14 @@ When setting up an adventurer, raises all changeable skills and attributes to th
 
 * ``adv-max-skills``
 
+annc-monitor
+------------
+Displays announcements and reports in the console.
+
+* ``annc-monitor start``: Begins monitoring
+* ``annc-monitor stop``: Stops monitoring
+* ``annc-monitor interval X``: Sets the delay between checks for new announcements to ``X`` frames 
+
 click-monitor
 -------------
 Displays the grid coordinates of mouse clicks in the console. Useful for plugin/script development.
