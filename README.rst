@@ -38,6 +38,7 @@ Adjusts the red, green, and/or blue components of all in-game colors.
 * ``color-adjust -gb 0.7`` multiplies the green and blue components of all colors by 0.7
 * ``color-adjust -a 0.9`` multiplies all (red, green, and blue) components of all colors by 0.9
 * ``color-adjust -reset`` resets all colors to their original values.
+
     * Note that the original colors used by ``color-adjust`` are stored when ``color-adjust`` is first run in a DF session.
       If other scripts that change colors are run before ``color-adjust``, ``color-adjust -reset`` will restore the modified colors.
       To avoid this, run ``color-adjust -a 1`` before running other scripts.
