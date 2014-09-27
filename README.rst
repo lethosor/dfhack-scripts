@@ -36,6 +36,7 @@ Adjusts the red, green, and/or blue components of all in-game colors.
 
 * ``color-adjust -r 1.1`` multiplies the red components of all colors by 1.1
 * ``color-adjust -gb 0.7`` multiplies the green and blue components of all colors by 0.7
+* ``color-adjust -g 0.7 -b 0.7``: Equivalent to ``color-adjust -gb 0.7``
 * ``color-adjust -a 0.9`` multiplies all (red, green, and blue) components of all colors by 0.9
 * ``color-adjust -reset`` resets all colors to their original values.
 
