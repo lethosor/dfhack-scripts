@@ -3,7 +3,7 @@
 Usage: `load-screen enable` to enable, `load-screen disable` to disable
 Last tested on 0.40.13-r1
 ]]
-VERSION = '0.8.1'
+VERSION = '0.8.2'
 
 function usage()
     print([[Usage:
