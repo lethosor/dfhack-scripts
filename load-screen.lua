@@ -469,12 +469,16 @@ if initialized == nil then
     end
     init()
     initialized = true
-    enabled = true
+    enabled = false
 end
 
 args = {...}
 if #args == 1 then
-    if args[1] == 'enable' then enabled = true
+    if args[1] == 'enable' then
+        enabled = true
+        if dfhack.gui.getCurFocus() == 'loadgame' then
+            load_screen():show()
+        end
     elseif args[1] == 'disable' then enabled = false
     elseif args[1] == 'version' then print('load-screen version ' .. VERSION)
     else usage()
