@@ -8,9 +8,9 @@ def die(s):
     sys.exit()
 
 version_map = {
-    'major': lambda a, b, c: [a+1, 0, 0],
-    'minor': lambda a, b, c: [a, b+1, 0],
-    'patch': lambda a, b, c: [a, b, c+1],
+    'major': lambda a, b, c=0: [a+1, 0, 0],
+    'minor': lambda a, b, c=0: [a, b+1, 0],
+    'patch': lambda a, b, c=0: [a, b, c+1],
 }
 
 if len(sys.argv) < 3:
