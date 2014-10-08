@@ -24,7 +24,7 @@ end
 
 function log(s, color)
     dfhack.color(color)
-    print(s)
+    print(dfhack.df2utf(s))
     dfhack.color(COLOR_RESET)
 end
 
