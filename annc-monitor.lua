@@ -1,6 +1,6 @@
 -- Displays announcements in the DFHack console
 
-VERSION = '0.1'
+VERSION = '0.1.1'
 
 if world_loaded == nil then
     world_loaded = dfhack.isWorldLoaded()
