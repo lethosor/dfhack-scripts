@@ -3,7 +3,7 @@
 VERSION = '0.1'
 
 if world_loaded == nil then
-    world_loaded = false
+    world_loaded = dfhack.isWorldLoaded()
     enabled = false
     next_annc_id = 0
     timeout_interval = 2
