@@ -154,8 +154,10 @@ SETTINGS = {
         {id = 'KEY_HOLD_MS', type = 'int', desc = 'Key repeat delay (ms)'},
         {id = 'KEY_REPEAT_ACCEL_LIMIT', type = 'int', desc = '>>Maximum key acceleration (multiple)', min = 1},
         {id = 'KEY_REPEAT_ACCEL_START', type = 'int', desc = '>>Key acceleration delay', min = 1},
-        {id = 'MACRO_MS', type = 'int', desc = 'Macro instruction delay (ms)', min = 0},
-        {id = 'RECENTER_INTERFACE_SHUTDOWN_MS', type = 'int', desc = 'Delay after recentering (ms)', min = 0},
+        {id = 'MACRO_MS', type = 'int', desc = 'Macro instruction delay (ms)', min = 0,
+            in_game = 'df.global.init.input.macro_time'},
+        {id = 'RECENTER_INTERFACE_SHUTDOWN_MS', type = 'int', desc = 'Delay after recentering (ms)', min = 0,
+            in_game = 'df.global.init.input.pause_zoom_no_interface_ms'},
 
         {id = 'COMPRESSED_SAVES', type = 'bool', desc = 'Enable compressed saves'},
     },
