@@ -185,6 +185,16 @@ function Parser_bbcode:link(dest, text)
         self:color(table.unpack(old_color))
 end
 
+function Parser_bbcode:ikey(key)
+    local old_color = self.last_color
+    return self:color(COLOR_LIGHTGREEN, 0, 0) .. Parser_bbcode.super.ikey(self, key) ..
+        self:color(table.unpack(old_color))
+end
+
+function Parser_bbcode:pause()
+    return '[hr]'
+end
+
 function Parser_bbcode:newline2()
     return '\n'
 end
