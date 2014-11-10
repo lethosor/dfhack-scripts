@@ -1,6 +1,6 @@
 -- Generate a wikitext table of emotions
 
-VERSION = '1.0'
+VERSION = '1.1'
 
 utils = require 'utils'
 args = utils.processArgs({...}, utils.invert{'file', 'overwrite'})
@@ -20,7 +20,7 @@ end
 
 write([[{| class="wikitable sortable"
 |-
-! ID !! Emotion !! Divider
+! ID !! Emotion !! Strength
 ]])
 for id, emotion in ipairs(df.emotion_type) do
     if emotion ~= nil and id >= 0 then
@@ -30,8 +30,17 @@ for id, emotion in ipairs(df.emotion_type) do
         else
             color = attrs.color .. ':0'
         end
+        strength = attrs.divider
+        if strength ~= 0 then
+            strength = -8 / strength
+            if strength >= 0 then
+                strength = '+' .. strength
+            end
+            strength = tostring(strength)
+        end
+        emotion = emotion:gsub('[A-Z]', ' %1'):sub(2)
         write('|-\n')
-        write(('|| %i || {{DFtext|%s|%s}} || %i\n'):format(id, emotion, color, attrs.divider))
+        write(('| %i || {{DFtext|%s|%s}} || %s\n'):format(id, emotion, color, strength))
     end
 end
 write('|}\n')
