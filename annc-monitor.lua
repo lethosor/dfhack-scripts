@@ -22,10 +22,9 @@ function log(s, color)
     dfhack.color(COLOR_RESET)
 end
 
-local reports = df.global.world.status.reports
 function annc_handler(id)
     if enabled and dfhack.isWorldLoaded() then
-        local annc = reports[id - reports[0].id]
+        local annc = df.report.find(id)
         local color = annc.color + (annc.bright and 8 or 0)
         log(annc.text, color)
     end
