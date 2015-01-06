@@ -577,13 +577,29 @@ end
 color_editor = defclass(color_editor, gui.FramedScreen)
 color_editor.focus_path = 'settings_manager/colors'
 color_editor.ATTRS = {
-    frame_title = 'Color editor'
+    frame_title = 'Color editor',
+    ui_colors = {
+        black = 0,
+        gray = 1,
+        white = 2,
+        r_min = 3,
+        r_max = 4,
+        g_min = 5,
+        g_max = 6,
+        -- 7 and 8 (DGRAY and LGRAY) reserved for frame border
+        b_min = 9,
+        b_max = 10,
+        preview = 11,
+    },
 }
 
 function color_editor:init()
     self.sel_idx = 0
     self.current_color = -1
+    self.cur_color = {0, 0, 0}
     self.real_colors = {}
+    self.old_display_frames = df.global.gps.display_frames
+    df.global.gps.display_frames = 0
     for i, color in pairs(df.global.enabler.ccolor) do
         self.real_colors[i] = {}
         for component, value in pairs(color) do
@@ -597,6 +613,24 @@ function color_editor:set_temp_color(color, r, g, b)
     df.global.enabler.ccolor[color][0] = r
     df.global.enabler.ccolor[color][1] = g
     df.global.enabler.ccolor[color][2] = b
+end
+
+function color_editor:set_ui_colors()
+    self:set_temp_color(self.ui_colors.black, 0, 0, 0)
+    self:set_temp_color(self.ui_colors.gray, 0.5, 0.5, 0.5)
+    self:set_temp_color(self.ui_colors.white, 1, 1, 1)
+    local cc = self.real_colors[self.current_color]
+    self:set_temp_color(self.ui_colors.preview, cc[0], cc[1], cc[2])
+end
+
+function color_editor:reset_color(color)
+    for i = 0, 2 do
+        df.global.enabler.ccolor[color][i] = self.real_colors[color][i]
+    end
+end
+
+function color_editor:reset_colors()
+    for i = 0, 15 do self:reset_color(i) end
 end
 
 function color_editor:color_to_pos(color)
@@ -615,9 +649,14 @@ function color_editor:pos_to_color(x, y)
 end
 
 function color_editor:edit(color)
+    if color ~= -1 then self.sel_idx = color end
     self.current_color = color
     self.frame_title = (color == -1 and self.ATTRS.frame_title)
         or "Editing color: " .. COLORS[color + 1].name
+    df.global.gps.force_full_display_count = 1
+    if color ~= -1 then
+        self:set_ui_colors()
+    end
 end
 
 function color_editor:onInput(keys)
@@ -626,10 +665,21 @@ function color_editor:onInput(keys)
             self:dismiss()
         elseif keys._MOUSE_L then
             self:edit(self:pos_to_color())
+        elseif keys.SELECT then
+            self:edit(self.sel_idx)
+        elseif keys.CURSOR_UP then
+            self.sel_idx = self.sel_idx - 1
+            if self.sel_idx < 0 then self.sel_idx = 15 end
+        elseif keys.CURSOR_DOWN then
+            self.sel_idx = self.sel_idx + 1
+            if self.sel_idx > 15 then self.sel_idx = 0 end
+        elseif keys.CURSOR_LEFT or keys.CURSOR_RIGHT then
+            self.sel_idx = (self.sel_idx + 8) % 16
         end
     else
         if keys.LEAVESCREEN then
             self:edit(-1)
+            self:reset_colors()
         end
     end
 end
@@ -639,27 +689,34 @@ function color_editor:onRenderBody(painter)
         local space = (' '):rep(30)
         for i = 0, 15 do
             local x, y = self:color_to_pos(i)
-            local color_name = COLORS[i + 1].name
+            local color_name = (i == self.sel_idx and string.char(26) or ' ') ..
+                                ' ' .. COLORS[i + 1].name .. ' ' ..
+                                (i == self.sel_idx and string.char(27) or ' ')
             painter:pen({fg = COLOR_BLACK, bg = i})
             painter:seek(x, y):string(space)
             painter:seek(x, y + 1):string(space)
             painter:pen({fg = COLOR_WHITE, bg = i})
-            painter:seek(x, y + 1):string(color_name)
+            painter:seek(x + 1, y + 1):string(color_name)
             painter:pen({fg = i, bg = COLOR_BLACK})
-            painter:seek(x, y):string(color_name)
+            painter:seek(x + 1, y):string(color_name)
         end
     else
-        local color_name = COLORS[self.current_color + 1].name
+        local space = (' '):rep(70)
+        painter:pen({fg = self.ui_colors.white, bg = self.ui_colors.black})
+               :seek(2, 2)
+               :string('Preview:')
+               :pen({bg = self.ui_colors.preview})
+               :seek(2, 3)
+               :string(space)
+               :seek(2, 4)
+               :string(space)
     end
 end
 
 function color_editor:onDismiss()
-    for i, color in pairs(df.global.enabler.ccolor) do
-        for component, value in pairs(color) do
-            df.global.enabler.ccolor[i][component] = self.real_colors[i][component]
-        end
-    end
+    self:reset_colors()
     df.global.gps.force_full_display_count = 1
+    df.global.gps.display_frames = self.old_display_frames
 end
 
 if dfhack.gui.getCurFocus() == 'dfhack/lua/settings_manager' then
