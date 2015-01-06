@@ -591,12 +591,17 @@ color_editor.ATTRS = {
         b_max = 10,
         preview = 11,
     },
+    component_names = {'Red', 'Green', 'Blue'},
+    component_controls = {
+        {increase = 'CUSTOM_R', decrease = 'CUSTOM_E', reset = 'CUSTOM_SHIFT_R'},
+        {increase = 'CUSTOM_G', decrease = 'CUSTOM_F', reset = 'CUSTOM_SHIFT_G'},
+        {increase = 'CUSTOM_B', decrease = 'CUSTOM_V', reset = 'CUSTOM_SHIFT_B'},
+    },
 }
 
 function color_editor:init()
     self.sel_idx = 0
     self.current_color = -1
-    self.cur_color = {0, 0, 0}
     self.real_colors = {}
     self.old_display_frames = df.global.gps.display_frames
     df.global.gps.display_frames = 0
@@ -616,11 +621,18 @@ function color_editor:set_temp_color(color, r, g, b)
 end
 
 function color_editor:set_ui_colors()
+    local cc = self.real_colors[self.current_color]
     self:set_temp_color(self.ui_colors.black, 0, 0, 0)
     self:set_temp_color(self.ui_colors.gray, 0.5, 0.5, 0.5)
     self:set_temp_color(self.ui_colors.white, 1, 1, 1)
-    local cc = self.real_colors[self.current_color]
     self:set_temp_color(self.ui_colors.preview, cc[0], cc[1], cc[2])
+    local pc = df.global.enabler.ccolor[self.ui_colors.preview]
+    self:set_temp_color(self.ui_colors.r_min, 0, pc[1], pc[2])
+    self:set_temp_color(self.ui_colors.r_max, 1, pc[1], pc[2])
+    self:set_temp_color(self.ui_colors.g_min, pc[0], 0, pc[2])
+    self:set_temp_color(self.ui_colors.g_max, pc[0], 1, pc[2])
+    self:set_temp_color(self.ui_colors.b_min, pc[0], pc[1], 0)
+    self:set_temp_color(self.ui_colors.b_max, pc[0], pc[1], 1)
 end
 
 function color_editor:reset_color(color)
@@ -648,13 +660,19 @@ function color_editor:pos_to_color(x, y)
     return -1
 end
 
+function color_editor:full_color(color)
+    if color == nil then color = self.current_color end
+    return df.global.enabler.ccolor[color]
+end
+
 function color_editor:edit(color)
-    if color ~= -1 then self.sel_idx = color end
     self.current_color = color
     self.frame_title = (color == -1 and self.ATTRS.frame_title)
         or "Editing color: " .. COLORS[color + 1].name
     df.global.gps.force_full_display_count = 1
     if color ~= -1 then
+        local cc = df.global.enabler.ccolor[self.current_color]
+        self.sel_idx = color
         self:set_ui_colors()
     end
 end
@@ -702,14 +720,52 @@ function color_editor:onRenderBody(painter)
         end
     else
         local space = (' '):rep(70)
-        painter:pen({fg = self.ui_colors.white, bg = self.ui_colors.black})
-               :seek(2, 2)
-               :string('Preview:')
-               :pen({bg = self.ui_colors.preview})
-               :seek(2, 3)
-               :string(space)
-               :seek(2, 4)
-               :string(space)
+        painter:pen({fg = self.ui_colors.gray, bg = self.ui_colors.black})
+               :seek(2,  1):string(string.char(205):rep(70))
+               :seek(2,  4):string(string.char(205):rep(70))
+               :seek(1,  1):string(string.char(201))
+               :seek(72, 1):string(string.char(187))
+               :seek(1,  2):string(string.char(186))
+               :seek(72, 2):string(string.char(186))
+               :seek(1,  3):string(string.char(186))
+               :seek(72, 3):string(string.char(186))
+               :seek(1,  4):string(string.char(200))
+               :seek(72, 4):string(string.char(188))
+        painter:pen({fg = self.ui_colors.white})
+               :seek(3,  1):string('Preview:')
+        painter:pen({bg = self.ui_colors.preview})
+               :seek(2,  2):string(space)
+               :seek(2,  3):string(space)
+        for i = 1, 3 do
+            local min_x = 2
+            local max_x = df.global.gps.dimx - 4
+            local bar_min_x = min_x + 4
+            local bar_max_x = max_x - 4
+            local bar_width = bar_max_x - bar_min_x
+            local y = 3 * i + 4
+            local bar = string.char(198) .. string.char(205):rep(bar_width - 2) .. string.char(181)
+            local controls = self.component_controls[i]
+            local rgb_value = df.global.enabler.ccolor[self.ui_colors.preview][i - 1] * 255
+            local min_color_id = ({self.ui_colors.r_min, self.ui_colors.g_min, self.ui_colors.b_min})[i]
+            painter:pen({fg = self.ui_colors.white})
+                   :seek(bar_min_x + 1, y)
+                   :string(('%s <%i>'):format(self.component_names[i], rgb_value))
+                   :seek(bar_min_x + 5, y + 2)
+                   :string(('%s: Decrease    %s: Reset    %s: Increase'):format(
+                        dfhack.screen.getKeyDisplay(df.interface_key[controls.decrease]),
+                        dfhack.screen.getKeyDisplay(df.interface_key[controls.reset]),
+                        dfhack.screen.getKeyDisplay(df.interface_key[controls.increase])
+                    ))
+            painter:pen({fg = self.ui_colors.gray})
+                   :seek(bar_min_x, y + 1)
+                   :string(bar)
+            painter:pen({bg = min_color_id})
+                   :seek(min_x, y + 1)
+                   :string('    ')
+            painter:pen({bg = min_color_id + 1})
+                   :seek(max_x - 4, y + 1)
+                   :string('    ')
+        end
     end
 end
 
