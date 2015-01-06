@@ -218,8 +218,43 @@ SETTINGS = {
         {id = 'NICKNAME_DWARF', type = 'select', desc = 'Nickname behavior (fortress mode)', choices = nickname_choices},
         {id = 'NICKNAME_ADVENTURE', type = 'select', desc = 'Nickname behavior (adventure mode)', choices = nickname_choices},
         {id = 'NICKNAME_LEGENDS', type = 'select', desc = 'Nickname behavior (legends mode)', choices = nickname_choices},
+    },
+    colors = {
+        -- populated below
     }
 }
+
+COLORS = {
+    {id = 'BLACK', name = 'Black'},
+    {id = 'BLUE', name = 'Dark Blue'},
+    {id = 'GREEN', name = 'Dark Green'},
+    {id = 'CYAN', name = 'Dark Cyan'},
+    {id = 'RED', name = 'Dark Red'},
+    {id = 'MAGENTA', name = 'Dark Magenta'},
+    {id = 'BROWN', name = 'Brown'},
+    {id = 'LGRAY', name = 'Light Gray'},
+    {id = 'DGRAY', name = 'Dark Gray'},
+    {id = 'LBLUE', name = 'Light Blue'},
+    {id = 'LGREEN', name = 'Light Green'},
+    {id = 'LCYAN', name = 'Light Cyan'},
+    {id = 'LRED', name = 'Light Red'},
+    {id = 'LMAGENTA', name = 'Light Magenta'},
+    {id = 'YELLOW', name = 'Yellow'},
+    {id = 'WHITE', name = 'White'},
+}
+
+for k, v in pairs(COLORS) do
+    v.num_id = k - 1
+    for _, component in pairs({'R', 'G', 'B'}) do
+        table.insert(SETTINGS.colors, {
+            id = v.id .. '_' .. component,
+            type = 'int',
+            min = 0,
+            max = 255,
+            desc = v.name .. ' - ' .. component
+        })
+    end
+end
 
 function file_exists(path)
     local f = io.open(path, "r")
@@ -282,7 +317,7 @@ end
 function settings_manager:init()
     self:reset()
     local file_list = widgets.List{
-        choices = {"init.txt", "d_init.txt"},
+        choices = {"init.txt", "d_init.txt", "colors.txt"},
         text_pen = {fg = ui_settings.color},
         cursor_pen = {fg = ui_settings.highlightcolor},
         on_submit = self:callback("select_file"),
@@ -300,7 +335,7 @@ function settings_manager:init()
                 text = {
                     {key = 'LEAVESCREEN', text = ': Back'}
                 },
-                frame = {l = 1, t = 6},
+                frame = {l = 1, t = 4 + #file_list.choices},
             },
             widgets.Label{
                 text = 'settings-manager v' .. VERSION,
@@ -389,6 +424,10 @@ function settings_manager:select_file(index, choice)
     local res, err = settings_load()
     if not res then
         dialog.showMessage('Error loading settings', err, COLOR_LIGHTRED, self:callback('dismiss'))
+    end
+    if choice.text == 'colors.txt' then
+        color_editor():show()
+        return
     end
     self.frame_title = choice.text
     self.file = choice.text:sub(1, choice.text:find('.', 1, true) - 1)
@@ -533,6 +572,94 @@ end
 function settings_manager:save_setting(value)
     self:get_selected_setting().value = value
     self:refresh_settings_list()
+end
+
+color_editor = defclass(color_editor, gui.FramedScreen)
+color_editor.focus_path = 'settings_manager/colors'
+color_editor.ATTRS = {
+    frame_title = 'Color editor'
+}
+
+function color_editor:init()
+    self.sel_idx = 0
+    self.current_color = -1
+    self.real_colors = {}
+    for i, color in pairs(df.global.enabler.ccolor) do
+        self.real_colors[i] = {}
+        for component, value in pairs(color) do
+            self.real_colors[i][component] = value
+        end
+    end
+    df.global.gps.force_full_display_count = 1
+end
+
+function color_editor:set_temp_color(color, r, g, b)
+    df.global.enabler.ccolor[color][0] = r
+    df.global.enabler.ccolor[color][1] = g
+    df.global.enabler.ccolor[color][2] = b
+end
+
+function color_editor:color_to_pos(color)
+    return ((color >= 8 and 40) or 1), ((color % 8) * 2 + 1)
+end
+
+function color_editor:pos_to_color(x, y)
+    if x == nil then x = df.global.gps.mouse_x end
+    if y == nil then y = df.global.gps.mouse_y end
+    if y >= 2 and y <= 17 then
+        if (x >= 2 and x <= 31) or (x >= 41 and x <= 70) then
+            return math.floor((y - 2) / 2) + (x >= 41 and 8 or 0)
+        end
+    end
+    return -1
+end
+
+function color_editor:edit(color)
+    self.current_color = color
+    self.frame_title = (color == -1 and self.ATTRS.frame_title)
+        or "Editing color: " .. COLORS[color + 1].name
+end
+
+function color_editor:onInput(keys)
+    if self.current_color == -1 then
+        if keys.LEAVESCREEN then
+            self:dismiss()
+        elseif keys._MOUSE_L then
+            self:edit(self:pos_to_color())
+        end
+    else
+        if keys.LEAVESCREEN then
+            self:edit(-1)
+        end
+    end
+end
+
+function color_editor:onRenderBody(painter)
+    if self.current_color == -1 then
+        local space = (' '):rep(30)
+        for i = 0, 15 do
+            local x, y = self:color_to_pos(i)
+            local color_name = COLORS[i + 1].name
+            painter:pen({fg = COLOR_BLACK, bg = i})
+            painter:seek(x, y):string(space)
+            painter:seek(x, y + 1):string(space)
+            painter:pen({fg = COLOR_WHITE, bg = i})
+            painter:seek(x, y + 1):string(color_name)
+            painter:pen({fg = i, bg = COLOR_BLACK})
+            painter:seek(x, y):string(color_name)
+        end
+    else
+        local color_name = COLORS[self.current_color + 1].name
+    end
+end
+
+function color_editor:onDismiss()
+    for i, color in pairs(df.global.enabler.ccolor) do
+        for component, value in pairs(color) do
+            df.global.enabler.ccolor[i][component] = self.real_colors[i][component]
+        end
+    end
+    df.global.gps.force_full_display_count = 1
 end
 
 if dfhack.gui.getCurFocus() == 'dfhack/lua/settings_manager' then
