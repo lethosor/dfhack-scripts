@@ -7,7 +7,7 @@ Sample usage:
 Last tested on 0.40.13-r1
 ]]
 
-VERSION = '0.5.2'
+VERSION = '0.6.0'
 
 local gui = require "gui"
 local dialog = require 'gui.dialogs'
