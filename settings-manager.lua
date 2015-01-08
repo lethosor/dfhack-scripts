@@ -799,8 +799,6 @@ function color_editor:onRenderBody(painter)
         local mouse_x = gps.mouse_x - 1
         local mouse_y = gps.mouse_y - 1
         if enabler.mouse_lbut_down == 1 and self.drag_component ~= -1 then
-            --if mouse_y >= 7 and mouse_y <= 15 then
-            --    local comp = math.floor((mouse_y - 7) / 3)
             local cc = enabler.ccolor[self.ui_colors.preview]
             local old_color = cc[self.drag_component]
             if mouse_x >= bar_max_x then
@@ -809,11 +807,14 @@ function color_editor:onRenderBody(painter)
                 cc[self.drag_component] = 0
             else
                 cc[self.drag_component] = ((mouse_x - bar_min_x) / bar_width) + (1 / (2 * bar_width))
+                if math.abs(cc[self.drag_component] - 128/255) <= 1/255 then
+                    -- snap to 128/255
+                    cc[self.drag_component] = 128/255
+                end
             end
             if old_color ~= cc[self.drag_component] then
                 self:update_preview_colors()
             end
-            --end
         elseif enabler.mouse_lbut_down == 0 then
             self.drag_component = -1
         end
