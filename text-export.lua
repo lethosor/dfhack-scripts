@@ -164,7 +164,14 @@ function Parser_bbcode:parse_begin()
 end
 
 function Parser_bbcode:parse_end(text)
+    -- remove leading whitespace
     text = text:gsub('\n +', '\n')
+    -- ensure that color tags are closed
+    if text:find('%[color') then
+        text = text .. '[/color]'
+    end
+    -- remove [color=#foo]  [/color]
+    text = text:gsub('%[color=#%x%x%x%x%x%x%](%s*)%[/color%]', '%1')
     return text
 end
 
