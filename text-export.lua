@@ -5,6 +5,10 @@ VERSION = '0.1'
 
 utils = require 'utils'
 
+if OUTPUT_ENCODING == nil then
+    OUTPUT_ENCODING = dfhack.getOSType() == 'windows' and 'cp437' or 'utf-8'
+end
+
 TAGS = {
     TITLE = {content = true},
     HELP = {params = 1},
@@ -72,10 +76,10 @@ function Parser:pause() return '' end
 function Parser:link(path, text) return text end
 function Parser:choice(text) return text end
 function Parser:text(text)
-    return dfhack.df2utf(text)
+    return OUTPUT_ENCODING == 'utf-8' and dfhack.df2utf(text) or text
 end
 function Parser:char(ch)
-    return dfhack.df2utf(string.char(ch))
+    return OUTPUT_ENCODING == 'utf-8' and dfhack.df2utf(string.char(ch)) or string.char(ch)
 end
 function Parser:ikey(key)
     key = df.interface_key[key]
@@ -215,6 +219,14 @@ end
 scr = getTextViewscreen()
 args = utils.processArgs({...})
 format = string.lower(args['format'] or qerror('No format specified'))
+if args['encoding'] then
+    encoding = string.lower(args['encoding'])
+    if encoding == 'cp437' or encoding == 'utf-8' then
+        OUTPUT_ENCODING = encoding
+    else
+        qerror('Unrecognized encoding. Possible encodings: utf-8, cp437')
+    end
+end
 parser_class = _ENV['Parser_' .. format]
 if parser_class == nil then
     qerror('Unrecognized format: ' .. format)
