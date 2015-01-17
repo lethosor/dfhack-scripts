@@ -181,7 +181,7 @@ end
 
 function Parser_bbcode:link(dest, text)
     local old_color = self.last_color
-    return self:color(COLOR_CYAN, 0, 0) .. '\n' ..  text .. '\n' ..
+    return self:color(COLOR_CYAN, 0, 0) .. '\n' ..  text ..
         self:color(table.unpack(old_color))
 end
 
