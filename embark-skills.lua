@@ -1,7 +1,4 @@
 -- Adjusts dwarves' skills when embarking
---[[ By Lethosor
-Last tested on 0.40.13-r1
-]]
 
 VERSION = '0.1'
 

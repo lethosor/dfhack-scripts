@@ -1,7 +1,5 @@
 -- Inverts DF's color scheme while DF is running
---[[ By Lethosor
-Last tested on 0.40.12-r1
-]]
+
 VERSION = '0.2'
 
 function usage()

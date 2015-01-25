@@ -1,10 +1,8 @@
 -- An in-game init file editor
---[[ By Lethosor
+--[[
 Sample usage:
     keybinding add Alt-S@title settings-manager
     keybinding add Alt-S@dwarfmode/Default settings-manager
-
-Last tested on 0.40.13-r1
 ]]
 
 VERSION = '0.6.0'

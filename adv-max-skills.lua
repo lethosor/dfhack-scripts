@@ -1,7 +1,4 @@
--- Sets adventurer skills/attributes to maximum
---[[ By Lethosor
-Last tested on 0.40.10-r1
-]]
+-- Maximizes adventurer skills/attributes on creation
 
 if dfhack.gui.getCurFocus() ~= 'setupadventure' then
     qerror('Must be called on adventure mode setup screen')

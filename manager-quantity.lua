@@ -1,9 +1,7 @@
 -- Sets the quantity of the selected manager job
---[[ By Lethosor
+--[[
 Sample usage:
     keybinding add Alt-Q@jobmanagement manager-quantity
-
-Last tested on 0.40.11-r1
 ]]
 
 local dialog = require 'gui.dialogs'

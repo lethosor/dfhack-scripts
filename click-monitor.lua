@@ -1,8 +1,4 @@
 -- Displays the mouse (grid) coordinates when the mouse is clicked
---[[ By Lethosor
-Usage: click-monitor [start/stop]
-Last tested on 0.40.12-r1
-]]
 
 VERSION = '0.2'
 

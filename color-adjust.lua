@@ -1,7 +1,5 @@
 -- Adjust display colors
---[[ By Lethosor
-Last tested on 0.40.13-r1
-]]
+
 VERSION = '0.2'
 
 if original_colors == nil then

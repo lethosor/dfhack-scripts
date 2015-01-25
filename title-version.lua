@@ -1,9 +1,4 @@
 -- Displays the DFHack version on the title screen
---[[ By Lethosor
-Usage:
-    title-version [enable/disable]
-Last tested on 0.40.11-r1
-]]
 
 if old_version == nil then
     old_version = ''
