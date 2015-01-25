@@ -7,8 +7,8 @@ if active == nil then active = false end
 function usage()
     print [[
 Usage:
-    click-monitor start: Begin monitoring
-    click-monitor stop: End monitoring
+    click-monitor enable|start: Begin monitoring
+    click-monitor disable|stop: End monitoring
 ]]
 end
 
@@ -49,10 +49,10 @@ end
 
 args = {...}
 if #args == 1 then
-    if args[1] == 'start' then
+    if args[1] == 'start' or args[1] == 'enable' then
         active = true
         set_timeout()
-    elseif args[1] == 'stop' then
+    elseif args[1] == 'stop' or args[1] == 'disable' then
         active = false
     else
         usage()
