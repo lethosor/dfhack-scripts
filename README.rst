@@ -19,8 +19,8 @@ annc-monitor
 ------------
 Displays announcements and reports in the console.
 
-* ``annc-monitor start``: Begins monitoring
-* ``annc-monitor stop``: Stops monitoring
+* ``annc-monitor enable|start``: Begins monitoring
+* ``annc-monitor disable|stop``: Stops monitoring
 * ``annc-monitor interval X``: Sets the delay between checks for new announcements to ``X`` frames 
 
 click-monitor
