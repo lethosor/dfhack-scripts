@@ -460,6 +460,7 @@ function init()
         prev_focus = cur_focus
     end
 end
+
 if initialized == nil then
     if dfhack.getDFVersion():split('.')[2] ~= '40' then
         qerror('This script only supports DF 0.40.xx!')
