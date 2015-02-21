@@ -62,7 +62,7 @@ local print_modes = {
     {'STANDARD', 'STANDARD (OpenGL)'}, {'PROMPT', 'Prompt (STANDARD/2D)'},
     {'ACCUM_BUFFER', 'ACCUM_BUFFER'}, {'FRAME_BUFFER', 'FRAME_BUFFER'}, {'VBO', 'VBO'}
 }
-if dfhack.getOSType() == 'linux' then
+if dfhack.getOSType() == 'linux' or dfhack.getOSType() == 'darwin' then
     table.insert(print_modes, {'TEXT', 'TEXT (ncurses)'})
 end
 
