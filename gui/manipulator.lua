@@ -1,4 +1,8 @@
 -- manipulator
+
+gui = require 'gui'
+gps = df.global.gps
+
 SKILL_COLUMNS = {
     {group = 0, color = 7, profession = 'MINER', labor = 'MINE', skill = 'MINING', label = "Mi", special = true},
 -- Woodworking
@@ -182,6 +186,10 @@ SKILL_LEVELS = {
     {name = "Legendary+5",  points = 0,    abbr = 'Z'},
 }
 
+function if_nil(v, default)
+    if v == nil then return default else return v end
+end
+
 function check_nil(v, msg)
     if v == nil then
         qerror(msg ~= nil and msg or 'nil value')
@@ -205,4 +213,84 @@ for id, lvl in pairs(SKILL_LEVELS) do
     check_nil(lvl.name, ('Skill level %i: Missing name'):format(id))
     check_nil(tonumber(lvl.points), ('Skill level %i: Invalid points: %s'):format(id, lvl.points))
     lvl.abbr = tostring(check_nil(lvl.abbr, ('Skill level %i: Missing abbreviation'):format(id))):sub(0, 1)
+end
+
+Column = defclass(Column)
+
+function Column:init(args)
+    self.callback = check_nil(args.callback, 'No callback given')
+    self.allow_display = if_nil(args.allow_display, true)
+    self.allow_format = if_nil(args.allow_format, true)
+    self.default = if_nil(args.default, false)
+    self.cache = {}
+end
+
+function Column:lookup(unit)
+    if self.cache[unit] == nil then
+        self.cache[unit] = self.callback(unit)
+    end
+    return self.cache[unit]
+end
+
+function Column:clear_cache()
+    self.cache = {}
+end
+
+function load_columns()
+    local env = {
+        if_nil = if_nil,
+        Column = Column,
+        columns = {},
+    }
+    local f = loadfile('hack/scripts/gui/manipulator-columns.lua', 't', env) or qerror('Could not load columns')
+    local out = f() or qerror('No columns found')
+    for id, col in pairs(out.columns) do
+        if col.cache == nil then
+            qerror('Column "' .. id .. '" invalid')
+        end
+    end
+    return out.columns
+end
+
+manipulator = defclass(manipulator, gui.FramedScreen)
+manipulator.focus_path = 'manipulator'
+manipulator.ATTRS = {
+    frame_style = gui.BOUNDARY_FRAME,
+    frame_inset = 1,
+    list_top_margin = 3,
+    list_bottom_margin = 6,
+}
+
+function manipulator:init(args)
+    self.units = args.units
+    self.list_start = 0
+    self.all_columns = load_columns()
+    self.columns = {}
+    for k, c in pairs(self.all_columns) do
+        if c.default then table.insert(self.columns, k) end
+    end
+    self:set_title('Manage Labors')
+end
+
+function manipulator:set_title(title)
+    self.frame_title = 'Dwarf Manipulator - ' .. title
+end
+
+function manipulator:onRenderBody(p)
+    for i = self.list_start, math.min(#self.units, gps.dimy - self.list_bottom_margin - self.list_top_margin) do
+
+    end
+end
+
+function manipulator:onInput(keys)
+    if keys.LEAVESCREEN then
+        self:dismiss()
+    end
+end
+
+scr = dfhack.gui.getCurViewscreen()
+if df.viewscreen_unitlistst:is_instance(scr) then
+    manipulator{units = scr.units[scr.page]}:show()
+else
+    qerror('Invalid context')
 end
