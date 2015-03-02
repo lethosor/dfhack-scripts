@@ -8,4 +8,11 @@ columns.name = Column{
     highlight = true
 }
 
+columns.profession = Column{
+    callback = dfhack.units.getProfessionName,
+    color = dfhack.units.getProfessionColor,
+    title = 'Profession',
+    default = true
+}
+
 return _ENV
