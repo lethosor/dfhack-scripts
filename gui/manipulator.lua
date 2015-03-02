@@ -190,9 +190,9 @@ function if_nil(v, default)
     if v == nil then return default else return v end
 end
 
-function check_nil(v, msg)
+function check_nil(v, msg, traceback)
     if v == nil then
-        qerror(msg ~= nil and msg or 'nil value')
+        (traceback and error or qerror)(msg ~= nil and msg or 'nil value')
     end
     return v
 end
@@ -215,21 +215,52 @@ for id, lvl in pairs(SKILL_LEVELS) do
     lvl.abbr = tostring(check_nil(lvl.abbr, ('Skill level %i: Missing abbreviation'):format(id))):sub(0, 1)
 end
 
+OutputString = dfhack.screen.paintString
+
 Column = defclass(Column)
 
 function Column:init(args)
-    self.callback = check_nil(args.callback, 'No callback given')
+    self.callback = check_nil(args.callback, 'No callback given', true)
+    self.color = check_nil(args.color, 'No color or color callback given', true)
+    if type(self.color) ~= 'function' then
+        local _c = self.color
+        self.color = function() return _c end
+    end
+    self.title = check_nil(args.title, 'No title given', true)
+    self.desc = args.desc or self.title
     self.allow_display = if_nil(args.allow_display, true)
     self.allow_format = if_nil(args.allow_format, true)
     self.default = if_nil(args.default, false)
+    self.highlight = if_nil(args.highlight, false)
     self.cache = {}
+    self.color_cache = {}
+    self.width = #self.title
+    self.max_width = if_nil(args.max_width, 0)
 end
 
 function Column:lookup(unit)
     if self.cache[unit] == nil then
         self.cache[unit] = self.callback(unit)
+        self.width = math.max(self.width, #self.cache[unit])
+        if self.max_width > 0 then
+            self.width = math.min(self.width, self.max_width)
+        end
     end
     return self.cache[unit]
+end
+
+function Column:lookup_color(unit)
+    if self.color_cache[unit] == nil then
+        self.color_cache[unit] = self.color(unit)
+    end
+    return self.color_cache[unit]
+end
+
+function Column:populate(units)
+    for _, u in pairs(units) do
+        self:lookup(u)
+        self:lookup_color(u)
+    end
 end
 
 function Column:clear_cache()
@@ -238,18 +269,17 @@ end
 
 function load_columns()
     local env = {
-        if_nil = if_nil,
-        Column = Column,
-        columns = {},
+        columns = {}
     }
+    setmetatable(env, {__index = _ENV})
     local f = loadfile('hack/scripts/gui/manipulator-columns.lua', 't', env) or qerror('Could not load columns')
-    local out = f() or qerror('No columns found')
-    for id, col in pairs(out.columns) do
-        if col.cache == nil then
+    local columns = f().columns or qerror('No columns found')
+    for id, col in pairs(columns) do
+        if getmetatable(col) ~= Column then
             qerror('Column "' .. id .. '" invalid')
         end
     end
-    return out.columns
+    return columns
 end
 
 manipulator = defclass(manipulator, gui.FramedScreen)
@@ -257,17 +287,29 @@ manipulator.focus_path = 'manipulator'
 manipulator.ATTRS = {
     frame_style = gui.BOUNDARY_FRAME,
     frame_inset = 1,
+    top_margin = 2,
+    bottom_margin = 2,
+    left_margin = 2,
+    right_margin = 2,
     list_top_margin = 3,
     list_bottom_margin = 6,
 }
 
 function manipulator:init(args)
     self.units = args.units
-    self.list_start = 0
+    self.unit_max = #self.units - 1
+    self.list_start = 0   -- unit index
+    self.list_end = 0     -- unit index
+    self.list_height = 0  -- list_end - list_start + 1
+    self.list_idx = 0
+    self.grid_start = 0
+    self.grid_idx = 0
     self.all_columns = load_columns()
     self.columns = {}
     for k, c in pairs(self.all_columns) do
-        if c.default then table.insert(self.columns, k) end
+        if c.default then self.columns[k] = c end
+        c:clear_cache()
+        c:populate(self.units)
     end
     self:set_title('Manage Labors')
 end
@@ -277,14 +319,54 @@ function manipulator:set_title(title)
 end
 
 function manipulator:onRenderBody(p)
-    for i = self.list_start, math.min(#self.units, gps.dimy - self.list_bottom_margin - self.list_top_margin) do
-
+    local col_start = {}
+    local x = self.left_margin
+    local y = self.top_margin
+    for id, col in pairs(self.columns) do
+        col_start[col] = x
+        OutputString(COLOR_GREY, x, y, col.title)
+        x = x + col.width + 1
+    end
+    y = self.list_top_margin + 1
+    self.list_end = self.list_start + math.min(self.unit_max - self.list_start, gps.dimy - self.list_bottom_margin - self.list_top_margin - 2)
+    self.list_height = self.list_end - self.list_start + 1
+    for i = self.list_start, self.list_end do
+        local unit = self.units[i]
+        for id, col in pairs(self.columns) do
+            x = col_start[col]
+            local fg = col:lookup_color(unit)
+            local bg = COLOR_BLACK
+            local text = col:lookup(unit)
+            if i == self.list_idx and col.highlight then
+                bg = COLOR_GREY
+                fg = COLOR_BLACK
+                text = text .. (' '):rep(col.width - #text)
+            end
+            OutputString({fg = fg, bg = bg}, x, y, text)
+        end
+        y = y + 1
     end
 end
 
 function manipulator:onInput(keys)
+    if keys.STANDARDSCROLL_UP then keys.CURSOR_UP = true end
+    if keys.STANDARDSCROLL_DOWN then keys.CURSOR_DOWN = true end
+    if keys.STANDARDSCROLL_RIGHT then keys.CURSOR_RIGHT = true end
+    if keys.STANDARDSCROLL_LEFT then keys.CURSOR_LEFT = true end
     if keys.LEAVESCREEN then
         self:dismiss()
+    elseif keys.CURSOR_UP or keys.CURSOR_DOWN then
+        self.list_idx = self.list_idx + (keys.CURSOR_UP and -1 or 1)
+        if self.list_idx < 0 then
+            self.list_idx = self.unit_max
+        elseif self.list_idx > self.unit_max then
+            self.list_idx = 0
+        end
+        if self.list_idx > self.list_end then
+            self.list_start = self.list_idx - self.list_height + 1
+        elseif self.list_idx < self.list_start then
+            self.list_start = self.list_idx
+        end
     end
 end
 
