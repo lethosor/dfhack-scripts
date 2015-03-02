@@ -275,18 +275,15 @@ function column_wrap_func(func)
 end
 
 function load_columns()
+    local columns = {}
     local env = {
-        columns = {},
+        Column = function(args) table.insert(columns, Column(args)) end,
         wrap = column_wrap_func
     }
     setmetatable(env, {__index = _ENV})
     local f = loadfile('hack/scripts/gui/manipulator-columns.lua', 't', env) or qerror('Could not load columns')
-    local columns = f().columns or qerror('No columns found')
-    for id, col in pairs(columns) do
-        if getmetatable(col) ~= Column then
-            qerror('Column "' .. id .. '" invalid')
-        end
-    end
+    f()
+    if #columns < 1 then qerror('No columns found') end
     return columns
 end
 
@@ -315,7 +312,7 @@ function manipulator:init(args)
     self.all_columns = load_columns()
     self.columns = {}
     for k, c in pairs(self.all_columns) do
-        if c.default then self.columns[k] = c end
+        if c.default then table.insert(self.columns, c) end
         c:clear_cache()
         c:populate(self.units)
     end

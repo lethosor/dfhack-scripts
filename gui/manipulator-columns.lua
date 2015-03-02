@@ -1,4 +1,4 @@
-columns.stress = Column{
+Column{
     callback = function(unit)
         return unit.status.current_soul and unit.status.current_soul.personality.stress_level or 0
     end,
@@ -16,7 +16,7 @@ columns.stress = Column{
     right_align = true
 }
 
-columns.name = Column{
+Column{
     callback = function(unit)
         return dfhack.TranslateName(unit.name)
     end,
@@ -26,11 +26,9 @@ columns.name = Column{
     highlight = true
 }
 
-columns.profession = Column{
+Column{
     callback = dfhack.units.getProfessionName,
     color = wrap(dfhack.units.getProfessionColor),
     title = 'Profession',
     default = true
 }
-
-return _ENV
