@@ -232,6 +232,7 @@ function Column:init(args)
     self.allow_format = if_nil(args.allow_format, true)
     self.default = if_nil(args.default, false)
     self.highlight = if_nil(args.highlight, false)
+    self.right_align = if_nil(args.right_align, false)
     self.cache = {}
     self.color_cache = {}
     self.width = #self.title
@@ -240,18 +241,18 @@ end
 
 function Column:lookup(unit)
     if self.cache[unit] == nil then
-        self.cache[unit] = self.callback(unit)
+        self.cache[unit] = tostring(self.callback(unit))
         self.width = math.max(self.width, #self.cache[unit])
         if self.max_width > 0 then
             self.width = math.min(self.width, self.max_width)
         end
     end
-    return self.cache[unit]
+    return (self.right_align and (' '):rep(self.width - #self.cache[unit]) or '') .. self.cache[unit]
 end
 
 function Column:lookup_color(unit)
     if self.color_cache[unit] == nil then
-        self.color_cache[unit] = self.color(unit)
+        self.color_cache[unit] = self.color(unit, self:lookup(unit))
     end
     return self.color_cache[unit]
 end
@@ -267,9 +268,16 @@ function Column:clear_cache()
     self.cache = {}
 end
 
+function column_wrap_func(func)
+    return function(unit)
+        return func(unit)
+    end
+end
+
 function load_columns()
     local env = {
-        columns = {}
+        columns = {},
+        wrap = column_wrap_func
     }
     setmetatable(env, {__index = _ENV})
     local f = loadfile('hack/scripts/gui/manipulator-columns.lua', 't', env) or qerror('Could not load columns')
