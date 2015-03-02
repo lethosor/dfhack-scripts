@@ -245,6 +245,7 @@ function Column:lookup(unit)
         self.width = math.max(self.width, #self.cache[unit])
         if self.max_width > 0 then
             self.width = math.min(self.width, self.max_width)
+            self.cache[unit] = self.cache[unit]:sub(0, self.max_width)
         end
     end
     return (self.right_align and (' '):rep(self.width - #self.cache[unit]) or '') .. self.cache[unit]
