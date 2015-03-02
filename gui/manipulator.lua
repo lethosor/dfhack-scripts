@@ -353,14 +353,27 @@ function manipulator:onInput(keys)
     if keys.STANDARDSCROLL_DOWN then keys.CURSOR_DOWN = true end
     if keys.STANDARDSCROLL_RIGHT then keys.CURSOR_RIGHT = true end
     if keys.STANDARDSCROLL_LEFT then keys.CURSOR_LEFT = true end
+    if keys.STANDARDSCROLL_PAGEUP then keys.CURSOR_UP_FAST = true end
+    if keys.STANDARDSCROLL_PAGEDOWN then keys.CURSOR_DOWN_FAST = true end
     if keys.LEAVESCREEN then
         self:dismiss()
-    elseif keys.CURSOR_UP or keys.CURSOR_DOWN then
-        self.list_idx = self.list_idx + (keys.CURSOR_UP and -1 or 1)
+    elseif keys.CURSOR_UP or keys.CURSOR_DOWN or keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST then
+        self.list_idx = self.list_idx + (
+            ((keys.CURSOR_UP or keys.CURSOR_UP_FAST) and -1 or 1)
+            * ((keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST) and 10 or 1)
+        )
         if self.list_idx < 0 then
-            self.list_idx = self.unit_max
+            if keys.CURSOR_UP_FAST and self.list_idx > -10 then
+                self.list_idx = 0
+            else
+                self.list_idx = self.unit_max
+            end
         elseif self.list_idx > self.unit_max then
-            self.list_idx = 0
+            if keys.CURSOR_DOWN_FAST and self.list_idx < self.unit_max + 10 then
+                self.list_idx = self.unit_max
+            else
+                self.list_idx = 0
+            end
         end
         if self.list_idx > self.list_end then
             self.list_start = self.list_idx - self.list_height + 1
