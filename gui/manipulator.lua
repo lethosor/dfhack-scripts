@@ -245,11 +245,12 @@ end
 
 skill_cache = UnitAttrCache()
 function skill_cache:lookup(unit, skill)
-    local ret = 0
+    local ret = {rating = 0, experience = 0}
     if unit.status.current_soul then
         for _, unit_skill in pairs(unit.status.current_soul.skills) do
             if unit_skill.id == skill and (unit_skill.experience > 0 or unit_skill.rating > 0) then
-                ret = math.min(unit_skill.rating + 1, #SKILL_LEVELS)
+                ret.rating = math.min(unit_skill.rating + 1, #SKILL_LEVELS)
+                ret.experience = unit_skill.experience
             end
         end
     end
@@ -415,6 +416,27 @@ function manipulator:onRenderBody(p)
         y = y + 1
     end
     self:draw_grid()
+    local unit = self.units[self.list_idx]
+    local col = SKILL_COLUMNS[self.grid_idx]
+    p:pen{fg = COLOR_WHITE}
+    p:seek(0, gps.dimy - self.list_bottom_margin - 1)
+    p:string(dfhack.units.isMale(unit) and string.char(11) or string.char(12)):string(' ')
+    p:string(dfhack.TranslateName(unit.name)):string(', ')
+    p:string(dfhack.units.getProfessionName(unit)):string(': ')
+    if col.skill == df.job_skill.NONE then
+        if col.labor ~= df.unit_labor.NONE then
+            p:string(df.unit_labor.attrs[col.labor].caption, {fg = COLOR_LIGHTBLUE}):string(' ')
+        end
+        p:string(unit.status.labors[col.labor] and 'Enabled' or 'Not Enabled', {fg = COLOR_LIGHTBLUE})
+    else
+        local skill = skill_cache:get(unit, col.skill)
+        local lvl = skill.rating
+        local prof = df.job_skill.attrs[col.skill].caption_noun
+        p:string((lvl > 0 and SKILL_LEVELS[lvl].name or 'Not') .. ' ' .. prof, {fg = COLOR_LIGHTBLUE})
+        if lvl < #SKILL_LEVELS then
+            p:string(' '):string(('(%i/%i)'):format(skill.experience, SKILL_LEVELS[lvl > 0 and lvl or 1].points), {fg = COLOR_LIGHTBLUE})
+        end
+    end
 end
 
 function manipulator:draw_grid()
@@ -443,7 +465,7 @@ function manipulator:draw_grid()
                 local skill = SKILL_COLUMNS[grid_col].skill
                 local labor = SKILL_COLUMNS[grid_col].labor
                 if skill ~= df.job_skill.NONE then
-                    local level = skill_cache:get(unit, skill)
+                    local level = skill_cache:get(unit, skill).rating
                     c = level > 0 and SKILL_LEVELS[level].abbr or '-'
                 end
                 if labor ~= df.unit_labor.NONE then
