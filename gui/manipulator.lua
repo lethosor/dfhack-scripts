@@ -224,6 +224,16 @@ function clone_table(tbl)
     return out
 end
 
+if dfhack.units.getSquadName == nil then
+    function dfhack.units.getSquadName(unit)
+        if (unit.military.squad_id == -1) then return "" end
+        local squad = df.squad.find(unit.military.squad_id);
+        if not squad then return "" end
+        if (#squad.alias > 0) then return squad.alias end
+        return dfhack.TranslateName(squad.name, true)
+    end
+end
+
 OutputString = dfhack.screen.paintString
 
 function OutputKeyString(pen, x, y, key, str)

@@ -51,3 +51,9 @@ Column{
     title = 'Profession',
     default = true
 }
+
+Column{
+    callback = wrap(dfhack.units.getSquadName),
+    color = COLOR_LIGHTCYAN,
+    title = 'Squad',
+}
