@@ -712,9 +712,9 @@ function manipulator_columns:onInput(keys)
             self.col_idx = math.min(self.col_idx, #self.columns)
         end
     else
-        if keys.CUSTOM_A then
+        if keys.CUSTOM_A or keys.SELECT then
+            table.insert(self.columns, self.col_idx + 1, self:get_selection())
             if self.col_idx == 0 then self.col_idx = 1 end
-            table.insert(self.columns, self.col_idx, self:get_selection())
         end
     end
     self.super.onInput(self, keys)
