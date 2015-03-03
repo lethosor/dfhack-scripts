@@ -372,7 +372,7 @@ function manipulator:onRenderBody(p)
     local x = self.left_margin
     local y = self.top_margin
     for id, col in pairs(self.columns) do
-        col_start_x[col] = x
+        col_start_x[id] = x
         OutputString(COLOR_GREY, x, y, col.title)
         x = x + col.width + 1
     end
@@ -401,7 +401,7 @@ function manipulator:onRenderBody(p)
     for i = self.list_start, self.list_end do
         local unit = self.units[i]
         for id, col in pairs(self.columns) do
-            x = col_start_x[col]
+            x = col_start_x[id]
             local fg = col:lookup_color(unit)
             local bg = COLOR_BLACK
             local text = col:lookup(unit)
@@ -524,6 +524,8 @@ function manipulator:onInput(keys)
         end
     elseif keys.SELECT then
         self:toggle_labor(self.units[self.list_idx], SKILL_COLUMNS[self.grid_idx])
+    elseif keys.SELECT_ALL then
+        self:toggle_labor_group(self.units[self.list_idx], SKILL_COLUMNS[self.grid_idx].group)
     end
 end
 
@@ -536,11 +538,10 @@ function manipulator:is_valid_labor(labor)
     return true
 end
 
-function manipulator:toggle_labor(unit, col)
+function manipulator:set_labor(unit, col, state)
     if not self:is_valid_labor(col.labor) then return end
-    res = not unit.status.labors[col.labor]
     if col.special then
-        if res then
+        if state then
             for i, c in pairs(SKILL_COLUMNS) do
                 if c.special then
                     unit.status.labors[c.labor] = false
@@ -549,8 +550,21 @@ function manipulator:toggle_labor(unit, col)
         end
         unit.military.pickup_flags.update = true
     end
-    unit.status.labors[col.labor] = res
+    unit.status.labors[col.labor] = state
     self.grid_dirty = true
+end
+
+function manipulator:toggle_labor(unit, col)
+    self:set_labor(unit, col, not unit.status.labors[col.labor])
+end
+
+function manipulator:toggle_labor_group(unit, group)
+    local state = not unit.status.labors[SKILL_COLUMNS[self.grid_idx].labor]
+    for _, col in pairs(SKILL_COLUMNS) do
+        if col.group == group then
+            self:set_labor(unit, col, state)
+        end
+    end
 end
 
 function manipulator:onResize(...)
