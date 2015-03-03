@@ -215,7 +215,36 @@ for id, lvl in pairs(SKILL_LEVELS) do
     lvl.abbr = tostring(check_nil(lvl.abbr, ('Skill level %i: Missing abbreviation'):format(id))):sub(0, 1)
 end
 
+function clone_table(tbl)
+    local out = {}
+    for k, v in pairs(tbl) do
+        out[k] = v
+    end
+    return out
+end
+
 OutputString = dfhack.screen.paintString
+
+skills = {cache = {}}
+
+function skills.get_level(unit, skill)
+    if skills.cache[unit] == nil then skills.cache[unit] = {} end
+    if skills.cache[unit][skill] == nil then
+        skills.cache[unit][skill] = 0
+        if unit.status.current_soul then
+            for _, unit_skill in pairs(unit.status.current_soul.skills) do
+                if unit_skill.id == skill and (unit_skill.experience > 0 or unit_skill.rating > 0) then
+                    skills.cache[unit][skill] = math.min(unit_skill.rating + 1, #SKILL_LEVELS)
+                end
+            end
+        end
+    end
+    return skills.cache[unit][skill]
+end
+
+function skills.clear_cache()
+    skills.cache = {}
+end
 
 Column = defclass(Column)
 
@@ -302,16 +331,19 @@ manipulator.ATTRS = {
 }
 
 function manipulator:init(args)
-    self.units = args.units
-    self.unit_max = #self.units - 1
+    self.units = clone_table(args.units)
+    self.unit_max = #self.units
     self.list_start = 0   -- unit index
     self.list_end = 0     -- unit index
     self.list_height = 0  -- list_end - list_start + 1
     self.list_idx = 0
-    self.grid_start = 0
-    self.grid_idx = 0
+    self.grid_start = 1   -- SKILL_COLUMNS index
+    self.grid_end = 1     -- SKILL_COLUMNS index
+    self.grid_width = 0   -- grid_end - grid_start + 1
+    self.grid_idx = 1
     self.all_columns = load_columns()
     self.columns = {}
+    skills.clear_cache()
     for k, c in pairs(self.all_columns) do
         if c.default then table.insert(self.columns, c) end
         c:clear_cache()
@@ -325,13 +357,28 @@ function manipulator:set_title(title)
 end
 
 function manipulator:onRenderBody(p)
-    local col_start = {}
+    local col_start_x = {}
     local x = self.left_margin
     local y = self.top_margin
     for id, col in pairs(self.columns) do
-        col_start[col] = x
+        col_start_x[col] = x
         OutputString(COLOR_GREY, x, y, col.title)
         x = x + col.width + 1
+    end
+    local grid_start_x = x
+    self.grid_width = gps.dimx - x - self.right_margin + 1
+    self.grid_end = self.grid_start + self.grid_width - 1
+    for i = self.grid_start, self.grid_end do
+        local col = SKILL_COLUMNS[i]
+        local fg = col.color
+        local bg = COLOR_BLACK
+        if i == self.grid_idx then
+            fg = COLOR_BLACK
+            bg = COLOR_GREY
+        end
+        OutputString({fg = fg, bg = bg}, x, 1, col.label:sub(1, 1))
+        OutputString({fg = fg, bg = bg}, x, 2, col.label:sub(2, 2))
+        x = x + 1
     end
     y = self.list_top_margin + 1
     self.list_end = self.list_start + math.min(self.unit_max - self.list_start, gps.dimy - self.list_bottom_margin - self.list_top_margin - 2)
@@ -339,7 +386,7 @@ function manipulator:onRenderBody(p)
     for i = self.list_start, self.list_end do
         local unit = self.units[i]
         for id, col in pairs(self.columns) do
-            x = col_start[col]
+            x = col_start_x[col]
             local fg = col:lookup_color(unit)
             local bg = COLOR_BLACK
             local text = col:lookup(unit)
@@ -349,6 +396,32 @@ function manipulator:onRenderBody(p)
                 text = text .. (' '):rep(col.width - #text)
             end
             OutputString({fg = fg, bg = bg}, x, y, text)
+        end
+        for grid_col = self.grid_start, self.grid_end do
+            x = grid_start_x + grid_col - self.grid_start
+            local fg = COLOR_WHITE
+            local bg = COLOR_BLACK
+            local c = string.char(0xFA)
+            local skill = SKILL_COLUMNS[grid_col].skill
+            local labor = SKILL_COLUMNS[grid_col].labor
+            if skill ~= df.job_skill.NONE then
+                local level = skills.get_level(unit, skill)
+                c = level > 0 and SKILL_LEVELS[level].abbr or '-'
+            end
+            if labor ~= df.unit_labor.NONE then
+                if unit.status.labors[labor] then
+                    bg = COLOR_GREY
+                    if skill == df.job_skill.NONE then
+                        c = string.char(0xF9)
+                    end
+                end
+            else
+                bg = COLOR_CYAN
+            end
+            if i == self.list_idx and grid_col == self.grid_idx then
+                fg = COLOR_LIGHTBLUE
+            end
+            OutputString({fg = fg, bg = bg}, x, y, c)
         end
         y = y + 1
     end
@@ -385,6 +458,21 @@ function manipulator:onInput(keys)
             self.list_start = self.list_idx - self.list_height + 1
         elseif self.list_idx < self.list_start then
             self.list_start = self.list_idx
+        end
+    elseif keys.CURSOR_LEFT or keys.CURSOR_RIGHT or keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST then
+        self.grid_idx = self.grid_idx + (
+            ((keys.CURSOR_LEFT or keys.CURSOR_LEFT_FAST) and -1 or 1)
+            * ((keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST) and 10 or 1)
+        )
+        if self.grid_idx < 1 then
+            self.grid_idx = 1
+        elseif self.grid_idx > #SKILL_COLUMNS then
+            self.grid_idx = #SKILL_COLUMNS
+        end
+        if self.grid_idx > self.grid_end then
+            self.grid_start = self.grid_idx - self.grid_width + 1
+        elseif self.grid_idx < self.grid_start then
+            self.grid_start = self.grid_idx
         end
     end
 end
