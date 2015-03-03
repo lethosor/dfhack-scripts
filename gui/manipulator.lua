@@ -355,6 +355,8 @@ function load_columns()
     return columns
 end
 
+default_columns = default_columns or 0
+
 manipulator = defclass(manipulator, gui.FramedScreen)
 manipulator.focus_path = 'manipulator'
 manipulator.ATTRS = {
@@ -387,6 +389,11 @@ function manipulator:init(args)
         if c.default then table.insert(self.columns, c) end
         c:clear_cache()
         c:populate(self.units)
+    end
+    if type(default_columns) ~= 'table' then
+        default_columns = self.columns
+    else
+        self.columns = default_columns
     end
     self:set_title('Manage Labors')
 end
@@ -620,6 +627,11 @@ end
 function manipulator:onResize(...)
     self.super.onResize(self, ...)
     self.grid_dirty = true
+end
+
+function manipulator:onDismiss(...)
+    default_columns = self.columns
+    self.super.onDismiss(...)
 end
 
 manipulator_columns = defclass(manipulator_columns, gui.FramedScreen)
