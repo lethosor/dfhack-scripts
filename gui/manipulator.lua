@@ -1,6 +1,7 @@
 -- manipulator
 
 gui = require 'gui'
+widgets = require 'gui.widgets'
 gps = df.global.gps
 
 SKILL_COLUMNS = {
@@ -225,6 +226,22 @@ end
 
 OutputString = dfhack.screen.paintString
 
+function OutputKeyString(pen, x, y, key, str)
+    if df.interface_key[key] ~= nil then key = df.interface_key[key] end
+    local disp = dfhack.screen.getKeyDisplay(key)
+    OutputString(COLOR_LIGHTGREEN, x, y, disp)
+    OutputString(pen, x + #disp, y, ': ' .. str)
+end
+
+function process_keys(keys)
+    if keys.STANDARDSCROLL_UP then keys.CURSOR_UP = true end
+    if keys.STANDARDSCROLL_DOWN then keys.CURSOR_DOWN = true end
+    if keys.STANDARDSCROLL_RIGHT then keys.CURSOR_RIGHT = true end
+    if keys.STANDARDSCROLL_LEFT then keys.CURSOR_LEFT = true end
+    if keys.STANDARDSCROLL_PAGEUP then keys.CURSOR_UP_FAST = true end
+    if keys.STANDARDSCROLL_PAGEDOWN then keys.CURSOR_DOWN_FAST = true end
+end
+
 UnitAttrCache = defclass(UnitAttrCache)
 
 function UnitAttrCache:init()
@@ -378,8 +395,9 @@ function manipulator:onRenderBody(p)
         x = x + col.width + 1
     end
     local grid_start_x = x
+    self.grid_start = math.max(1, self.grid_start)
     self.grid_width = gps.dimx - x - self.right_margin + 1
-    self.grid_end = self.grid_start + self.grid_width - 1
+    self.grid_end = math.min(self.grid_start + self.grid_width - 1, #SKILL_COLUMNS)
     if self.grid_end > #SKILL_COLUMNS then
         self.grid_start = self.grid_start - (self.grid_end - #SKILL_COLUMNS)
         self.grid_end = #SKILL_COLUMNS
@@ -490,18 +508,13 @@ function manipulator:draw_grid()
     for y = buf.y1, buf.y2 do
         for x = buf.x1, buf.x2 do
             local cell = buf[y][x]
-            OutputString(cell, x, y, cell.ch)
+            if cell then OutputString(cell, x, y, cell.ch) end
         end
     end
 end
 
 function manipulator:onInput(keys)
-    if keys.STANDARDSCROLL_UP then keys.CURSOR_UP = true end
-    if keys.STANDARDSCROLL_DOWN then keys.CURSOR_DOWN = true end
-    if keys.STANDARDSCROLL_RIGHT then keys.CURSOR_RIGHT = true end
-    if keys.STANDARDSCROLL_LEFT then keys.CURSOR_LEFT = true end
-    if keys.STANDARDSCROLL_PAGEUP then keys.CURSOR_UP_FAST = true end
-    if keys.STANDARDSCROLL_PAGEDOWN then keys.CURSOR_DOWN_FAST = true end
+    process_keys(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
     elseif keys.CURSOR_UP or keys.CURSOR_DOWN or keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST then
@@ -548,6 +561,8 @@ function manipulator:onInput(keys)
         self:toggle_labor(self.units[self.list_idx], SKILL_COLUMNS[self.grid_idx])
     elseif keys.SELECT_ALL then
         self:toggle_labor_group(self.units[self.list_idx], SKILL_COLUMNS[self.grid_idx].group)
+    elseif keys.CUSTOM_SHIFT_C then
+        manipulator_columns{parent = self}:show()
     end
 end
 
@@ -597,9 +612,115 @@ function manipulator:onResize(...)
     self.grid_dirty = true
 end
 
+manipulator_columns = defclass(manipulator_columns, gui.FramedScreen)
+manipulator_columns.ATTRS = {
+    frame_title = 'Dwarf Manipulator - Columns',
+}
+
+function manipulator_columns:init(args)
+    self.parent = args.parent
+    if getmetatable(self.parent) ~= manipulator then error('Invalid context') end
+    self.parent.grid_dirty = true
+    self.columns = self.parent.columns
+    self.all_columns = self.parent.all_columns
+    self.col_idx = 1
+    self.all_col_idx = 1
+    self.cur_list = 1
+end
+
+function manipulator_columns:get_selection()
+    if self.cur_list == 1 then
+        return self.columns[self.col_idx]
+    else
+        return self.all_columns[self.all_col_idx]
+    end
+end
+
+function manipulator_columns:onRenderBody(p)
+    local x1 = 2
+    local x2 = math.floor(gps.dimx / 2) - 1
+    local x3 = gps.dimx - 2
+    local y1 = 2
+    local y2 = gps.dimy - 5
+    for i = 1, #self.columns do
+        OutputString((self.cur_list == 1 and i == self.col_idx and COLOR_LIGHTGREEN) or COLOR_GREEN,
+            x1, y1 + i - 1, self.columns[i].title:sub(1, x2 - x1 - 1))
+    end
+    for i = 1, #self.all_columns do
+        OutputString((self.cur_list == 2 and i == self.all_col_idx and COLOR_YELLOW) or COLOR_BROWN,
+            x2 + 1, y1 + i - 1, self.all_columns[i].title:sub(1, x3 - x2 - 1))
+    end
+    local col = self:get_selection()
+    local c_color = self.cur_list == 1 and COLOR_WHITE or COLOR_DARKGREY
+    local a_color = self.cur_list == 2 and COLOR_WHITE or COLOR_DARKGREY
+    OutputKeyString(c_color, x1, y2, 'CURSOR_UP_FAST', 'Move up')
+    OutputKeyString(c_color, x1, y2 + 1, 'CURSOR_DOWN_FAST', 'Move down')
+    OutputKeyString(c_color, x1, y2 + 2, 'CUSTOM_R', 'Remove')
+    OutputKeyString(a_color, x2 + 1, y2, 'CUSTOM_A', 'Add')
+    if col then
+        OutputString(COLOR_GREY, x1, y2 + 3, col.desc)
+    end
+end
+
+function manipulator_columns:onInput(keys)
+    process_keys(keys)
+    if keys.LEAVESCREEN then
+        self:dismiss()
+        return
+    elseif keys.CURSOR_LEFT or keys.CURSOR_RIGHT then
+        self.cur_list = 3 - self.cur_list
+    elseif keys.CURSOR_UP or keys.CURSOR_DOWN then
+        if self.cur_list == 1 then
+            self.col_idx = self.col_idx + (keys.CURSOR_UP and -1 or 1)
+            if self.col_idx < 1 then
+                self.col_idx = #self.columns
+            elseif self.col_idx > #self.columns then
+                self.col_idx = 1
+            end
+        else
+            self.all_col_idx = self.all_col_idx + (keys.CURSOR_UP and -1 or 1)
+            if self.all_col_idx < 1 then
+                self.all_col_idx = #self.all_columns
+            elseif self.all_col_idx > #self.all_columns then
+                self.all_col_idx = 1
+            end
+        end
+    end
+    if self.cur_list == 1 then
+        if keys.CURSOR_UP_FAST and self.col_idx > 1 then
+            tmp = self.columns[self.col_idx - 1]
+            self.columns[self.col_idx - 1] = self.columns[self.col_idx]
+            self.columns[self.col_idx] = tmp
+            self.col_idx = self.col_idx - 1
+        elseif keys.CURSOR_DOWN_FAST and self.col_idx < #self.columns then
+            tmp = self.columns[self.col_idx + 1]
+            self.columns[self.col_idx + 1] = self.columns[self.col_idx]
+            self.columns[self.col_idx] = tmp
+            self.col_idx = self.col_idx + 1
+        elseif keys.CUSTOM_R then
+            table.remove(self.columns, self.col_idx)
+            self.col_idx = math.min(self.col_idx, #self.columns)
+        end
+    else
+        if keys.CUSTOM_A then
+            if self.col_idx == 0 then self.col_idx = 1 end
+            table.insert(self.columns, self.col_idx, self:get_selection())
+        end
+    end
+    self.super.onInput(self, keys)
+end
+
+function manipulator_columns:col_select(index, choice)
+    print(index, choice)
+end
+
+function manipulator_columns:all_col_select(index, choice)
+    print(index, choice)
+end
+
 scr = dfhack.gui.getCurViewscreen()
 if df.viewscreen_unitlistst:is_instance(scr) then
     manipulator{units = scr.units[scr.page]}:show()
 else
-    qerror('Invalid context')
+    dfhack.printerr('Invalid context')
 end
