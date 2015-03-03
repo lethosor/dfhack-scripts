@@ -577,11 +577,14 @@ function manipulator:set_labor(unit, col, state)
 end
 
 function manipulator:toggle_labor(unit, col)
+    if not self:is_valid_labor(col.labor) then return end
     self:set_labor(unit, col, not unit.status.labors[col.labor])
 end
 
 function manipulator:toggle_labor_group(unit, group)
-    local state = not unit.status.labors[SKILL_COLUMNS[self.grid_idx].labor]
+    local labor = SKILL_COLUMNS[self.grid_idx].labor
+    if not self:is_valid_labor(labor) then return end
+    local state = not unit.status.labors[labor]
     for _, col in pairs(SKILL_COLUMNS) do
         if col.group == group then
             self:set_labor(unit, col, state)
