@@ -368,6 +368,10 @@ function manipulator:onRenderBody(p)
     local grid_start_x = x
     self.grid_width = gps.dimx - x - self.right_margin + 1
     self.grid_end = self.grid_start + self.grid_width - 1
+    if self.grid_end > #SKILL_COLUMNS then
+        self.grid_start = self.grid_start - (self.grid_end - #SKILL_COLUMNS)
+        self.grid_end = #SKILL_COLUMNS
+    end
     for i = self.grid_start, self.grid_end do
         local col = SKILL_COLUMNS[i]
         local fg = col.color
