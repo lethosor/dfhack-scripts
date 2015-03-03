@@ -225,25 +225,35 @@ end
 
 OutputString = dfhack.screen.paintString
 
-skills = {cache = {}}
+UnitAttrCache = defclass(UnitAttrCache)
 
-function skills.get_level(unit, skill)
-    if skills.cache[unit] == nil then skills.cache[unit] = {} end
-    if skills.cache[unit][skill] == nil then
-        skills.cache[unit][skill] = 0
-        if unit.status.current_soul then
-            for _, unit_skill in pairs(unit.status.current_soul.skills) do
-                if unit_skill.id == skill and (unit_skill.experience > 0 or unit_skill.rating > 0) then
-                    skills.cache[unit][skill] = math.min(unit_skill.rating + 1, #SKILL_LEVELS)
-                end
+function UnitAttrCache:init()
+    self:clear()
+end
+
+function UnitAttrCache:get(unit, item)
+    if self.cache[unit] == nil then self.cache[unit] = {} end
+    if self.cache[unit][item] == nil then
+        self.cache[unit][item] = self:lookup(unit, item)
+    end
+    return self.cache[unit][item]
+end
+
+function UnitAttrCache:clear()
+    self.cache = {}
+end
+
+skill_cache = UnitAttrCache()
+function skill_cache:lookup(unit, skill)
+    local ret = 0
+    if unit.status.current_soul then
+        for _, unit_skill in pairs(unit.status.current_soul.skills) do
+            if unit_skill.id == skill and (unit_skill.experience > 0 or unit_skill.rating > 0) then
+                ret = math.min(unit_skill.rating + 1, #SKILL_LEVELS)
             end
         end
     end
-    return skills.cache[unit][skill]
-end
-
-function skills.clear_cache()
-    skills.cache = {}
+    return ret
 end
 
 Column = defclass(Column)
@@ -343,7 +353,7 @@ function manipulator:init(args)
     self.grid_idx = 1
     self.all_columns = load_columns()
     self.columns = {}
-    skills.clear_cache()
+    skill_cache:clear()
     for k, c in pairs(self.all_columns) do
         if c.default then table.insert(self.columns, c) end
         c:clear_cache()
@@ -409,7 +419,7 @@ function manipulator:onRenderBody(p)
             local skill = SKILL_COLUMNS[grid_col].skill
             local labor = SKILL_COLUMNS[grid_col].labor
             if skill ~= df.job_skill.NONE then
-                local level = skills.get_level(unit, skill)
+                local level = skill_cache:get(unit, skill)
                 c = level > 0 and SKILL_LEVELS[level].abbr or '-'
             end
             if labor ~= df.unit_labor.NONE then
