@@ -57,3 +57,13 @@ Column{
     color = COLOR_LIGHTCYAN,
     title = 'Squad',
 }
+
+Column{
+    callback = function(unit)
+        return unit.job.current_job and dfhack.job.getName(unit.job.current_job) or 'No Job'
+    end,
+    color = function(unit)
+        return unit.job.current_job and COLOR_LIGHTCYAN or COLOR_YELLOW
+    end,
+    title = 'Job',
+}
