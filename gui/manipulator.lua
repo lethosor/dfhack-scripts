@@ -351,6 +351,7 @@ function manipulator:init(args)
     self.grid_end = 1     -- SKILL_COLUMNS index
     self.grid_width = 0   -- grid_end - grid_start + 1
     self.grid_idx = 1
+    self.grid_dirty = true
     self.all_columns = load_columns()
     self.columns = {}
     skill_cache:clear()
@@ -411,33 +412,64 @@ function manipulator:onRenderBody(p)
             end
             OutputString({fg = fg, bg = bg}, x, y, text)
         end
-        for grid_col = self.grid_start, self.grid_end do
-            x = grid_start_x + grid_col - self.grid_start
-            local fg = COLOR_WHITE
-            local bg = COLOR_BLACK
-            local c = string.char(0xFA)
-            local skill = SKILL_COLUMNS[grid_col].skill
-            local labor = SKILL_COLUMNS[grid_col].labor
-            if skill ~= df.job_skill.NONE then
-                local level = skill_cache:get(unit, skill)
-                c = level > 0 and SKILL_LEVELS[level].abbr or '-'
-            end
-            if labor ~= df.unit_labor.NONE then
-                if unit.status.labors[labor] then
-                    bg = COLOR_GREY
-                    if skill == df.job_skill.NONE then
-                        c = string.char(0xF9)
-                    end
-                end
-            else
-                bg = COLOR_CYAN
-            end
-            if i == self.list_idx and grid_col == self.grid_idx then
-                fg = COLOR_LIGHTBLUE
-            end
-            OutputString({fg = fg, bg = bg}, x, y, c)
-        end
         y = y + 1
+    end
+    self:draw_grid()
+end
+
+function manipulator:draw_grid()
+    if self.grid_buffer == nil then
+        self.grid_buffer = {}
+        self.grid_dirty = true
+    end
+    local buf = self.grid_buffer
+    if self.grid_dirty then
+        buf.x1 = self.left_margin
+        for id, col in pairs(self.columns) do
+            buf.x1 = buf.x1 + col.width + 1
+        end
+        buf.x2 = gps.dimx - self.right_margin
+        buf.y1 = self.list_top_margin + 1
+        buf.y2 = self.list_top_margin + self.list_height
+        local y = buf.y1
+        for grid_row = self.list_start, self.list_end do
+            local unit = self.units[grid_row]
+            buf[y] = {}
+            for grid_col = self.grid_start, self.grid_end do
+                local x = buf.x1 + grid_col - self.grid_start
+                local fg = COLOR_WHITE
+                local bg = COLOR_BLACK
+                local c = string.char(0xFA)
+                local skill = SKILL_COLUMNS[grid_col].skill
+                local labor = SKILL_COLUMNS[grid_col].labor
+                if skill ~= df.job_skill.NONE then
+                    local level = skill_cache:get(unit, skill)
+                    c = level > 0 and SKILL_LEVELS[level].abbr or '-'
+                end
+                if labor ~= df.unit_labor.NONE then
+                    if unit.status.labors[labor] then
+                        bg = COLOR_GREY
+                        if skill == df.job_skill.NONE then
+                            c = string.char(0xF9)
+                        end
+                    end
+                else
+                    bg = COLOR_CYAN
+                end
+                if grid_row == self.list_idx and grid_col == self.grid_idx then
+                    fg = COLOR_LIGHTBLUE
+                end
+                buf[y][x] = {fg = fg, bg = bg, ch = c}
+            end
+            y = y + 1
+        end
+        self.grid_dirty = false
+    end
+    for y = buf.y1, buf.y2 do
+        for x = buf.x1, buf.x2 do
+            local cell = buf[y][x]
+            OutputString(cell, x, y, cell.ch)
+        end
     end
 end
 
@@ -451,6 +483,7 @@ function manipulator:onInput(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
     elseif keys.CURSOR_UP or keys.CURSOR_DOWN or keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST then
+        self.grid_dirty = true
         self.list_idx = self.list_idx + (
             ((keys.CURSOR_UP or keys.CURSOR_UP_FAST) and -1 or 1)
             * ((keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST) and 10 or 1)
@@ -474,6 +507,7 @@ function manipulator:onInput(keys)
             self.list_start = self.list_idx
         end
     elseif keys.CURSOR_LEFT or keys.CURSOR_RIGHT or keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST then
+        self.grid_dirty = true
         self.grid_idx = self.grid_idx + (
             ((keys.CURSOR_LEFT or keys.CURSOR_LEFT_FAST) and -1 or 1)
             * ((keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST) and 10 or 1)
@@ -489,6 +523,11 @@ function manipulator:onInput(keys)
             self.grid_start = self.grid_idx
         end
     end
+end
+
+function manipulator:onResize(...)
+    self.super.onResize(self, ...)
+    self.grid_dirty = true
 end
 
 scr = dfhack.gui.getCurViewscreen()
