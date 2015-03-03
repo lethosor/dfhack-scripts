@@ -522,7 +522,35 @@ function manipulator:onInput(keys)
         elseif self.grid_idx < self.grid_start then
             self.grid_start = self.grid_idx
         end
+    elseif keys.SELECT then
+        self:toggle_labor(self.units[self.list_idx], SKILL_COLUMNS[self.grid_idx])
     end
+end
+
+function manipulator:is_valid_labor(labor)
+    if labor == df.unit_labor.NONE then return false end
+    local ent = df.global.ui.main.fortress_entity
+    if ent and ent.entity_raw and not ent.entity_raw.jobs.permitted_labor[labor] then
+        return false
+    end
+    return true
+end
+
+function manipulator:toggle_labor(unit, col)
+    if not self:is_valid_labor(col.labor) then return end
+    res = not unit.status.labors[col.labor]
+    if col.special then
+        if res then
+            for i, c in pairs(SKILL_COLUMNS) do
+                if c.special then
+                    unit.status.labors[c.labor] = false
+                end
+            end
+        end
+        unit.military.pickup_flags.update = true
+    end
+    unit.status.labors[col.labor] = res
+    self.grid_dirty = true
 end
 
 function manipulator:onResize(...)
