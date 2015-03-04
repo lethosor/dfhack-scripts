@@ -371,12 +371,15 @@ manipulator.ATTRS = {
 }
 
 function manipulator:init(args)
-    self.units = clone_table(args.units)
+    self.units = {}
+    for i, u in pairs(args.units) do
+        self.units[i + 1] = u
+    end
     self.unit_max = #self.units
-    self.list_start = 0   -- unit index
-    self.list_end = 0     -- unit index
-    self.list_height = 0  -- list_end - list_start + 1
-    self.list_idx = 0
+    self.list_start = 1   -- unit index
+    self.list_end = 1     -- unit index
+    self.list_height = 1  -- list_end - list_start + 1
+    self.list_idx = 1
     self.grid_start = 1   -- SKILL_COLUMNS index
     self.grid_end = 1     -- SKILL_COLUMNS index
     self.grid_width = 0   -- grid_end - grid_start + 1
@@ -540,9 +543,9 @@ function manipulator:onInput(keys)
             ((keys.CURSOR_UP or keys.CURSOR_UP_FAST) and -1 or 1)
             * ((keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST) and 10 or 1)
         )
-        if self.list_idx < 0 then
-            if keys.CURSOR_UP_FAST and self.list_idx > -10 then
-                self.list_idx = 0
+        if self.list_idx < 1 then
+            if keys.CURSOR_UP_FAST and self.list_idx > -9 then
+                self.list_idx = 1
             else
                 self.list_idx = self.unit_max
             end
@@ -550,7 +553,7 @@ function manipulator:onInput(keys)
             if keys.CURSOR_DOWN_FAST and self.list_idx < self.unit_max + 10 then
                 self.list_idx = self.unit_max
             else
-                self.list_idx = 0
+                self.list_idx = 1
             end
         end
         if self.list_idx > self.list_end then
