@@ -367,7 +367,7 @@ manipulator.ATTRS = {
     left_margin = 2,
     right_margin = 2,
     list_top_margin = 3,
-    list_bottom_margin = 6,
+    list_bottom_margin = 7,
 }
 
 function manipulator:init(args)
@@ -475,6 +475,14 @@ function manipulator:onRenderBody(p)
             p:string(' '):string(('(%i/%i)'):format(skill.experience, SKILL_LEVELS[lvl > 0 and lvl or 1].points), {fg = COLOR_LIGHTBLUE})
         end
     end
+    p:newline()
+    p:key('SELECT'):string(': Toggle labor ')
+    p:key('SELECT_ALL'):string(': Toggle group ')
+    p:key('UNITJOB_VIEW'):string(': View Unit ')
+    p:key('UNITJOB_ZOOM_CRE'):string(': Go to Unit')
+    p:newline()
+    p:newline()
+    p:key('CUSTOM_SHIFT_C'):string(': Columns ')
 end
 
 function manipulator:draw_grid()
@@ -583,6 +591,19 @@ function manipulator:onInput(keys)
         self:toggle_labor_group(self.units[self.list_idx], SKILL_COLUMNS[self.grid_idx].group)
     elseif keys.CUSTOM_SHIFT_C then
         manipulator_columns{parent = self}:show()
+    elseif keys.UNITJOB_VIEW or keys.UNITJOB_ZOOM_CRE then
+        local parent = self._native.parent
+        for id, unit in pairs(parent.units[parent.page]) do
+            if unit == self.units[self.list_idx] then
+                parent.cursor_pos[parent.page] = id
+                gui.simulateInput(parent, {
+                    UNITJOB_VIEW = keys.UNITJOB_VIEW,
+                    UNITJOB_ZOOM_CRE = keys.UNITJOB_ZOOM_CRE
+                })
+                self:dismiss()
+                break
+            end
+        end
     end
 end
 
@@ -729,7 +750,7 @@ function manipulator_columns:onInput(keys)
     else
         if keys.CUSTOM_A or keys.SELECT then
             table.insert(self.columns, self.col_idx + 1, self:get_selection())
-            if self.col_idx == 0 then self.col_idx = 1 end
+            self.col_idx = self.col_idx + 1
         end
     end
     self.super.onInput(self, keys)
