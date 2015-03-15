@@ -30,7 +30,6 @@ function dup_table(tbl)
 end
 
 function set_variable(name, value)
-    -- Sets a global variable specified by 'name' to 'value'
     local parts = name:split('.')
     local last_field = table.remove(parts, #parts)
     parent = _G
