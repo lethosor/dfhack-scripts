@@ -202,7 +202,10 @@ SETTINGS = {
         {id = 'SET_LABOR_LISTS', type = 'select', desc = 'Automatically set labors', choices = {
             {'SKILLS', 'By skill'}, {'BY_UNIT_TYPE', 'By unit type'}, {'NO', 'Disabled'}
         }},
-        {id = 'POPULATION_CAP', type = 'int', desc = 'Population cap', min = 0},
+        {id = 'POPULATION_CAP', type = 'int', desc = 'Population cap', min = 0,
+            in_game = 'df.global.d_init.population_cap'},
+        {id = 'STRICT_POPULATION_CAP', type = 'int', desc = 'Strict population cap',
+            min = 0, in_game = 'df.global.d_init.strict_population_cap'},
         {id = 'VARIED_GROUND_TILES', type = 'bool', desc = 'Varied ground tiles'},
         {id = 'ENGRAVINGS_START_OBSCURED', type = 'bool', desc = 'Obscure engravings by default'},
         {id = 'SHOW_IMP_QUALITY', type = 'bool', desc = 'Show item quality indicators'},
