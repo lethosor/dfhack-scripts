@@ -70,13 +70,9 @@ A replacement for the "continue game" screen.
 * ``load-screen enable`` to enable
 * ``load-screen disable`` to disable
 
-manager-quantity
-----------------
-Allows changing the desired quantity of the currently-selected manager job.
-
-Recommended for use as a keybinding:
-
-* ``keybinding add Alt-Q@jobmanagement manager-quantity``
+raw-lint
+--------
+Checks for simple issues with raw files. Can be run automatically.
 
 settings-manager
 ----------------
