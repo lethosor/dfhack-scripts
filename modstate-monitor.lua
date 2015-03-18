@@ -1,4 +1,5 @@
 -- Displays changes in the key modifier state
+--@ enable = true
 
 VERSION = '0.1'
 
@@ -43,6 +44,10 @@ function check()
 end
 
 args = {...}
+if dfhack_flags and dfhack_flags.enable then
+    table.insert(args, dfhack_flags.enable_state and 'enable' or 'disable')
+end
+
 if #args == 1 then
     if args[1] == 'enable' or args[1] == 'start' then
         set_timeout()

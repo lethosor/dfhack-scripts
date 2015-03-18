@@ -1,4 +1,5 @@
 -- A replacement for the "load game" screen
+--@ enable = true
 
 VERSION = '0.8.2'
 
@@ -471,6 +472,9 @@ if initialized == nil then
 end
 
 args = {...}
+if dfhack_flags and dfhack_flags.enable then
+    table.insert(args, dfhack_flags.enable_state and 'enable' or 'disable')
+end
 if #args == 1 then
     if args[1] == 'enable' then
         enabled = true

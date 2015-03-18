@@ -1,4 +1,5 @@
 -- Check for common mistakes in raw files
+--@ enable = true
 
 utils = require 'utils'
 
@@ -111,6 +112,9 @@ dfhack.onStateChange[_ENV] = function(event)
 end
 
 args = {...}
+if dfhack_flags and dfhack_flags.enable then
+    table.insert(args, dfhack_flags.enable_state and 'enable' or 'disable')
+end
 if args[1] == 'enable' then
     enabled = true
     check(true, true)

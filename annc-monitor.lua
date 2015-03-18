@@ -1,4 +1,5 @@
 -- Displays announcements in the DFHack console
+--@ enable = true
 
 VERSION = '0.2'
 
@@ -11,8 +12,8 @@ end
 function usage()
     print [[
 Usage:
-    annc-monitor start: Begin monitoring
-    annc-monitor stop: End monitoring
+    annc-monitor start|enable: Begin monitoring
+    annc-monitor stop|disable: End monitoring
 ]]
 end
 
@@ -31,10 +32,13 @@ function annc_handler(id)
 end
 
 args = {...}
+if dfhack_flags and dfhack_flags.enable then
+    table.insert(args, dfhack_flags.enable_state and 'enable' or 'disable')
+end
 if #args >= 1 then
-    if args[1] == 'start' then
+    if args[1] == 'start' or args[1] == 'enable' then
         enabled = true
-    elseif args[1] == 'stop' then
+    elseif args[1] == 'stop' or args[1] == 'disable' then
         enabled = false
     else
         usage()

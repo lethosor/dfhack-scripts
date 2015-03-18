@@ -1,4 +1,5 @@
 -- Displays the mouse (grid) coordinates when the mouse is clicked
+--@ enable = true
 
 VERSION = '0.2'
 
@@ -48,6 +49,10 @@ function check_click()
 end
 
 args = {...}
+if dfhack_flags and dfhack_flags.enable then
+    table.insert(args, dfhack_flags.enable_state and 'enable' or 'disable')
+end
+
 if #args == 1 then
     if args[1] == 'start' or args[1] == 'enable' then
         active = true

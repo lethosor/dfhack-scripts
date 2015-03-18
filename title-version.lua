@@ -1,4 +1,5 @@
 -- Displays the DFHack version on the title screen
+--@ enable = true
 
 if old_version == nil then
     old_version = ''
@@ -13,7 +14,12 @@ function showVersion(...)
         scr.str_version = args[1] or (scr.str_version .. ', DFHack ' .. dfhack.VERSION .. ' ')
     end
 end
+
 args = {...}
+if dfhack_flags and dfhack_flags.enable then
+    table.insert(args, dfhack_flags.enable_state and 'enable' or 'disable')
+end
+
 if #args == 0 or args[1] == 'enable' then
     enabled = true
     dfhack.onStateChange.title_version = function() showVersion() end
