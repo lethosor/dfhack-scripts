@@ -17,6 +17,10 @@ Valid parameters to Column{}:
 - max_width: Column maximum width. Defaults to 0 (no maximum width).
 ]]
 
+if not Column then
+    qerror('Must be invoked from gui/manipulator')
+end
+
 Column{
     callback = function(unit)
         return unit.status.current_soul and unit.status.current_soul.personality.stress_level or 0
