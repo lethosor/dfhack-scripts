@@ -527,7 +527,7 @@ function manipulator:draw_grid()
                 if grid_row == self.list_idx and grid_col == self.grid_idx then
                     fg = COLOR_LIGHTBLUE
                 end
-                buf[y][x] = {fg = fg, bg = bg, ch = c}
+                buf[y][x] = dfhack.pen.parse{fg = fg, bg = bg, ch = c}
             end
             y = y + 1
         end
@@ -535,8 +535,8 @@ function manipulator:draw_grid()
     end
     for y = buf.y1, buf.y2 do
         for x = buf.x1, buf.x2 do
-            local cell = buf[y][x]
-            if cell then OutputString(cell, x, y, cell.ch) end
+            local pen = buf[y][x]
+            if pen then dfhack.screen.paintTile(pen, x, y) end
         end
     end
 end
