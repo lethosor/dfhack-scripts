@@ -658,6 +658,10 @@ function manipulator:onDismiss(...)
     self.super.onDismiss(...)
 end
 
+function manipulator:onGetSelectedUnit()
+    return self.units[self.list_idx]
+end
+
 manipulator_columns = defclass(manipulator_columns, gui.FramedScreen)
 manipulator_columns.ATTRS = {
     frame_title = 'Dwarf Manipulator - Columns',
