@@ -600,7 +600,7 @@ function manipulator:onInput(keys)
                     UNITJOB_VIEW = keys.UNITJOB_VIEW,
                     UNITJOB_ZOOM_CRE = keys.UNITJOB_ZOOM_CRE
                 })
-                self:dismiss()
+                if keys.UNITJOB_ZOOM_CRE then self:dismiss() end
                 break
             end
         end
