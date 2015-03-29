@@ -747,14 +747,6 @@ function manipulator_columns:onInput(keys)
     self.super.onInput(self, keys)
 end
 
-function manipulator_columns:col_select(index, choice)
-    print(index, choice)
-end
-
-function manipulator_columns:all_col_select(index, choice)
-    print(index, choice)
-end
-
 scr = dfhack.gui.getCurViewscreen()
 if df.viewscreen_unitlistst:is_instance(scr) and scr.page == 0 then
     manipulator{units = scr.units[scr.page]}:show()
