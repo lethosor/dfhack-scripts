@@ -1,5 +1,9 @@
 -- manipulator
 
+if not dfhack.penarray then
+    qerror('This script requires the dfhack.penarray class (available in 0.40.24-r3 and later)')
+end
+
 gui = require 'gui'
 widgets = require 'gui.widgets'
 gps = df.global.gps
@@ -384,7 +388,8 @@ function manipulator:init(args)
     self.grid_end = 1     -- SKILL_COLUMNS index
     self.grid_width = 0   -- grid_end - grid_start + 1
     self.grid_idx = 1
-    self.grid_dirty = true
+    self.grid = dfhack.penarray.new(#SKILL_COLUMNS, #self.units)
+    self:draw_grid()
     self.all_columns = load_columns()
     self.columns = {}
     skill_cache:clear()
@@ -453,7 +458,9 @@ function manipulator:onRenderBody(p)
         end
         y = y + 1
     end
-    self:draw_grid()
+    self.grid:draw(grid_start_x, self.list_top_margin + 1,
+        gps.dimx - grid_start_x - 1, self.list_height,
+        self.grid_start - 1, self.list_start - 1)
     local unit = self.units[self.list_idx]
     local col = SKILL_COLUMNS[self.grid_idx]
     p:pen{fg = COLOR_WHITE}
@@ -485,68 +492,50 @@ function manipulator:onRenderBody(p)
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
 end
 
-function manipulator:draw_grid()
-    if self.grid_buffer == nil then
-        self.grid_buffer = {}
-        self.grid_dirty = true
+function manipulator:update_grid_tile(x, y)
+    if x == nil then x = self.grid_idx end
+    if y == nil then y = self.list_idx end
+    local unit = self.units[y]
+    local fg = COLOR_WHITE
+    local bg = COLOR_BLACK
+    local c = string.char(0xFA)
+    local skill = SKILL_COLUMNS[x].skill
+    local labor = SKILL_COLUMNS[x].labor
+    if skill ~= df.job_skill.NONE then
+        local level = skill_cache:get(unit, skill).rating
+        c = level > 0 and SKILL_LEVELS[level].abbr or '-'
     end
-    local buf = self.grid_buffer
-    if self.grid_dirty then
-        buf.x1 = self.left_margin
-        for id, col in pairs(self.columns) do
-            buf.x1 = buf.x1 + col.width + 1
-        end
-        buf.x2 = gps.dimx - self.right_margin
-        buf.y1 = self.list_top_margin + 1
-        buf.y2 = self.list_top_margin + self.list_height
-        local y = buf.y1
-        for grid_row = self.list_start, self.list_end do
-            local unit = self.units[grid_row]
-            buf[y] = {}
-            for grid_col = self.grid_start, self.grid_end do
-                local x = buf.x1 + grid_col - self.grid_start
-                local fg = COLOR_WHITE
-                local bg = COLOR_BLACK
-                local c = string.char(0xFA)
-                local skill = SKILL_COLUMNS[grid_col].skill
-                local labor = SKILL_COLUMNS[grid_col].labor
-                if skill ~= df.job_skill.NONE then
-                    local level = skill_cache:get(unit, skill).rating
-                    c = level > 0 and SKILL_LEVELS[level].abbr or '-'
-                end
-                if labor ~= df.unit_labor.NONE then
-                    if unit.status.labors[labor] then
-                        bg = COLOR_GREY
-                        if skill == df.job_skill.NONE then
-                            c = string.char(0xF9)
-                        end
-                    end
-                else
-                    bg = COLOR_CYAN
-                end
-                if grid_row == self.list_idx and grid_col == self.grid_idx then
-                    fg = COLOR_LIGHTBLUE
-                end
-                buf[y][x] = dfhack.pen.parse{fg = fg, bg = bg, ch = c}
+    if labor ~= df.unit_labor.NONE then
+        if unit.status.labors[labor] then
+            bg = COLOR_GREY
+            if skill == df.job_skill.NONE then
+                c = string.char(0xF9)
             end
-            y = y + 1
         end
-        self.grid_dirty = false
+    else
+        bg = COLOR_CYAN
     end
-    for y = buf.y1, buf.y2 do
-        for x = buf.x1, buf.x2 do
-            local pen = buf[y][x]
-            if pen then dfhack.screen.paintTile(pen, x, y) end
+    if x == self.grid_idx and y == self.list_idx then
+        fg = COLOR_LIGHTBLUE
+    end
+    self.grid:set_tile(x - 1, y - 1, {fg = fg, bg = bg, ch = c})
+end
+
+function manipulator:draw_grid()
+    for y = 1, #self.units do
+        for x = 1, #SKILL_COLUMNS do
+            self:update_grid_tile(x, y)
         end
     end
 end
 
 function manipulator:onInput(keys)
+    local old_x = self.grid_idx
+    local old_y = self.list_idx
     process_keys(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
     elseif keys.CURSOR_UP or keys.CURSOR_DOWN or keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST then
-        self.grid_dirty = true
         self.list_idx = self.list_idx + (
             ((keys.CURSOR_UP or keys.CURSOR_UP_FAST) and -1 or 1)
             * ((keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST) and 10 or 1)
@@ -570,7 +559,6 @@ function manipulator:onInput(keys)
             self.list_start = self.list_idx
         end
     elseif keys.CURSOR_LEFT or keys.CURSOR_RIGHT or keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST then
-        self.grid_dirty = true
         self.grid_idx = self.grid_idx + (
             ((keys.CURSOR_LEFT or keys.CURSOR_LEFT_FAST) and -1 or 1)
             * ((keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST) and 10 or 1)
@@ -605,6 +593,8 @@ function manipulator:onInput(keys)
             end
         end
     end
+    self:update_grid_tile(old_x, old_y)
+    self:update_grid_tile()
 end
 
 function manipulator:is_valid_labor(labor)
@@ -629,7 +619,6 @@ function manipulator:set_labor(unit, col, state)
         unit.military.pickup_flags.update = true
     end
     unit.status.labors[col.labor] = state
-    self.grid_dirty = true
 end
 
 function manipulator:toggle_labor(unit, col)
@@ -650,7 +639,6 @@ end
 
 function manipulator:onResize(...)
     self.super.onResize(self, ...)
-    self.grid_dirty = true
 end
 
 function manipulator:onDismiss(...)
@@ -670,7 +658,6 @@ manipulator_columns.ATTRS = {
 function manipulator_columns:init(args)
     self.parent = args.parent
     if getmetatable(self.parent) ~= manipulator then error('Invalid context') end
-    self.parent.grid_dirty = true
     self.columns = self.parent.columns
     self.all_columns = self.parent.all_columns
     self.col_idx = 1
