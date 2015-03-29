@@ -288,6 +288,23 @@ function skill_cache:lookup(unit, skill)
     return ret
 end
 
+function make_sort_order(func, descending, ...)
+    local args = {...}
+    return function(a, b)
+        local ret = func(a, b, table.unpack(args))
+        if descending then return ret < 0
+        else return ret > 0 end
+    end
+end
+
+sort = {
+    skill = function(u1, u2, skill)
+        local level_diff = skill_cache:get(u2, skill).rating - skill_cache:get(u1, skill).rating
+        if level_diff ~= 0 then return level_diff end
+        return skill_cache:get(u2, skill).experience - skill_cache:get(u1, skill).experience
+    end
+}
+
 Column = defclass(Column)
 
 function Column:init(args)
@@ -488,6 +505,7 @@ function manipulator:onRenderBody(p)
     p:key('UNITJOB_VIEW'):string(': View Unit ')
     p:key('UNITJOB_ZOOM_CRE'):string(': Go to Unit')
     p:newline()
+    p:key('SECONDSCROLL_UP'):key('SECONDSCROLL_DOWN'):string(': Sort by skill')
     p:newline()
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
 end
@@ -592,9 +610,16 @@ function manipulator:onInput(keys)
                 break
             end
         end
+    elseif keys.SECONDSCROLL_UP or keys.SECONDSCROLL_DOWN then
+        self:sort_skill(SKILL_COLUMNS[self.grid_idx].skill, keys.SECONDSCROLL_UP)
+        self:draw_grid()
     end
     self:update_grid_tile(old_x, old_y)
     self:update_grid_tile()
+end
+
+function manipulator:sort_skill(skill, descending)
+    table.sort(self.units, make_sort_order(sort.skill, descending, skill))
 end
 
 function manipulator:is_valid_labor(labor)
