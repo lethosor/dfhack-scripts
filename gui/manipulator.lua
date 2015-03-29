@@ -6,6 +6,7 @@ end
 
 gui = require 'gui'
 widgets = require 'gui.widgets'
+enabler = df.global.enabler
 gps = df.global.gps
 
 SKILL_COLUMNS = {
@@ -256,6 +257,10 @@ function process_keys(keys)
     if keys.STANDARDSCROLL_PAGEDOWN then keys.CURSOR_DOWN_FAST = true end
 end
 
+function in_bounds(x, y, coords)
+    return x >= coords[1] and x <= coords[3] and y >= coords[2] and y <= coords[4]
+end
+
 UnitAttrCache = defclass(UnitAttrCache)
 
 function UnitAttrCache:init()
@@ -397,6 +402,7 @@ function manipulator:init(args)
         self.units[i + 1] = u
     end
     self.unit_max = #self.units
+    self.bounds = {}
     self.list_start = 1   -- unit index
     self.list_end = 1     -- unit index
     self.list_height = 1  -- list_end - list_start + 1
@@ -508,6 +514,7 @@ function manipulator:onRenderBody(p)
     p:key('SECONDSCROLL_UP'):key('SECONDSCROLL_DOWN'):string(': Sort by skill')
     p:newline()
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
+    self.bounds.grid = {grid_start_x, self.list_top_margin + 1, gps.dimx - 2, self.list_top_margin + self.list_height}
 end
 
 function manipulator:update_grid_tile(x, y)
@@ -613,9 +620,30 @@ function manipulator:onInput(keys)
     elseif keys.SECONDSCROLL_UP or keys.SECONDSCROLL_DOWN then
         self:sort_skill(SKILL_COLUMNS[self.grid_idx].skill, keys.SECONDSCROLL_UP)
         self:draw_grid()
+    elseif keys._MOUSE_L or keys._MOUSE_R then
+        self:onMouseInput(gps.mouse_x, gps.mouse_y,
+            {left = keys._MOUSE_L, right = keys._MOUSE_R}, dfhack.internal.getModifiers())
     end
     self:update_grid_tile(old_x, old_y)
     self:update_grid_tile()
+end
+
+function manipulator:onMouseInput(x, y, buttons, mods)
+    local old_col = self.grid_idx
+    local old_row = self.list_idx
+    if in_bounds(x, y, self.bounds.grid) then
+        local col = x - self.bounds.grid[1] + self.grid_start
+        local row = y - self.bounds.grid[2] + self.list_start
+        if buttons.left then
+            self:toggle_labor(self.units[row], SKILL_COLUMNS[col])
+            self:update_grid_tile(col, row)
+        elseif buttons.right then
+            self.grid_idx = col
+            self.list_idx = row
+            self:update_grid_tile(old_col, old_row)
+            self:update_grid_tile()
+        end
+    end
 end
 
 function manipulator:sort_skill(skill, descending)
