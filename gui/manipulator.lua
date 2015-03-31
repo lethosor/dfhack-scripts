@@ -313,6 +313,7 @@ sort = {
 Column = defclass(Column)
 
 function Column:init(args)
+    self.id = check_nil(args.id, 'No column ID given', true)
     self.callback = check_nil(args.callback, 'No callback given', true)
     self.color = check_nil(args.color, 'No color or color callback given', true)
     if type(self.color) ~= 'function' then
@@ -381,6 +382,27 @@ function load_columns()
     return columns
 end
 
+function get_column_ids(columns)
+    local t = {}
+    for _, col in pairs(columns) do
+        table.insert(t, col.id)
+    end
+    return t
+end
+
+function get_columns(columns, ids)
+    local t = {}
+    for _, id in pairs(ids) do
+        for _, col in pairs(columns) do
+            if col.id == id then
+                table.insert(t, col)
+                break
+            end
+        end
+    end
+    return t
+end
+
 default_columns = default_columns or 0
 
 manipulator = defclass(manipulator, gui.FramedScreen)
@@ -422,9 +444,9 @@ function manipulator:init(args)
         c:populate(self.units)
     end
     if type(default_columns) ~= 'table' then
-        default_columns = self.columns
+        default_columns = get_column_ids(self.columns)
     else
-        self.columns = default_columns
+        self.columns = get_columns(self.all_columns, default_columns)
     end
     self:set_title('Manage Labors')
 end
@@ -695,7 +717,7 @@ function manipulator:onResize(...)
 end
 
 function manipulator:onDismiss(...)
-    default_columns = self.columns
+    default_columns = get_column_ids(self.columns)
     self.super.onDismiss(...)
 end
 
