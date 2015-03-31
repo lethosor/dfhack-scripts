@@ -22,6 +22,7 @@ if not Column then
 end
 
 Column{
+    id = 'stress',
     callback = function(unit)
         return unit.status.current_soul and unit.status.current_soul.personality.stress_level or 0
     end,
@@ -40,6 +41,7 @@ Column{
 }
 
 Column{
+    id = 'name',
     callback = function(unit)
         return dfhack.TranslateName(unit.name)
     end,
@@ -50,6 +52,7 @@ Column{
 }
 
 Column{
+    id = 'profession',
     callback = wrap(dfhack.units.getProfessionName),
     color = wrap(dfhack.units.getProfessionColor),
     title = 'Profession',
@@ -57,12 +60,14 @@ Column{
 }
 
 Column{
+    id = 'squad',
     callback = wrap(dfhack.units.getSquadName),
     color = COLOR_LIGHTCYAN,
     title = 'Squad',
 }
 
 Column{
+    id = 'job',
     callback = function(unit)
         return unit.job.current_job and dfhack.job.getName(unit.job.current_job) or 'No Job'
     end,
@@ -71,3 +76,13 @@ Column{
     end,
     title = 'Job',
 }
+
+Column{
+    id = 'age',
+    callback = function(unit)
+        return math.floor(dfhack.units.getAge(unit))
+    end,
+    color = COLOR_GREY,
+    title = 'Age',
+}
+
