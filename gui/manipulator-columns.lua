@@ -85,4 +85,3 @@ Column{
     color = COLOR_GREY,
     title = 'Age',
 }
-
