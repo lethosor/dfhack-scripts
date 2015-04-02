@@ -1,7 +1,7 @@
 -- manipulator
 
 if not dfhack.penarray then
-    qerror('This script requires the dfhack.penarray class (available in 0.40.24-r3 and later)')
+    qerror('This script requires the dfhack.penarray class (available in 0.40.24-r4 or later)')
 end
 
 gui = require 'gui'
