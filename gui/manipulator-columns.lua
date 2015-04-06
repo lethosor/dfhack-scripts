@@ -42,6 +42,32 @@ Column{
 }
 
 Column{
+    id = 'selected',
+    title = string.char(251),
+    desc = 'Selected',
+    default = true,
+    max_width = 1,
+    callback = function(unit)
+        if unit.selected then
+            return string.char(251)
+        else
+            return '-'
+        end
+    end,
+    color = function(unit)
+        if unit.selected then
+            return COLOR_LIGHTGREEN
+        else
+            return COLOR_DARKGREY
+        end
+    end,
+    on_click = function(unit)
+        unit.selected = not unit.selected
+        unit.dirty = true
+    end
+}
+
+Column{
     id = 'name',
     callback = function(unit)
         return dfhack.TranslateName(unit.name)

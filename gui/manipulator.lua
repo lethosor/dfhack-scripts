@@ -335,7 +335,7 @@ function Column:init(args)
 end
 
 function Column:lookup(unit)
-    if self.cache[unit] == nil then
+    if self.cache[unit] == nil or unit.dirty then
         self.cache[unit] = tostring(self.callback(unit))
         self.width = math.max(self.width, #self.cache[unit])
         if self.max_width > 0 then
@@ -347,7 +347,7 @@ function Column:lookup(unit)
 end
 
 function Column:lookup_color(unit)
-    if self.color_cache[unit] == nil then
+    if self.color_cache[unit] == nil or unit.dirty then
         self.color_cache[unit] = self.color(unit, self:lookup(unit))
     end
     return self.color_cache[unit]
@@ -581,7 +581,10 @@ function manipulator:onRenderBody(p)
     self.bounds.columns = {}
     for id, col in pairs(self.columns) do
         self.bounds.columns[id] = {col_start_x[id], self.list_top_margin + 1,
-            col_start_x[id] + col.width, self.list_top_margin + self.list_height}
+            col_start_x[id] + col.width - 1, self.list_top_margin + self.list_height}
+    end
+    for _, u in pairs(self.units) do
+        u.dirty = false
     end
 end
 
