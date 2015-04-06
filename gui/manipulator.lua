@@ -365,7 +365,7 @@ end
 
 function column_wrap_func(func)
     return function(unit)
-        return func(unit)
+        return func(unit._native)
     end
 end
 
@@ -403,6 +403,42 @@ function get_columns(columns, ids)
     return t
 end
 
+if not unit_fields then
+    unit_fields = {}
+    local dummy_unit = df.unit:new()
+    for k, v in pairs(dummy_unit) do
+        unit_fields[k] = true
+    end
+end
+
+function unit_wrapper(u)
+    local t = {}
+    local custom = {}
+
+    local function index(self, key)
+        if key == '_native' then
+            return u
+        elseif unit_fields[key] then
+            return u[key]
+        else
+            return custom[key]
+        end
+    end
+
+    local function newindex(self, key, value)
+        if key == '_native' then
+            error('Cannot set unit_wrapper._native')
+        elseif unit_fields[key] then
+            u[key] = value
+        else
+            custom[key] = value
+        end
+    end
+
+    setmetatable(t, {__index = index, __newindex = newindex})
+    return t
+end
+
 default_columns = default_columns or 0
 
 manipulator = defclass(manipulator, gui.FramedScreen)
@@ -421,7 +457,7 @@ manipulator.ATTRS = {
 function manipulator:init(args)
     self.units = {}
     for i, u in pairs(args.units) do
-        self.units[i + 1] = u
+        self.units[i + 1] = unit_wrapper(u)
     end
     self.unit_max = #self.units
     self.bounds = {}
@@ -510,9 +546,9 @@ function manipulator:onRenderBody(p)
     local col = SKILL_COLUMNS[self.grid_idx]
     p:pen{fg = COLOR_WHITE}
     p:seek(0, gps.dimy - self.list_bottom_margin - 1)
-    p:string(dfhack.units.isMale(unit) and string.char(11) or string.char(12)):string(' ')
+    p:string(dfhack.units.isMale(unit._native) and string.char(11) or string.char(12)):string(' ')
     p:string(dfhack.TranslateName(unit.name)):string(', ')
-    p:string(dfhack.units.getProfessionName(unit)):string(': ')
+    p:string(dfhack.units.getProfessionName(unit._native)):string(': ')
     if col.skill == df.job_skill.NONE then
         if col.labor ~= df.unit_labor.NONE then
             p:string(df.unit_labor.attrs[col.labor].caption, {fg = COLOR_LIGHTBLUE}):string(' ')
@@ -835,7 +871,8 @@ end
 
 scr = dfhack.gui.getCurViewscreen()
 if df.viewscreen_unitlistst:is_instance(scr) and scr.page == 0 then
-    manipulator{units = scr.units[scr.page]}:show()
+    cur = manipulator{units = scr.units[scr.page]}
+    cur:show()
 else
     dfhack.printerr('Invalid context')
 end

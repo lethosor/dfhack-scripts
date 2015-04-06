@@ -8,6 +8,7 @@ Valid parameters to Column{}:
         taking a unit and returning an appropriate color.
     NOTE: Use wrap() when using an existing function (e.g. dfhack.units.getProfessionColor)
         to ensure that only the unit is passed to the function.
+        When calling a native function that takes a unit, "unit._native" must be used.
 - title (required): The column title.
 - desc: An extended description. Defaults to the value of `title`.
 - default: Whether to display the column by default. Defaults to false.
@@ -80,7 +81,7 @@ Column{
 Column{
     id = 'age',
     callback = function(unit)
-        return math.floor(dfhack.units.getAge(unit))
+        return math.floor(dfhack.units.getAge(unit._native))
     end,
     color = COLOR_GREY,
     title = 'Age',
