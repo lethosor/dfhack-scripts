@@ -49,7 +49,14 @@ Column{
     color = COLOR_WHITE,
     title = 'Name',
     default = true,
-    highlight = true
+    highlight = true,
+    on_click = function(unit, buttons, mods)
+        if buttons.left then
+            manipulator.view_unit(unit)
+        elseif buttons.right then
+            manipulator.zoom_unit(unit)
+        end
+    end
 }
 
 Column{
@@ -57,7 +64,14 @@ Column{
     callback = wrap(dfhack.units.getProfessionName),
     color = wrap(dfhack.units.getProfessionColor),
     title = 'Profession',
-    default = true
+    default = true,
+    on_click = function(unit, buttons, mods)
+        if buttons.left then
+            manipulator.view_unit(unit)
+        elseif buttons.right then
+            manipulator.zoom_unit(unit)
+        end
+    end
 }
 
 Column{

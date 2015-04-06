@@ -327,6 +327,7 @@ function Column:init(args)
     self.default = if_nil(args.default, false)
     self.highlight = if_nil(args.highlight, false)
     self.right_align = if_nil(args.right_align, false)
+    self.on_click = if_nil(args.on_click, function() end)
     self.cache = {}
     self.color_cache = {}
     self.width = #self.title
@@ -577,6 +578,11 @@ function manipulator:onRenderBody(p)
     p:newline()
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
     self.bounds.grid = {grid_start_x, self.list_top_margin + 1, gps.dimx - 2, self.list_top_margin + self.list_height}
+    self.bounds.columns = {}
+    for id, col in pairs(self.columns) do
+        self.bounds.columns[id] = {col_start_x[id], self.list_top_margin + 1,
+            col_start_x[id] + col.width, self.list_top_margin + self.list_height}
+    end
 end
 
 function manipulator:update_grid_tile(x, y)
@@ -682,22 +688,28 @@ function manipulator:onInput(keys)
 end
 
 function manipulator:onMouseInput(x, y, buttons, mods)
-    local old_col = self.grid_idx
-    local old_row = self.list_idx
+    local old_grid_col = self.grid_idx
+    local old_grid_row = self.list_idx
+    local grid_col = x - self.bounds.grid[1] + self.grid_start
+    local grid_row = y - self.bounds.grid[2] + self.list_start
     if in_bounds(x, y, self.bounds.grid) then
-        local col = x - self.bounds.grid[1] + self.grid_start
-        local row = y - self.bounds.grid[2] + self.list_start
         if buttons.left then
             if mods.shift then
-                self:toggle_labor_group(col, row)
+                self:toggle_labor_group(grid_col, grid_row)
             else
-                self:toggle_labor(col, row)
+                self:toggle_labor(grid_col, grid_row)
             end
         elseif buttons.right then
-            self.grid_idx = col
-            self.list_idx = row
-            self:update_grid_tile(old_col, old_row)
+            self.grid_idx = grid_col
+            self.list_idx = grid_row
+            self:update_grid_tile(old_grid_col, old_grid_row)
             self:update_grid_tile()
+        end
+    else
+        for id, col in pairs(self.columns) do
+            if in_bounds(x, y, self.bounds.columns[id]) then
+                col.on_click(self.units[grid_row], buttons, mods)
+            end
         end
     end
 end
@@ -756,8 +768,8 @@ end
 
 function manipulator:parent_select_unit(unit)
     local parent = self._native.parent
-    for id, unit in pairs(parent.units[parent.page]) do
-        if unit == self.units[self.list_idx]._native then
+    for id, u in pairs(parent.units[parent.page]) do
+        if u == unit._native then
             parent.cursor_pos[parent.page] = id
             return true
         end
