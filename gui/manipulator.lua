@@ -239,6 +239,19 @@ if dfhack.units.getSquadName == nil then
     end
 end
 
+if dfhack.units.getKillCount == nil then
+    function dfhack.units.getKillCount(unit)
+        local histfig = df.historical_figure.find(unit.hist_figure_id)
+        local count = 0
+        if histfig and histfig.info.kills then
+            for _, v in pairs(histfig.info.kills.killed_count) do
+                count = count + v
+            end
+        end
+        return count
+    end
+end
+
 OutputString = dfhack.screen.paintString
 
 function OutputKeyString(pen, x, y, key, str)

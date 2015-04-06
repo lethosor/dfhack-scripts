@@ -126,3 +126,10 @@ Column{
     color = COLOR_GREY,
     title = 'Age',
 }
+
+Column{
+    id = 'kills',
+    title = 'Kills',
+    callback = wrap(dfhack.units.getKillCount),
+    color = COLOR_GREY,
+}
