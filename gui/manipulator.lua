@@ -657,8 +657,11 @@ function manipulator:onMouseInput(x, y, buttons, mods)
         local col = x - self.bounds.grid[1] + self.grid_start
         local row = y - self.bounds.grid[2] + self.list_start
         if buttons.left then
-            self:toggle_labor(col, row)
-            self:update_grid_tile(col, row)
+            if mods.shift then
+                self:toggle_labor_group(col, row)
+            else
+                self:toggle_labor(col, row)
+            end
         elseif buttons.right then
             self.grid_idx = col
             self.list_idx = row
