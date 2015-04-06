@@ -662,19 +662,10 @@ function manipulator:onInput(keys)
         self:toggle_labor_group(self.grid_idx, self.list_idx)
     elseif keys.CUSTOM_SHIFT_C then
         manipulator_columns{parent = self}:show()
-    elseif keys.UNITJOB_VIEW or keys.UNITJOB_ZOOM_CRE then
-        local parent = self._native.parent
-        for id, unit in pairs(parent.units[parent.page]) do
-            if unit == self.units[self.list_idx] then
-                parent.cursor_pos[parent.page] = id
-                gui.simulateInput(parent, {
-                    UNITJOB_VIEW = keys.UNITJOB_VIEW,
-                    UNITJOB_ZOOM_CRE = keys.UNITJOB_ZOOM_CRE
-                })
-                if keys.UNITJOB_ZOOM_CRE then self:dismiss() end
-                break
-            end
-        end
+    elseif keys.UNITJOB_VIEW then
+        self:view_unit(self.units[self.list_idx])
+    elseif keys.UNITJOB_ZOOM_CRE then
+        self:zoom_unit(self.units[self.list_idx])
     elseif keys.SECONDSCROLL_UP or keys.SECONDSCROLL_DOWN then
         self:sort_skill(SKILL_COLUMNS[self.grid_idx].skill, keys.SECONDSCROLL_UP)
         self:draw_grid()
@@ -756,6 +747,32 @@ function manipulator:toggle_labor_group(x, y)
         if col.group == group then
             self:set_labor(x, y, state)
         end
+    end
+end
+
+function manipulator:parent_select_unit(unit)
+    local parent = self._native.parent
+    for id, unit in pairs(parent.units[parent.page]) do
+        if unit == self.units[self.list_idx]._native then
+            parent.cursor_pos[parent.page] = id
+            return true
+        end
+    end
+    return false
+end
+
+function manipulator:view_unit(u)
+    local parent = self._native.parent
+    if self:parent_select_unit(u) then
+        gui.simulateInput(parent, {UNITJOB_VIEW = true})
+    end
+end
+
+function manipulator:zoom_unit(u)
+    local parent = self._native.parent
+    if self:parent_select_unit(u) then
+        gui.simulateInput(parent, {UNITJOB_ZOOM_CRE = true})
+        self:dismiss()
     end
 end
 
