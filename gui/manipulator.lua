@@ -581,6 +581,7 @@ function manipulator:onRenderBody(p)
     p:newline()
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
     self.bounds.grid = {grid_start_x, self.list_top_margin + 1, gps.dimx - 2, self.list_top_margin + self.list_height}
+    self.bounds.grid_header = {self.bounds.grid[1], 1, self.bounds.grid[3], 2}
     self.bounds.columns = {}
     for id, col in pairs(self.columns) do
         self.bounds.columns[id] = {col_start_x[id], self.list_top_margin + 1,
@@ -707,6 +708,7 @@ end
 function manipulator:onMouseInput(x, y, buttons, mods)
     local old_grid_col = self.grid_idx
     local old_grid_row = self.list_idx
+    local old_unit = self.units[old_grid_row]
     local grid_col = x - self.bounds.grid[1] + self.grid_start
     local grid_row = y - self.bounds.grid[2] + self.list_start
     if in_bounds(x, y, self.bounds.grid) then
@@ -722,6 +724,13 @@ function manipulator:onMouseInput(x, y, buttons, mods)
             self:update_grid_tile(old_grid_col, old_grid_row)
             self:update_grid_tile()
         end
+    elseif in_bounds(x, y, self.bounds.grid_header) then
+        if buttons.right or mods.shift then
+            self:sort_skill(SKILL_COLUMNS[grid_col].skill, false)
+        else
+            self:sort_skill(SKILL_COLUMNS[grid_col].skill, true)
+        end
+        self:update_unit_grid_tile(old_unit, old_grid_col)
     else
         for id, col in pairs(self.columns) do
             if in_bounds(x, y, self.bounds.columns[id]) then
