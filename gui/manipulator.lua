@@ -621,9 +621,9 @@ function manipulator:onInput(keys)
             self.grid_start = self.grid_idx
         end
     elseif keys.SELECT then
-        self:toggle_labor(self.units[self.list_idx], SKILL_COLUMNS[self.grid_idx])
+        self:toggle_labor(self.grid_idx, self.list_idx)
     elseif keys.SELECT_ALL then
-        self:toggle_labor_group(self.units[self.list_idx], SKILL_COLUMNS[self.grid_idx].group)
+        self:toggle_labor_group(self.grid_idx, self.list_idx)
     elseif keys.CUSTOM_SHIFT_C then
         manipulator_columns{parent = self}:show()
     elseif keys.UNITJOB_VIEW or keys.UNITJOB_ZOOM_CRE then
@@ -657,7 +657,7 @@ function manipulator:onMouseInput(x, y, buttons, mods)
         local col = x - self.bounds.grid[1] + self.grid_start
         local row = y - self.bounds.grid[2] + self.list_start
         if buttons.left then
-            self:toggle_labor(self.units[row], SKILL_COLUMNS[col])
+            self:toggle_labor(col, row)
             self:update_grid_tile(col, row)
         elseif buttons.right then
             self.grid_idx = col
@@ -681,33 +681,41 @@ function manipulator:is_valid_labor(labor)
     return true
 end
 
-function manipulator:set_labor(unit, col, state)
+function manipulator:set_labor(x, y, state)
+    local col = SKILL_COLUMNS[x] or error('Invalid column ID: ' .. x)
+    local unit = self.units[y] or error('Invalid unit ID: ' .. y)
     if not self:is_valid_labor(col.labor) then return end
     if col.special then
         if state then
             for i, c in pairs(SKILL_COLUMNS) do
                 if c.special then
-                    unit.status.labors[c.labor] = false
+                    self:set_labor(i, y, false)
                 end
             end
         end
         unit.military.pickup_flags.update = true
     end
     unit.status.labors[col.labor] = state
+    self:update_grid_tile(x, y)
 end
 
-function manipulator:toggle_labor(unit, col)
+function manipulator:toggle_labor(x, y)
+    local col = SKILL_COLUMNS[x] or error('Invalid column ID: ' .. x)
+    local unit = self.units[y] or error('Invalid unit ID: ' .. y)
     if not self:is_valid_labor(col.labor) then return end
-    self:set_labor(unit, col, not unit.status.labors[col.labor])
+    self:set_labor(x, y, not unit.status.labors[col.labor])
 end
 
-function manipulator:toggle_labor_group(unit, group)
-    local labor = SKILL_COLUMNS[self.grid_idx].labor
+function manipulator:toggle_labor_group(x, y)
+    local col = SKILL_COLUMNS[x] or error('Invalid column ID: ' .. x)
+    local unit = self.units[y] or error('Invalid unit ID: ' .. y)
+    local labor = col.labor
+    local group = col.group
     if not self:is_valid_labor(labor) then return end
     local state = not unit.status.labors[labor]
-    for _, col in pairs(SKILL_COLUMNS) do
+    for x, col in pairs(SKILL_COLUMNS) do
         if col.group == group then
-            self:set_labor(unit, col, state)
+            self:set_labor(x, y, state)
         end
     end
 end
