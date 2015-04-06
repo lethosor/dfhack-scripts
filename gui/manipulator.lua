@@ -474,7 +474,10 @@ function manipulator:init(args)
     self.grid_end = 1     -- SKILL_COLUMNS index
     self.grid_width = 0   -- grid_end - grid_start + 1
     self.grid_idx = 1
-    self.grid = dfhack.penarray.new(#SKILL_COLUMNS, #self.units)
+    self.grid_rows = {}
+    for _, u in pairs(self.units) do
+        self.grid_rows[u] = dfhack.penarray.new(#SKILL_COLUMNS, 1)
+    end
     self:draw_grid()
     self.all_columns = load_columns(self)
     self.columns = {}
@@ -542,11 +545,11 @@ function manipulator:onRenderBody(p)
             end
             OutputString({fg = fg, bg = bg}, x, y, text)
         end
+        self.grid_rows[unit]:draw(grid_start_x, self.list_top_margin + i - self.list_start + 1,
+            gps.dimx - grid_start_x - 1, 1,
+            self.grid_start - 1, 0)
         y = y + 1
     end
-    self.grid:draw(grid_start_x, self.list_top_margin + 1,
-        gps.dimx - grid_start_x - 1, self.list_height,
-        self.grid_start - 1, self.list_start - 1)
     local unit = self.units[self.list_idx]
     local col = SKILL_COLUMNS[self.grid_idx]
     p:pen{fg = COLOR_WHITE}
@@ -614,7 +617,17 @@ function manipulator:update_grid_tile(x, y)
     if x == self.grid_idx and y == self.list_idx then
         fg = COLOR_LIGHTBLUE
     end
-    self.grid:set_tile(x - 1, y - 1, {fg = fg, bg = bg, ch = c})
+    self.grid_rows[unit]:set_tile(x - 1, 0, {fg = fg, bg = bg, ch = c})
+end
+
+function manipulator:update_unit_grid_tile(unit, x)
+    for y, u in pairs(self.units) do
+        if u == unit then
+            self:update_grid_tile(x, y)
+            return
+        end
+    end
+    error('Could not find unit in unit list')
 end
 
 function manipulator:draw_grid()
@@ -628,6 +641,7 @@ end
 function manipulator:onInput(keys)
     local old_x = self.grid_idx
     local old_y = self.list_idx
+    local old_unit = self.units[self.list_idx]
     process_keys(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
@@ -681,7 +695,7 @@ function manipulator:onInput(keys)
         self:zoom_unit(self.units[self.list_idx])
     elseif keys.SECONDSCROLL_UP or keys.SECONDSCROLL_DOWN then
         self:sort_skill(SKILL_COLUMNS[self.grid_idx].skill, keys.SECONDSCROLL_UP)
-        self:draw_grid()
+        self:update_unit_grid_tile(old_unit, old_x)
     elseif keys._MOUSE_L or keys._MOUSE_R then
         self:onMouseInput(gps.mouse_x, gps.mouse_y,
             {left = keys._MOUSE_L, right = keys._MOUSE_R}, dfhack.internal.getModifiers())
