@@ -369,11 +369,15 @@ function column_wrap_func(func)
     end
 end
 
-function load_columns()
+function load_columns(scr)
     local columns = {}
     local env = {
         Column = function(args) table.insert(columns, Column(args)) end,
-        wrap = column_wrap_func
+        wrap = column_wrap_func,
+        manipulator = {
+            view_unit = scr:callback('view_unit'),
+            zoom_unit = scr:callback('zoom_unit'),
+        }
     }
     setmetatable(env, {__index = _ENV})
     local f = loadfile('hack/scripts/gui/manipulator-columns.lua', 't', env) or qerror('Could not load columns')
@@ -471,7 +475,7 @@ function manipulator:init(args)
     self.grid_idx = 1
     self.grid = dfhack.penarray.new(#SKILL_COLUMNS, #self.units)
     self:draw_grid()
-    self.all_columns = load_columns()
+    self.all_columns = load_columns(self)
     self.columns = {}
     skill_cache:clear()
     for k, c in pairs(self.all_columns) do
