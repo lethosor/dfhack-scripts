@@ -475,8 +475,11 @@ function manipulator:init(args)
     self.grid_width = 0   -- grid_end - grid_start + 1
     self.grid_idx = 1
     self.grid_rows = {}
-    for _, u in pairs(self.units) do
+    for idx, u in pairs(self.units) do
         self.grid_rows[u] = dfhack.penarray.new(#SKILL_COLUMNS, 1)
+        if u._native == args.selected then
+            self.list_idx = idx
+        end
     end
     self:draw_grid()
     self.all_columns = load_columns(self)
@@ -930,7 +933,7 @@ end
 
 scr = dfhack.gui.getCurViewscreen()
 if df.viewscreen_unitlistst:is_instance(scr) and scr.page == 0 then
-    cur = manipulator{units = scr.units[scr.page]}
+    cur = manipulator{units = scr.units[scr.page], selected = scr.units[scr.page][scr.cursor_pos[scr.page]]}
     cur:show()
 else
     dfhack.printerr('Invalid context')
