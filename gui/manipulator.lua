@@ -831,7 +831,7 @@ function manipulator:onDismiss(...)
 end
 
 function manipulator:onGetSelectedUnit()
-    return self.units[self.list_idx]
+    return self.units[self.list_idx]._native
 end
 
 manipulator_columns = defclass(manipulator_columns, gui.FramedScreen)
