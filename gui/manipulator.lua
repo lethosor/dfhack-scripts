@@ -293,6 +293,49 @@ function in_bounds(x, y, coords)
     return x >= coords[1] and x <= coords[3] and y >= coords[2] and y <= coords[4]
 end
 
+function merge_sort(tbl, cmp)
+    if #tbl <= 1 then return tbl end
+    local left = {}
+    local right = {}
+    local middle = math.floor(#tbl / 2)
+    for i = 1, middle do
+        table.insert(left, tbl[i])
+    end
+    for i = middle + 1, #tbl do
+        table.insert(right, tbl[i])
+    end
+    left = merge_sort(left, cmp)
+    right = merge_sort(right, cmp)
+    return merge_sort_merge(left, right, cmp)
+end
+
+function merge_sort_merge(left, right, cmp)
+    local tbl = {}
+    while #left > 0 and #right > 0 do
+        if cmp(left[1], right[1]) then
+            table.insert(tbl, table.remove(left, 1))
+        else
+            table.insert(tbl, table.remove(right, 1))
+        end
+    end
+    for i = 1, #left do
+        table.insert(tbl, left[i])
+    end
+    for i = 1, #right do
+        table.insert(tbl, right[i])
+    end
+    return tbl
+end
+
+function make_sort_order(func, descending, ...)
+    local args = {...}
+    return function(a, b)
+        local ret = func(a, b, table.unpack(args))
+        if descending then return ret <= 0
+        else return ret >= 0 end
+    end
+end
+
 UnitAttrCache = defclass(UnitAttrCache)
 
 function UnitAttrCache:init()
@@ -323,15 +366,6 @@ function skill_cache:lookup(unit, skill)
         end
     end
     return ret
-end
-
-function make_sort_order(func, descending, ...)
-    local args = {...}
-    return function(a, b)
-        local ret = func(a, b, table.unpack(args))
-        if descending then return ret < 0
-        else return ret > 0 end
-    end
 end
 
 sort = {
@@ -776,7 +810,7 @@ function manipulator:onMouseInput(x, y, buttons, mods)
 end
 
 function manipulator:sort_skill(skill, descending)
-    table.sort(self.units, make_sort_order(sort.skill, descending, skill))
+    self.units = merge_sort(self.units, make_sort_order(sort.skill, descending, skill))
 end
 
 function manipulator:is_valid_labor(labor)
