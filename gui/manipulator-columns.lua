@@ -55,13 +55,16 @@ Column{
         end
     end,
     color = function(unit)
-        if unit.selected then
+        if not unit.allow_edit then
+            return COLOR_RED
+        elseif unit.selected then
             return COLOR_LIGHTGREEN
         else
             return COLOR_DARKGREY
         end
     end,
     on_click = function(unit)
+        if not unit.allow_edit then return end
         unit.selected = not unit.selected
         unit.dirty = true
     end

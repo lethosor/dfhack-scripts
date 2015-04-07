@@ -294,6 +294,7 @@ function in_bounds(x, y, coords)
 end
 
 function merge_sort(tbl, cmp)
+    if not cmp then cmp = function(a, b) return a < b end end
     if #tbl <= 1 then return tbl end
     local left = {}
     local right = {}
@@ -545,6 +546,11 @@ function manipulator:init(args)
         self.grid_rows[u] = penarray.new(#SKILL_COLUMNS, 1)
         if u._native == args.selected then
             self.list_idx = idx
+        end
+        u.allow_edit = true
+        if not dfhack.units.isOwnRace(u._native) or not dfhack.units.isOwnCiv(u._native) or
+                u.flags1.dead or not df.profession.attrs[u.profession].can_assign_labor then
+            u.allow_edit = false
         end
     end
     self:draw_grid()
@@ -825,6 +831,7 @@ end
 function manipulator:set_labor(x, y, state)
     local col = SKILL_COLUMNS[x] or error('Invalid column ID: ' .. x)
     local unit = self.units[y] or error('Invalid unit ID: ' .. y)
+    if not unit.allow_edit then return end
     if not self:is_valid_labor(col.labor) then return end
     if col.special then
         if state then
@@ -998,7 +1005,7 @@ function manipulator_columns:onInput(keys)
 end
 
 scr = dfhack.gui.getCurViewscreen()
-if df.viewscreen_unitlistst:is_instance(scr) and scr.page == 0 then
+if df.viewscreen_unitlistst:is_instance(scr) then
     cur = manipulator{units = scr.units[scr.page], selected = scr.units[scr.page][scr.cursor_pos[scr.page]]}
     cur:show()
 else
