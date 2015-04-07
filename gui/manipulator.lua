@@ -606,6 +606,15 @@ function manipulator:onRenderBody(p)
     y = self.list_top_margin + 1
     self.list_end = self.list_start + math.min(self.unit_max - self.list_start, gps.dimy - self.list_bottom_margin - self.list_top_margin - 2)
     self.list_height = self.list_end - self.list_start + 1
+    if self.list_idx > self.list_end then
+        local d = self.list_idx - self.list_end
+        self.list_start = self.list_start + d
+        self.list_end = self.list_end + d
+    elseif self.list_idx < self.list_start then
+        local d = self.list_start - self.list_idx
+        self.list_start = self.list_start - d
+        self.list_end = self.list_end - d
+    end
     for i = self.list_start, self.list_end do
         local unit = self.units[i]
         for id, col in pairs(self.columns) do
