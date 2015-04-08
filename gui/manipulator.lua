@@ -603,6 +603,16 @@ function manipulator:onRenderBody(p)
         OutputString({fg = fg, bg = bg}, x, 2, col.label:sub(2, 2))
         x = x + 1
     end
+    if gps.mouse_x >= grid_start_x and gps.mouse_y >= 1 and gps.mouse_y <= 2 then
+        local caption = ''
+        local col = SKILL_COLUMNS[gps.mouse_x - grid_start_x + self.grid_start]
+        if col.labor ~= df.unit_labor.NONE then
+            caption = df.unit_labor.attrs[col.labor].caption
+        elseif col.skill ~= df.job_skill.NONE then
+            caption = df.job_skill.attrs[col.skill].caption_noun
+        end
+        OutputString(COLOR_GREY, math.min(gps.mouse_x, gps.dimx - #caption - 1), 3, caption)
+    end
     y = self.list_top_margin + 1
     self.list_end = self.list_start + math.min(self.unit_max - self.list_start, gps.dimy - self.list_bottom_margin - self.list_top_margin - 2)
     self.list_height = self.list_end - self.list_start + 1
