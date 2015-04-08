@@ -539,6 +539,7 @@ function manipulator:init(args)
     end
     self.unit_max = #self.units
     self.bounds = {}
+    self.gframe = 0
     self.list_start = 1   -- unit index
     self.list_end = 1     -- unit index
     self.list_height = 1  -- list_end - list_start + 1
@@ -548,6 +549,7 @@ function manipulator:init(args)
     self.grid_width = 0   -- grid_end - grid_start + 1
     self.grid_idx = 1
     self.grid_rows = {}
+    skill_cache:clear()
     for idx, u in pairs(self.units) do
         self.grid_rows[u] = penarray.new(#SKILL_COLUMNS, 1)
         if u._native == args.selected then
@@ -558,11 +560,16 @@ function manipulator:init(args)
                 u.flags1.dead or not df.profession.attrs[u.profession].can_assign_labor then
             u.allow_edit = false
         end
+        u.legendary = false
+        for skill, _ in ipairs(df.job_skill) do
+            if skill_cache:get(u, skill).rating >= 16 then
+                u.legendary = true
+            end
+        end
     end
     self:draw_grid()
     self.all_columns = load_columns(self)
     self.columns = {}
-    skill_cache:clear()
     for k, c in pairs(self.all_columns) do
         if c.default then table.insert(self.columns, c) end
         c:clear_cache()
@@ -581,6 +588,9 @@ function manipulator:set_title(title)
 end
 
 function manipulator:onRenderBody(p)
+    self.gframe = self.gframe + 1
+    if self.gframe > enabler.gfps then self.gframe = 0 end
+    self.blink_state = (self.gframe < enabler.gfps / 3)
     local col_start_x = {}
     local x = self.left_margin
     local y = self.top_margin

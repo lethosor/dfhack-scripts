@@ -91,7 +91,15 @@ Column{
 Column{
     id = 'profession',
     callback = wrap(dfhack.units.getProfessionName),
-    color = wrap(dfhack.units.getProfessionColor),
+    color = function(unit)
+        local color = dfhack.units.getProfessionColor(unit._native)
+        if manipulator.blink_state() and unit.legendary then
+            color = (color + 8) % 16
+            if color == COLOR_BLACK then color = COLOR_GREY end
+        end
+        return color
+    end,
+    disable_color_cache = true,
     title = 'Profession',
     default = true,
     on_click = function(unit, buttons, mods)
