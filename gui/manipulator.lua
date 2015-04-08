@@ -445,10 +445,14 @@ function load_columns(scr)
         manipulator = {
             view_unit = scr:callback('view_unit'),
             zoom_unit = scr:callback('zoom_unit'),
+            blink_state = function() return scr.blink_state end,
         }
     }
     setmetatable(env, {__index = _ENV})
-    local f = loadfile('hack/scripts/gui/manipulator-columns.lua', 't', env) or qerror('Could not load columns')
+    local f, err = loadfile('hack/scripts/gui/manipulator-columns.lua', 't', env)
+    if not f then
+        qerror('Could not load columns: ' .. err)
+    end
     f()
     if #columns < 1 then qerror('No columns found') end
     return columns
