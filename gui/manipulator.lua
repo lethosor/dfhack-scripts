@@ -397,12 +397,14 @@ function Column:init(args)
     self.on_click = if_nil(args.on_click, function() end)
     self.cache = {}
     self.color_cache = {}
+    self.disable_cache = if_nil(args.disable_cache, false)
+    self.disable_color_cache = if_nil(args.disable_color_cache, false)
     self.width = #self.title
     self.max_width = if_nil(args.max_width, 0)
 end
 
 function Column:lookup(unit)
-    if self.cache[unit] == nil or unit.dirty then
+    if self.cache[unit] == nil or unit.dirty or self.disable_cache then
         self.cache[unit] = tostring(self.callback(unit))
         self.width = math.max(self.width, #self.cache[unit])
         if self.max_width > 0 then
@@ -414,7 +416,7 @@ function Column:lookup(unit)
 end
 
 function Column:lookup_color(unit)
-    if self.color_cache[unit] == nil or unit.dirty then
+    if self.color_cache[unit] == nil or unit.dirty or self.disable_color_cache then
         self.color_cache[unit] = self.color(unit, self:lookup(unit))
     end
     return self.color_cache[unit]
