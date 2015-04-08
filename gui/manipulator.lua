@@ -901,6 +901,7 @@ end
 function manipulator:view_unit(u)
     local parent = self._native.parent
     if self:parent_select_unit(u) then
+        u.dirty = true
         gui.simulateInput(parent, {UNITJOB_VIEW = true})
     end
 end
@@ -923,7 +924,9 @@ function manipulator:onDismiss(...)
 end
 
 function manipulator:onGetSelectedUnit()
-    return self.units[self.list_idx]._native
+    local u = self.units[self.list_idx]
+    u.dirty = true
+    return u._native
 end
 
 manipulator_columns = defclass(manipulator_columns, gui.FramedScreen)
