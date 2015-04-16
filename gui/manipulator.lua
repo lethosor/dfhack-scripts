@@ -977,9 +977,17 @@ function manipulator_columns:onRenderBody(p)
     local x3 = gps.dimx - 2
     local y1 = 2
     local y2 = gps.dimy - 5
+    self.bounds = {x1 = x1, x2 = x2, x3 = x3, y1 = y1, y2 = y2}
+    self.bounds.col1 = {x1, y1, x2, y1 + #self.columns - 1}
+    self.bounds.col1_full = {x1, y1, x2, y2}
+    self.bounds.col2 = {x2 + 1, y1, x3, y1 + #self.all_columns - 1}
+    self.bounds.col2_full = {x2 + 1, y1, x3, y2}
+    local y = y1
     for i = 1, #self.columns do
+        if self.drag_y == y then y = y + 1 end
         OutputString((self.cur_list == 1 and i == self.col_idx and COLOR_LIGHTGREEN) or COLOR_GREEN,
-            x1, y1 + i - 1, self.columns[i].title:sub(1, x2 - x1 - 1))
+            x1, y, self.columns[i].title:sub(1, x2 - x1 - 1))
+        y = y + 1
     end
     for i = 1, #self.all_columns do
         OutputString((self.cur_list == 2 and i == self.all_col_idx and COLOR_YELLOW) or COLOR_BROWN,
@@ -995,6 +1003,48 @@ function manipulator_columns:onRenderBody(p)
     if col then
         OutputString(COLOR_GREY, x1, y2 + 3, col.desc)
     end
+    if enabler.mouse_lbut_down == 1 then
+        self:handle_drag()
+    elseif enabler.mouse_lbut_down == 0 and self.in_drag then
+        self:handle_drop()
+    end
+end
+
+function manipulator_columns:handle_drag()
+    local x = gps.mouse_x
+    local y = gps.mouse_y
+    if not self.in_drag and (in_bounds(x, y, self.bounds.col1) or
+            in_bounds(x, y, self.bounds.col2)) then
+        print('start drag')
+        self.in_drag = true
+        self.drag_add = in_bounds(x, y, self.bounds.col2)
+        local col_idx = y - self.bounds.y1 + 1
+        local col_list = self.drag_add and self.all_columns or self.columns
+        self.drag_text = col_list[col_idx].title
+        if in_bounds(x, y, self.bounds.col1) then
+            self.drag_column = table.remove(self.columns, col_idx)
+        elseif self.drag_add then
+            self.drag_column = self.all_columns[col_idx]
+        end
+    end
+    if self.in_drag then
+        if in_bounds(x, y, self.bounds.col1_full) then
+            self.drag_y = y
+        end
+        OutputString(COLOR_YELLOW, x, y, self.drag_text)
+    end
+end
+
+function manipulator_columns:handle_drop()
+    local x = gps.mouse_x
+    local y = gps.mouse_y
+    local col_idx = y - self.bounds.y1 + 1
+    self.in_drag = false
+    if in_bounds(x, y, self.bounds.col1_full) then
+        table.insert(self.columns, math.min(#self.columns + 1, col_idx), self.drag_column)
+    end
+    self.drag_column = nil
+    self.drag_y = nil
 end
 
 function manipulator_columns:onInput(keys)
