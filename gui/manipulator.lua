@@ -1002,7 +1002,7 @@ function manipulator_columns:onRenderBody(p)
     OutputKeyString(c_color, x1, y2 + 3, 'CUSTOM_R', 'Remove')
     OutputKeyString(a_color, x2 + 1, y2 + 1, 'CUSTOM_A', 'Add')
     if col then
-        OutputString(COLOR_GREY, x1, y2 + 3, col.desc)
+        OutputString(COLOR_GREY, x1, y2 + 4, col.desc)
     end
     if enabler.mouse_lbut_down == 1 then
         self:handle_drag()
