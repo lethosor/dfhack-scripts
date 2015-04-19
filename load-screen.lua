@@ -75,17 +75,6 @@ function string:split(sep)
     return fields
 end
 
---CustomInputBox = defclass(CustomInputBox, dialog.InputBox)
---function CustomInputBox:init(info)
---    CustomInputBox.super.init(self, info)
---    local mw, mh = CustomInputBox.super.getWantedFrameSize(self)
---    self.frame_size = {info.frame_width or mw, info.frame_height or mh}
---end
---function CustomInputBox:getWantedFrameSize()
---    CustomInputBox.super.getWantedFrameSize(self)
---    return self.frame_size[1], self.frame_size[2]
---end
-
 load_screen = defclass(load_screen, gui.Screen)
 load_screen.focus_path = 'load_screen'
 
