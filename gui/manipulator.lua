@@ -284,6 +284,42 @@ function OutputKeyString(pen, x, y, key, str)
 end
 
 function process_keys(keys)
+    if keys.CURSOR_UPLEFT then
+        keys.CURSOR_UP = true
+        keys.CURSOR_LEFT = true
+        keys.STANDARDSCROLL_PAGEUP = false
+    end
+    if keys.CURSOR_UPRIGHT then
+        keys.CURSOR_UP = true
+        keys.CURSOR_RIGHT = true
+        keys.STANDARDSCROLL_PAGEUP = false
+    end
+    if keys.CURSOR_DOWNRIGHT then
+        keys.CURSOR_DOWN = true
+        keys.CURSOR_RIGHT = true
+        keys.STANDARDSCROLL_PAGEDOWN = false
+    end
+    if keys.CURSOR_DOWNLEFT then
+        keys.CURSOR_DOWN = true
+        keys.CURSOR_LEFT = true
+        keys.STANDARDSCROLL_PAGEDOWN = false
+    end
+    if keys.CURSOR_UPLEFT_FAST then
+        keys.CURSOR_UP_FAST = true
+        keys.CURSOR_LEFT_FAST = true
+    end
+    if keys.CURSOR_UPRIGHT_FAST then
+        keys.CURSOR_UP_FAST = true
+        keys.CURSOR_RIGHT_FAST = true
+    end
+    if keys.CURSOR_DOWNRIGHT_FAST then
+        keys.CURSOR_DOWN_FAST = true
+        keys.CURSOR_RIGHT_FAST = true
+    end
+    if keys.CURSOR_DOWNLEFT_FAST then
+        keys.CURSOR_DOWN_FAST = true
+        keys.CURSOR_LEFT_FAST = true
+    end
     if keys.STANDARDSCROLL_UP then keys.CURSOR_UP = true end
     if keys.STANDARDSCROLL_DOWN then keys.CURSOR_DOWN = true end
     if keys.STANDARDSCROLL_RIGHT then keys.CURSOR_RIGHT = true end
@@ -759,7 +795,9 @@ function manipulator:onInput(keys)
     process_keys(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
-    elseif keys.CURSOR_UP or keys.CURSOR_DOWN or keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST then
+        return
+    end
+    if keys.CURSOR_UP or keys.CURSOR_DOWN or keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST then
         self.list_idx = self.list_idx + (
             ((keys.CURSOR_UP or keys.CURSOR_UP_FAST) and -1 or 1)
             * ((keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST) and 10 or 1)
@@ -782,7 +820,8 @@ function manipulator:onInput(keys)
         elseif self.list_idx < self.list_start then
             self.list_start = self.list_idx
         end
-    elseif keys.CURSOR_LEFT or keys.CURSOR_RIGHT or keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST then
+    end
+    if keys.CURSOR_LEFT or keys.CURSOR_RIGHT or keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST then
         self.grid_idx = self.grid_idx + (
             ((keys.CURSOR_LEFT or keys.CURSOR_LEFT_FAST) and -1 or 1)
             * ((keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST) and 10 or 1)
@@ -797,7 +836,8 @@ function manipulator:onInput(keys)
         elseif self.grid_idx < self.grid_start then
             self.grid_start = self.grid_idx
         end
-    elseif keys.SELECT then
+    end
+    if keys.SELECT then
         self:toggle_labor(self.grid_idx, self.list_idx)
     elseif keys.SELECT_ALL then
         self:toggle_labor_group(self.grid_idx, self.list_idx)
