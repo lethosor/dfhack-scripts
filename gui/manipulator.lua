@@ -788,6 +788,19 @@ function manipulator:draw_grid()
     end
 end
 
+function manipulator:update_viewport()
+    if self.list_idx > self.list_end then
+        self.list_start = self.list_idx - self.list_height + 1
+    elseif self.list_idx < self.list_start then
+        self.list_start = self.list_idx
+    end
+    if self.grid_idx > self.grid_end then
+        self.grid_start = self.grid_idx - self.grid_width + 1
+    elseif self.grid_idx < self.grid_start then
+        self.grid_start = self.grid_idx
+    end
+end
+
 function manipulator:onInput(keys)
     local old_x = self.grid_idx
     local old_y = self.list_idx
@@ -815,11 +828,7 @@ function manipulator:onInput(keys)
                 self.list_idx = 1
             end
         end
-        if self.list_idx > self.list_end then
-            self.list_start = self.list_idx - self.list_height + 1
-        elseif self.list_idx < self.list_start then
-            self.list_start = self.list_idx
-        end
+        self:update_viewport()
     end
     if keys.CURSOR_LEFT or keys.CURSOR_RIGHT or keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST then
         self.grid_idx = self.grid_idx + (
@@ -831,11 +840,27 @@ function manipulator:onInput(keys)
         elseif self.grid_idx > #SKILL_COLUMNS then
             self.grid_idx = #SKILL_COLUMNS
         end
-        if self.grid_idx > self.grid_end then
-            self.grid_start = self.grid_idx - self.grid_width + 1
-        elseif self.grid_idx < self.grid_start then
-            self.grid_start = self.grid_idx
+        self:update_viewport()
+    end
+    if keys.CURSOR_DOWN_Z then
+        self:update_grid_tile()
+        local newgroup = SKILL_COLUMNS[self.grid_idx].group + 1
+        for i = self.grid_idx, #SKILL_COLUMNS do
+            if SKILL_COLUMNS[i].group == newgroup then
+                self.grid_idx = i
+                self:update_grid_tile()
+                self:update_viewport()
+                break
+            end
         end
+    elseif keys.CURSOR_UP_Z then
+        self:update_grid_tile()
+        local newgroup = SKILL_COLUMNS[math.max(1, self.grid_idx - 1)].group
+        while self.grid_idx > 1 and SKILL_COLUMNS[self.grid_idx - 1].group == newgroup do
+            self.grid_idx = self.grid_idx - 1
+        end
+        self:update_grid_tile()
+        self:update_viewport()
     end
     if keys.SELECT then
         self:toggle_labor(self.grid_idx, self.list_idx)
