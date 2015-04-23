@@ -231,6 +231,10 @@ function load_screen:onRender()
     paintKeyString(52, rows - 1, 'CUSTOM_B', self.backup_opts[self.opts.backups])
 end
 
+function load_screen:onIdle()
+    self.text_input_mode = self.search_active
+end
+
 function load_screen:onInput(keys)
     if keys._MOUSE_L then
         return self:onMouseInput(df.global.gps.mouse_x, df.global.gps.mouse_y)
