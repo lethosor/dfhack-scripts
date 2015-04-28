@@ -387,22 +387,24 @@ function settings_manager:onInput(keys)
             self:dismiss()
         end
     elseif keys.CURSOR_RIGHT or keys.CURSOR_LEFT or keys.CURSOR_RIGHT_FAST or keys.CURSOR_LEFT_FAST then
-        local incr
-        if keys.CURSOR_RIGHT then incr = 1
-        elseif keys.CURSOR_RIGHT_FAST then incr = 10
-        elseif keys.CURSOR_LEFT then incr = -1
-        elseif keys.CURSOR_LEFT_FAST then incr = -10
-        end
-        local setting = self:get_selected_setting()
-        val = setting.value
-        if setting.type == 'int' then
-            val = val + incr
-            if setting.min ~= nil then val = math.max(setting.min, val) end
-            if setting.max ~= nil then val = math.min(setting.max, val) end
-            self:commit_edit(nil, val)
-        elseif setting.type == 'bool' then
-            val = (val == 'YES' and 0) or 1
-            self:commit_edit(nil, val)
+        if self.page == 2 then
+            local incr
+            if keys.CURSOR_RIGHT then incr = 1
+            elseif keys.CURSOR_RIGHT_FAST then incr = 10
+            elseif keys.CURSOR_LEFT then incr = -1
+            elseif keys.CURSOR_LEFT_FAST then incr = -10
+            end
+            local setting = self:get_selected_setting()
+            val = setting.value
+            if setting.type == 'int' then
+                val = val + incr
+                if setting.min ~= nil then val = math.max(setting.min, val) end
+                if setting.max ~= nil then val = math.min(setting.max, val) end
+                self:commit_edit(nil, val)
+            elseif setting.type == 'bool' then
+                val = (val == 'YES' and 0) or 1
+                self:commit_edit(nil, val)
+            end
         end
     elseif keys._MOUSE_L then
         local mouse_y = df.global.gps.mouse_y
