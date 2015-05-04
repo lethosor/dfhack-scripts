@@ -6,6 +6,8 @@ utils = require 'utils'
 enabler = df.global.enabler
 gps = df.global.gps
 
+VERSION = '0.5'
+
 function m_load(name, opts)
     if name:sub(-4) == '.lua' then
         name = name:sub(1, -5)
