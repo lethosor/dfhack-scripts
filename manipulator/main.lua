@@ -368,7 +368,11 @@ function unit_wrapper(u)
         end
     end
 
-    setmetatable(t, {__index = index, __newindex = newindex})
+    local function tostring(self)
+        return ('<unit wrapper: %s>'):format(u)
+    end
+
+    setmetatable(t, {__index = index, __newindex = newindex, __tostring = tostring})
     return t
 end
 
@@ -419,6 +423,13 @@ function manipulator:init(args)
         for skill, _ in ipairs(df.job_skill) do
             if skill_cache:get(u, skill).rating >= 16 then
                 u.legendary = true
+            end
+        end
+        u.on_fire = false
+        for i, stat in pairs(u.body.components.body_part_status) do
+            if stat.on_fire then
+                u.on_fire = true
+                break
             end
         end
     end

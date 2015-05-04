@@ -93,6 +93,9 @@ Column{
     callback = wrap(dfhack.units.getProfessionName),
     color = function(unit)
         local color = dfhack.units.getProfessionColor(unit._native)
+        if unit.on_fire then
+            return math.random() < 0.5 and COLOR_LIGHTRED or COLOR_YELLOW
+        end
         if manipulator.blink_state() and unit.legendary then
             color = (color + 8) % 16
             if color == COLOR_BLACK then color = COLOR_GREY end
