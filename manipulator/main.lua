@@ -9,6 +9,7 @@ gps = df.global.gps
 VERSION = '0.5'
 
 function m_load(name, opts)
+    if not opts then opts = {} end
     if name:sub(-4) == '.lua' then
         name = name:sub(1, -5)
     end
@@ -17,7 +18,11 @@ function m_load(name, opts)
     if not path and not opts.optional then
         error('Could not find script:' .. name)
     end
-    local env = opts.env or {}
+    local env = opts.env
+    if not env then
+        env = {}
+        setmetatable(env, {__index = _ENV})
+    end
     env.manipulator_module = true
     local f, err = loadfile(path, 't', env)
     if not f then
@@ -28,6 +33,7 @@ function m_load(name, opts)
 end
 
 m_load('grid-config', {env = _ENV})
+batch_ops = m_load('gui/batch_ops').batch_ops
 
 args = {...}
 iargs = utils.invert(args)
@@ -82,6 +88,24 @@ function irange(a, b)
             return i
         end
     end
+end
+
+function scroll_index(index, delta, min, max)
+    index = index + delta
+    if delta < 0 and index < min then
+        if index <= min + delta then
+            index = max
+        else
+            index = min
+        end
+    elseif delta > 0 and index > max then
+        if index >= max + delta then
+            index = min
+        else
+            index = max
+        end
+    end
+    return index
 end
 
 if dfhack.units.getSquadName == nil then
@@ -579,7 +603,9 @@ function manipulator:onRenderBody(p)
     p:key('SECONDSCROLL_UP'):key('SECONDSCROLL_DOWN'):string(': Sort by skill')
     p:newline()
     p:key('CUSTOM_X'):key('CUSTOM_SHIFT_X'):string(': Select ')
-    p:key('CUSTOM_A'):key('CUSTOM_SHIFT_A'):string(': all/none ')
+    p:key('CUSTOM_A'):key('CUSTOM_SHIFT_A'):string(': all/none, ')
+    p:key('CUSTOM_B'):string(': Batch ')
+    p:key('CUSTOM_E'):string(': Edit ')
     p:newline()
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
     self.bounds.grid = {grid_start_x, self.list_top_margin + 1, gps.dimx - 2, self.list_top_margin + self.list_height}
@@ -737,6 +763,16 @@ function manipulator:onInput(keys)
             self:_select_unit(u, keys.CUSTOM_A)
         end
         self.selection_state = nil
+    elseif keys.CUSTOM_E then
+        batch_ops({units = {cur_unit}}):show()
+    elseif keys.CUSTOM_B then
+        local units = {}
+        for _, u in pairs(self.units) do
+            if u.selected then
+                table.insert(units, u)
+            end
+        end
+        batch_ops({units = units}):show()
     elseif keys._MOUSE_L or keys._MOUSE_R then
         self:onMouseInput(gps.mouse_x, gps.mouse_y,
             {left = keys._MOUSE_L, right = keys._MOUSE_R}, dfhack.internal.getModifiers())
@@ -907,6 +943,7 @@ end
 
 manipulator_columns = defclass(manipulator_columns, gui.FramedScreen)
 manipulator_columns.ATTRS = {
+    focus_path = 'manipulator/columns',
     frame_title = 'Dwarf Manipulator - Columns',
 }
 
