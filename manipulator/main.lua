@@ -543,6 +543,7 @@ function manipulator:onRenderBody(p)
             gps.dimx - grid_start_x - 1, 1,
             self.grid_start - 1, 0)
         y = y + 1
+        unit.dirty = false
     end
     local unit = self.units[self.list_idx]
     local col = SKILL_COLUMNS[self.grid_idx]
@@ -578,7 +579,7 @@ function manipulator:onRenderBody(p)
     p:key('SECONDSCROLL_UP'):key('SECONDSCROLL_DOWN'):string(': Sort by skill')
     p:newline()
     p:key('CUSTOM_X'):key('CUSTOM_SHIFT_X'):string(': Select ')
-    p:key('CUSTOM_A'):key('CUSTOM_SHIFT_A'):string(' all/none ')
+    p:key('CUSTOM_A'):key('CUSTOM_SHIFT_A'):string(': all/none ')
     p:newline()
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
     self.bounds.grid = {grid_start_x, self.list_top_margin + 1, gps.dimx - 2, self.list_top_margin + self.list_height}
@@ -587,9 +588,6 @@ function manipulator:onRenderBody(p)
     for id, col in pairs(self.columns) do
         self.bounds.columns[id] = {col_start_x[id], self.list_top_margin + 1,
             col_start_x[id] + col.width - 1, self.list_top_margin + self.list_height}
-    end
-    for _, u in pairs(self.units) do
-        u.dirty = false
     end
 end
 
@@ -872,7 +870,7 @@ function manipulator:_unit_index(unit)
 end
 
 function manipulator:_select_unit(u, state)
-    if state ~= u.selected then
+    if state ~= u.selected and u.allow_edit then
         u.selected = state
         u.dirty = true
     end
