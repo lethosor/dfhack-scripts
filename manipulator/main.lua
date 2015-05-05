@@ -549,7 +549,11 @@ function manipulator:onRenderBody(p)
     p:pen{fg = COLOR_WHITE}
     p:seek(0, gps.dimy - self.list_bottom_margin - 1)
     p:string(dfhack.units.isMale(unit._native) and string.char(11) or string.char(12)):string(' ')
-    p:string(dfhack.TranslateName(unit.name)):string(', ')
+    local translated_name = dfhack.TranslateName(unit.name)
+    p:string(translated_name)
+    if #translated_name > 0 then
+        p:string(', ')
+    end
     p:string(dfhack.units.getProfessionName(unit._native)):string(': ')
     if col.skill == df.job_skill.NONE then
         if col.labor ~= df.unit_labor.NONE then
