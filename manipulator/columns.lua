@@ -63,10 +63,13 @@ Column{
             return COLOR_DARKGREY
         end
     end,
-    on_click = function(unit)
+    on_click = function(unit, buttons, mods)
         if not unit.allow_edit then return end
-        unit.selected = not unit.selected
-        unit.dirty = true
+        if buttons.right or mods.shift then
+            manipulator.selection.extend(unit)
+        else
+            manipulator.selection.start(unit)
+        end
     end
 }
 

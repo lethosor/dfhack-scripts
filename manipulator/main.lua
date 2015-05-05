@@ -73,6 +73,17 @@ function clone_table(tbl)
     return out
 end
 
+function irange(a, b)
+    local i = math.min(a, b) - 1
+    local max = math.max(a, b)
+    return function()
+        i = i + 1
+        if i <= max then
+            return i
+        end
+    end
+end
+
 if dfhack.units.getSquadName == nil then
     function dfhack.units.getSquadName(unit)
         if (unit.military.squad_id == -1) then return "" end
@@ -309,6 +320,10 @@ function load_columns(scr)
             view_unit = scr:callback('view_unit'),
             zoom_unit = scr:callback('zoom_unit'),
             blink_state = function() return scr.blink_state end,
+            selection = {
+                start = scr:callback('selection_start'),
+                extend = scr:callback('selection_extend'),
+            }
         }
     }
     setmetatable(env, {__index = _ENV})
@@ -456,6 +471,7 @@ function manipulator:set_title(title)
 end
 
 function manipulator:onRenderBody(p)
+    p.clip_y2 = gps.dimy - 2  -- extend lower clip boundary by 1 row
     self.gframe = self.gframe + 1
     if self.gframe > enabler.gfps then self.gframe = 0 end
     self.blink_state = (self.gframe < enabler.gfps / 3)
@@ -557,6 +573,9 @@ function manipulator:onRenderBody(p)
     p:newline()
     p:key('SECONDSCROLL_UP'):key('SECONDSCROLL_DOWN'):string(': Sort by skill')
     p:newline()
+    p:key('CUSTOM_X'):key('CUSTOM_SHIFT_X'):string(': Select ')
+    p:key('CUSTOM_A'):key('CUSTOM_SHIFT_A'):string(' all/none ')
+    p:newline()
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
     self.bounds.grid = {grid_start_x, self.list_top_margin + 1, gps.dimx - 2, self.list_top_margin + self.list_height}
     self.bounds.grid_header = {self.bounds.grid[1], 1, self.bounds.grid[3], 2}
@@ -631,9 +650,12 @@ function manipulator:update_viewport()
 end
 
 function manipulator:onInput(keys)
-    local old_x = self.grid_idx
-    local old_y = self.list_idx
-    local old_unit = self.units[self.list_idx]
+    local cur_x = self.grid_idx
+    local cur_y = self.list_idx
+    local cur_unit = self.units[self.list_idx]
+    local old_x = cur_x
+    local old_y = cur_y
+    local old_unit = cur_unit
     process_keys(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
@@ -704,6 +726,15 @@ function manipulator:onInput(keys)
     elseif keys.SECONDSCROLL_UP or keys.SECONDSCROLL_DOWN then
         self:sort_skill(SKILL_COLUMNS[self.grid_idx].skill, keys.SECONDSCROLL_UP)
         self:update_unit_grid_tile(old_unit, old_x)
+    elseif keys.CUSTOM_X then
+        self:selection_start(cur_unit)
+    elseif keys.CUSTOM_SHIFT_X then
+        self:selection_extend(cur_unit)
+    elseif keys.CUSTOM_A or keys.CUSTOM_SHIFT_A then
+        for i, u in pairs(self.units) do
+            self:_select_unit(u, keys.CUSTOM_A)
+        end
+        self.selection_state = nil
     elseif keys._MOUSE_L or keys._MOUSE_R then
         self:onMouseInput(gps.mouse_x, gps.mouse_y,
             {left = keys._MOUSE_L, right = keys._MOUSE_R}, dfhack.internal.getModifiers())
@@ -749,6 +780,7 @@ end
 
 function manipulator:sort_skill(skill, descending)
     self.units = merge_sort(self.units, make_sort_order(sort.skill, descending, skill))
+    self.selection_state = nil
 end
 
 function manipulator:is_valid_labor(labor)
@@ -824,6 +856,35 @@ function manipulator:zoom_unit(u)
     if self:parent_select_unit(u) then
         gui.simulateInput(parent, {UNITJOB_ZOOM_CRE = true})
         self:dismiss()
+    end
+end
+
+function manipulator:_unit_index(unit)
+    for i, u in pairs(self.units) do
+        if unit == u then
+            return i
+        end
+    end
+end
+
+function manipulator:_select_unit(u, state)
+    if state ~= u.selected then
+        u.selected = state
+        u.dirty = true
+    end
+end
+
+function manipulator:selection_start(u)
+    self.selection_state = {start = u, state = not u.selected}
+    self:_select_unit(u, not u.selected)
+end
+
+function manipulator:selection_extend(u)
+    if not self.selection_state then
+        return self:selection_start(u)
+    end
+    for i in irange(self:_unit_index(self.selection_state.start), self:_unit_index(u)) do
+        self:_select_unit(self.units[i], self.selection_state.state)
     end
 end
 
