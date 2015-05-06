@@ -90,16 +90,18 @@ function irange(a, b)
     end
 end
 
-function scroll_index(index, delta, min, max)
+function scroll_index(index, delta, min, max, opts)
+    if not opts then opts = {} end
+    if opts.wrap == nil then opts.wrap = true end
     index = index + delta
     if delta < 0 and index < min then
-        if index <= min + delta then
+        if index <= min + delta and opts.wrap then
             index = max
         else
             index = min
         end
     elseif delta > 0 and index > max then
-        if index >= max + delta then
+        if index >= max + delta and opts.wrap then
             index = min
         else
             index = max
@@ -690,35 +692,19 @@ function manipulator:onInput(keys)
         return
     end
     if keys.CURSOR_UP or keys.CURSOR_DOWN or keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST then
-        self.list_idx = self.list_idx + (
+        self.list_idx = scroll_index(self.list_idx,
             ((keys.CURSOR_UP or keys.CURSOR_UP_FAST) and -1 or 1)
-            * ((keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST) and 10 or 1)
+            * ((keys.CURSOR_UP_FAST or keys.CURSOR_DOWN_FAST) and 10 or 1),
+            1, self.unit_max
         )
-        if self.list_idx < 1 then
-            if keys.CURSOR_UP_FAST and self.list_idx > -9 then
-                self.list_idx = 1
-            else
-                self.list_idx = self.unit_max
-            end
-        elseif self.list_idx > self.unit_max then
-            if keys.CURSOR_DOWN_FAST and self.list_idx < self.unit_max + 10 then
-                self.list_idx = self.unit_max
-            else
-                self.list_idx = 1
-            end
-        end
         self:update_viewport()
     end
     if keys.CURSOR_LEFT or keys.CURSOR_RIGHT or keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST then
-        self.grid_idx = self.grid_idx + (
+        self.grid_idx = scroll_index(self.grid_idx,
             ((keys.CURSOR_LEFT or keys.CURSOR_LEFT_FAST) and -1 or 1)
-            * ((keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST) and 10 or 1)
+            * ((keys.CURSOR_LEFT_FAST or keys.CURSOR_RIGHT_FAST) and 10 or 1),
+            1, #SKILL_COLUMNS, {wrap = false}
         )
-        if self.grid_idx < 1 then
-            self.grid_idx = 1
-        elseif self.grid_idx > #SKILL_COLUMNS then
-            self.grid_idx = #SKILL_COLUMNS
-        end
         self:update_viewport()
     end
     if keys.CURSOR_DOWN_Z then
