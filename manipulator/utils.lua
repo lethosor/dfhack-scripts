@@ -19,6 +19,10 @@ function clone_table(tbl)
     return out
 end
 
+function clear_table(tbl)
+    for k, v in pairs(tbl) do tbl[k] = nil end
+end
+
 function irange(a, b)
     local i = math.min(a, b) - 1
     local max = math.max(a, b)
@@ -293,7 +297,7 @@ function load_columns(scr)
         }
     }
     setmetatable(env, {__index = _ENV})
-    m_load('columns', {env = env})
+    m_module.load('columns', {env = env})
     if #columns < 1 then qerror('No columns found') end
     return columns
 end

@@ -8,7 +8,8 @@ gps = df.global.gps
 
 VERSION = '0.5'
 
-function m_load(name, opts)
+m_module = m_module or {cache = {}, default_env = {}}
+function m_module.load(name, opts)
     if not opts then opts = {} end
     if name:sub(-4) == '.lua' then
         name = name:sub(1, -5)
@@ -20,27 +21,40 @@ function m_load(name, opts)
     end
     local env = opts.env
     if not env then
-        env = {}
+        env = m_module.default_env
+        clear_table(env)
         setmetatable(env, {__index = _ENV})
     end
     env.manipulator_module = true
-    local f, err = loadfile(path, 't', env)
-    if not f then
-        error(('Could not load script "%s": %s'):format(name, err))
+    local f
+    local cache = m_module.cache[name]
+    if cache and path == cache.path and env == cache.env and cache.mtime == dfhack.filesystem.mtime(path) then
+        f = cache.callback
+    else
+        f, err = loadfile(path, 't', env)
+        if not f then
+            error(('Could not load script "%s": %s'):format(name, err))
+        end
+        m_module.cache[name] = {
+            path = path,
+            mtime = dfhack.filesystem.mtime(path),
+            callback = f,
+            env = env
+        }
     end
     f()
     return env
 end
 
-m_load('grid-config', {env = _ENV})
-m_load('utils', {env = _ENV})
-batch_ops = m_load('gui/batch_ops').batch_ops
+m_module.load('grid-config', {env = _ENV})
+m_module.load('utils', {env = _ENV})
+batch_ops = m_module.load('gui/batch_ops').batch_ops
 
 args = {...}
 iargs = utils.invert(args)
 penarray = dfhack.penarray
 if not penarray or iargs['--lua-penarray'] then
-    penarray = m_load('penarray').penarray
+    penarray = m_module.load('penarray').penarray
 end
 
 for id, col in pairs(SKILL_COLUMNS) do
