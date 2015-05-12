@@ -6,7 +6,38 @@ utils = require 'utils'
 enabler = df.global.enabler
 gps = df.global.gps
 
+args = {...}
+iargs = utils.invert(args)
+if iargs['--profile'] then
+    PROFILE = true
+elseif iargs['--no-profile'] then
+    PROFILE = false
+end
+
 VERSION = '0.5'
+PROFILE = PROFILE or false
+
+if PROFILE then
+    p_data = {}
+    function p_start(name)
+        p_data[name] = os.clock()
+    end
+    function p_end(name)
+        if p_data[name] then
+            print(('%.5f secs [%s]'):format(os.clock() - p_data[name], name))
+        end
+    end
+    function p_call(name, func, ...)
+        p_start(name)
+        func(...)
+        p_end(name)
+    end
+else
+    function p_start() end
+    function p_end() end
+    function p_call(name, func, ...) func(...) end
+end
+p_start('parse')
 
 m_module = m_module or {cache = {}, default_env = {}}
 function m_module.load(name, opts)
@@ -15,6 +46,7 @@ function m_module.load(name, opts)
         name = name:sub(1, -5)
     end
     name = 'manipulator/' .. name
+    p_start('load ' .. name)
     local path = dfhack.findScript(name)
     if not path and not opts.optional then
         error('Could not find script:' .. name)
@@ -43,6 +75,7 @@ function m_module.load(name, opts)
         }
     end
     f()
+    p_end('load ' .. name)
     return env
 end
 
@@ -50,13 +83,12 @@ m_module.load('grid-config', {env = _ENV})
 m_module.load('utils', {env = _ENV})
 batch_ops = m_module.load('gui/batch_ops').batch_ops
 
-args = {...}
-iargs = utils.invert(args)
 penarray = dfhack.penarray
 if not penarray or iargs['--lua-penarray'] then
     penarray = m_module.load('penarray').penarray
 end
 
+p_start('validate columns')
 for id, col in pairs(SKILL_COLUMNS) do
     check_nil(tonumber(col.group), ('Column %i: Invalid group ID: %s'):format(id, col.group))
     check_nil(tonumber(col.color), ('Column %i: Invalid color ID: %s'):format(id, col.color))
@@ -74,6 +106,7 @@ for id, lvl in pairs(SKILL_LEVELS) do
     check_nil(tonumber(lvl.points), ('Skill level %i: Invalid points: %s'):format(id, lvl.points))
     lvl.abbr = tostring(check_nil(lvl.abbr, ('Skill level %i: Missing abbreviation'):format(id))):sub(0, 1)
 end
+p_end('validate columns')
 
 default_columns = default_columns or 0
 
@@ -91,6 +124,7 @@ manipulator.ATTRS = {
 }
 
 function manipulator:init(args)
+    p_start('init')
     self.units = {}
     for i, u in pairs(args.units) do
         self.units[i + 1] = unit_wrapper(u)
@@ -146,6 +180,7 @@ function manipulator:init(args)
         self.columns = get_columns(self.all_columns, default_columns)
     end
     self:set_title('Manage Labors')
+    p_end('init')
 end
 
 function manipulator:set_title(title)
@@ -315,11 +350,13 @@ function manipulator:update_unit_grid_tile(unit, x)
 end
 
 function manipulator:draw_grid()
+    p_start('draw_grid')
     for y = 1, #self.units do
         for x = 1, #SKILL_COLUMNS do
             self:update_grid_tile(x, y)
         end
     end
+    p_end('draw_grid')
 end
 
 function manipulator:update_viewport()
@@ -741,10 +778,14 @@ function manipulator_columns:onInput(keys)
     self.super.onInput(self, keys)
 end
 
-scr = dfhack.gui.getCurViewscreen()
-if df.viewscreen_unitlistst:is_instance(scr) then
-    cur = manipulator{units = scr.units[scr.page], selected = scr.units[scr.page][scr.cursor_pos[scr.page]]}
-    cur:show()
-else
-    dfhack.printerr('Invalid context')
+function main()
+    local scr = dfhack.gui.getCurViewscreen()
+    if df.viewscreen_unitlistst:is_instance(scr) then
+        cur = manipulator{units = scr.units[scr.page], selected = scr.units[scr.page][scr.cursor_pos[scr.page]]}
+        cur:show()
+    else
+        dfhack.printerr('Invalid context')
+    end
 end
+p_end('parse')
+p_call('main', main)
