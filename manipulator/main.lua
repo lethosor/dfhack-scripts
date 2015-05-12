@@ -142,6 +142,7 @@ function manipulator:init(args)
     self.grid_idx = 1
     self.grid_rows = {}
     skill_cache:clear()
+    p_start('init units')
     for idx, u in pairs(self.units) do
         self.grid_rows[u] = penarray.new(#SKILL_COLUMNS, 1)
         if u._native == args.selected then
@@ -153,9 +154,12 @@ function manipulator:init(args)
             u.allow_edit = false
         end
         u.legendary = false
-        for skill, _ in ipairs(df.job_skill) do
-            if skill_cache:get(u, skill).rating >= 16 then
-                u.legendary = true
+        if u.status.current_soul then
+            for _, unit_skill in pairs(u.status.current_soul.skills) do
+                if unit_skill.rating >= 15 then
+                    u.legendary = true
+                    break
+                end
             end
         end
         u.on_fire = false
@@ -166,14 +170,17 @@ function manipulator:init(args)
             end
         end
     end
+    p_end('init units')
     self:draw_grid()
     self.all_columns = load_columns(self)
     self.columns = {}
+    p_start('populate columns')
     for k, c in pairs(self.all_columns) do
         if c.default then table.insert(self.columns, c) end
         c:clear_cache()
         c:populate(self.units)
     end
+    p_end('populate columns')
     if type(default_columns) ~= 'table' then
         default_columns = get_column_ids(self.columns)
     else
