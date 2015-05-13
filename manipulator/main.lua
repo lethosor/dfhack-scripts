@@ -251,6 +251,9 @@ function manipulator:onRenderBody(p)
     end
     for i = self.list_start, self.list_end do
         local unit = self.units[i]
+        if unit.dirty then
+            self:draw_unit_row(unit)
+        end
         for id, col in pairs(self.columns) do
             x = col_start_x[id]
             local fg = col:lookup_color(unit)
@@ -364,6 +367,12 @@ function manipulator:draw_grid()
         end
     end
     p_end('draw_grid')
+end
+
+function manipulator:draw_unit_row(unit)
+    for x = 1, #SKILL_COLUMNS do
+        self:update_unit_grid_tile(unit, x)
+    end
 end
 
 function manipulator:update_viewport()

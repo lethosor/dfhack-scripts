@@ -47,6 +47,8 @@ batch_ops.ATTRS = {
     options = {
         {'Change nickname', 'edit_nickname'},
         {'Change profession name', 'edit_profname'},
+        {'Enable all labors', 'enable_all'},
+        {'Disable all labors', 'disable_all'},
     },
     selection_pen = {fg = COLOR_WHITE, bg = COLOR_GREEN},
     frame_style = gui.BOUNDARY_FRAME,
@@ -90,6 +92,34 @@ end
 
 function batch_ops:edit_profname()
     name_editor({units = self.units, name = PROFNAME}):show()
+end
+
+function batch_ops:handle_labors(callback)
+    if not callback then return end
+    for _, u in pairs(self.units) do
+        for _, col in pairs(SKILL_COLUMNS) do
+            callback(u, col.labor)
+        end
+    end
+end
+
+function batch_ops:set_all_labors(state)
+    local function cb(unit, labor)
+        if state and labors.special(labor) then
+            return
+        end
+        labors.set(unit, labor, state)
+        unit.dirty = true
+    end
+    self:handle_labors(cb)
+end
+
+function batch_ops:enable_all()
+    self:set_all_labors(true)
+end
+
+function batch_ops:disable_all()
+    self:set_all_labors(false)
 end
 
 name_editor = defclass(name_editor, gui.FramedScreen)

@@ -392,6 +392,10 @@ function labors.valid(unit, labor)
     return true
 end
 
+function labors.get(unit, labor)
+    return unit.status.labors[labor]
+end
+
 function labors.set(unit, labor, state, callback)
     -- calls callback(unit, labor, state) after setting labor(s)
     if not unit.allow_edit then return end
@@ -411,4 +415,8 @@ function labors.set(unit, labor, state, callback)
     if callback then
         callback(unit, labor, state)
     end
+end
+
+function labors.special(labor)
+    return labors.get_column(labor).special
 end
