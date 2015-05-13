@@ -507,38 +507,19 @@ function manipulator:sort_skill(skill, descending)
     self.selection_state = nil
 end
 
-function manipulator:is_valid_labor(labor)
-    if labor == df.unit_labor.NONE then return false end
-    local ent = df.global.ui.main.fortress_entity
-    if ent and ent.entity_raw and not ent.entity_raw.jobs.permitted_labor[labor] then
-        return false
-    end
-    return true
-end
-
 function manipulator:set_labor(x, y, state)
-    local col = SKILL_COLUMNS[x] or error('Invalid column ID: ' .. x)
     local unit = self.units[y] or error('Invalid unit ID: ' .. y)
-    if not unit.allow_edit then return end
-    if not self:is_valid_labor(col.labor) then return end
-    if col.special then
-        if state then
-            for i, c in pairs(SKILL_COLUMNS) do
-                if c.special then
-                    self:set_labor(i, y, false)
-                end
-            end
-        end
-        unit.military.pickup_flags.update = true
+    local labor = SKILL_COLUMNS[x].labor or error('Invalid column id: ' .. x)
+    local function cb(unit, labor, state)
+        self:update_unit_grid_tile(unit, labors.get_column_index(labor))
     end
-    unit.status.labors[col.labor] = state
-    self:update_grid_tile(x, y)
+    labors.set(unit, labor, state, cb)
 end
 
 function manipulator:toggle_labor(x, y)
     local col = SKILL_COLUMNS[x] or error('Invalid column ID: ' .. x)
     local unit = self.units[y] or error('Invalid unit ID: ' .. y)
-    if not self:is_valid_labor(col.labor) then return end
+    if not labors.valid(unit, col.labor) then return end
     self:set_labor(x, y, not unit.status.labors[col.labor])
 end
 
@@ -547,7 +528,7 @@ function manipulator:toggle_labor_group(x, y)
     local unit = self.units[y] or error('Invalid unit ID: ' .. y)
     local labor = col.labor
     local group = col.group
-    if not self:is_valid_labor(labor) then return end
+    if not labors.valid(unit, labor) then return end
     local state = not unit.status.labors[labor]
     for x, col in pairs(SKILL_COLUMNS) do
         if col.group == group then
