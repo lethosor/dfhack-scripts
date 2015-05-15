@@ -38,7 +38,13 @@ Column{
     end,
     title = 'Stress',
     default = true,
-    right_align = true
+    right_align = true,
+    on_click = function(unit, buttons, mods)
+        manipulator.view_unit(unit)
+        local scr = dfhack.gui.getCurViewscreen()
+        gui.simulateInput(scr, 'SELECT')
+        dfhack.screen.dismiss(scr)
+    end
 }
 
 Column{
