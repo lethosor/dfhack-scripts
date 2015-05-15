@@ -49,7 +49,7 @@ function m_module.load(name, opts)
     p_start('load ' .. name)
     local path = dfhack.findScript(name)
     if not path and not opts.optional then
-        error('Could not find script:' .. name)
+        error('Could not find script: ' .. name)
     end
     local env = opts.env
     if not env then
@@ -79,9 +79,36 @@ function m_module.load(name, opts)
     return env
 end
 
+function m_module.autoloader(module_pattern, name_pattern)
+    local stub = {}
+    if not module_pattern then
+        module_pattern = '%s'
+    end
+    if not name_pattern then
+        name_pattern = '%s'
+    end
+    local function index(self, key)
+        local mod = module_pattern
+        local name = name_pattern
+        if type(mod) == 'function' then
+            mod = mod(key)
+        else
+            mod = mod:format(key)
+        end
+        if type(name) == 'function' then
+            name = name(key)
+        else
+            name = name:format(key)
+        end
+        return m_module.load(mod)[name]
+    end
+    setmetatable(stub, {__index = index})
+    return stub
+end
+
 m_module.load('grid-config', {env = _ENV})
 m_module.load('utils', {env = _ENV})
-batch_ops = m_module.load('gui/batch_ops').batch_ops
+mgui = m_module.autoloader('gui/%s')
 
 penarray = dfhack.penarray
 if not penarray or iargs['--lua-penarray'] then
@@ -459,7 +486,7 @@ function manipulator:onInput(keys)
         end
         self.selection_state = nil
     elseif keys.CUSTOM_E then
-        batch_ops({units = {cur_unit}}):show()
+        mgui.batch_ops({units = {cur_unit}}):show()
     elseif keys.CUSTOM_B then
         local units = {}
         for _, u in pairs(self.units) do
@@ -467,7 +494,7 @@ function manipulator:onInput(keys)
                 table.insert(units, u)
             end
         end
-        batch_ops({units = units}):show()
+        mgui.batch_ops({units = units}):show()
     elseif keys._MOUSE_L or keys._MOUSE_R then
         self:onMouseInput(gps.mouse_x, gps.mouse_y,
             {left = keys._MOUSE_L, right = keys._MOUSE_R}, dfhack.internal.getModifiers())
