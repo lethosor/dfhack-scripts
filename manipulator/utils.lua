@@ -201,14 +201,12 @@ end
 
 skill_cache = UnitAttrCache()
 function skill_cache:lookup(unit, skill)
-    local ret = {rating = 0, experience = 0}
-    if unit.status.current_soul then
-        for _, unit_skill in pairs(unit.status.current_soul.skills) do
-            if unit_skill.id == skill and (unit_skill.experience > 0 or unit_skill.rating > 0) then
-                ret.rating = math.min(unit_skill.rating + 1, #SKILL_LEVELS)
-                ret.experience = unit_skill.experience
-            end
-        end
+    local ret = {
+        rating = dfhack.units.getNominalSkill(unit._native, skill) + 1,
+        experience = dfhack.units.getExperience(unit._native, skill)
+    }
+    if ret.experience == 0 and ret.rating == 1 then
+        ret.rating = 0
     end
     return ret
 end
