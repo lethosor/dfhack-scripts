@@ -1,5 +1,7 @@
 if not manipulator_module then qerror('Only usable from within manipulator') end
 
+storage = storage or {}
+
 function if_nil(v, default)
     if v == nil then return default else return v end
 end
