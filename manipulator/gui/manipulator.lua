@@ -31,7 +31,7 @@ function manipulator:init(args)
     self.grid_width = 0   -- grid_end - grid_start + 1
     self.grid_idx = 1
     self.grid_rows = {}
-    self.diff_enabled = false
+    self.diff_enabled = storage.diff_enabled
     skill_cache:clear()
     p_start('init units')
     for idx, u in pairs(self.units) do
@@ -515,6 +515,7 @@ end
 
 function manipulator:onDismiss(...)
     storage.default_columns = get_column_ids(self.columns)
+    storage.diff_enabled = self.diff_enabled
     self.super.onDismiss(...)
 end
 
