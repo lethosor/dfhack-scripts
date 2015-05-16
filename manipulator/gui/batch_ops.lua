@@ -49,6 +49,7 @@ batch_ops.ATTRS = {
         {'Change profession name', 'edit_profname'},
         {'Enable all labors', 'enable_all'},
         {'Disable all labors', 'disable_all'},
+        {'Revert labor changes', 'revert_changes'},
     },
     selection_pen = {fg = COLOR_WHITE, bg = COLOR_GREEN},
     frame_style = gui.BOUNDARY_FRAME,
@@ -78,6 +79,7 @@ function batch_ops:onInput(keys)
         self:dismiss()
         return
     end
+    process_keys(keys)
     if self.empty then return end
     if keys.SELECT then
         self:callback(self.options[self.sel_idx][2])()
@@ -120,6 +122,14 @@ end
 
 function batch_ops:disable_all()
     self:set_all_labors(false)
+end
+
+function batch_ops:revert_changes()
+    local function cb(unit, labor)
+        labors.set(unit, labor, labors.get_orig(unit, labor))
+        unit.dirty = true
+    end
+    self:handle_labors(cb)
 end
 
 name_editor = defclass(name_editor, gui.FramedScreen)

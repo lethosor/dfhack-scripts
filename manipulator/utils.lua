@@ -396,6 +396,10 @@ function labors.get(unit, labor)
     return unit.status.labors[labor]
 end
 
+function labors.get_orig(unit, labor)
+    return unit.orig_labors[labor]
+end
+
 function labors.set(unit, labor, state, callback)
     -- calls callback(unit, labor, state) after setting labor(s)
     if not unit.allow_edit then return end
