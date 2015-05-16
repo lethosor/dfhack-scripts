@@ -31,6 +31,7 @@ function manipulator:init(args)
     self.grid_width = 0   -- grid_end - grid_start + 1
     self.grid_idx = 1
     self.grid_rows = {}
+    self.diff_enabled = false
     skill_cache:clear()
     p_start('init units')
     for idx, u in pairs(self.units) do
@@ -58,6 +59,10 @@ function manipulator:init(args)
                 u.on_fire = true
                 break
             end
+        end
+        u.orig_labors = {}
+        for k, v in ipairs(u.status.labors) do
+            u.orig_labors[k] = v
         end
     end
     p_end('init units')
@@ -198,7 +203,9 @@ function manipulator:onRenderBody(p)
     p:key('CUSTOM_X'):key('CUSTOM_SHIFT_X'):string(': Select ')
     p:key('CUSTOM_A'):key('CUSTOM_SHIFT_A'):string(': all/none, ')
     p:key('CUSTOM_B'):string(': Batch ')
-    p:key('CUSTOM_E'):string(': Edit ')
+    p:key('CUSTOM_E'):string(': Edit, ')
+    p:key('CUSTOM_D'):string(': Diff '):string(self.diff_enabled and '(Y)' or '(N)',
+        self.diff_enabled and COLOR_GREEN or COLOR_RED)
     p:newline()
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
     self.bounds.grid = {grid_start_x, self.list_top_margin + 1, gps.dimx - 2, self.list_top_margin + self.list_height}
@@ -228,6 +235,13 @@ function manipulator:update_grid_tile(x, y)
             bg = COLOR_GREY
             if skill == df.job_skill.NONE then
                 c = string.char(0xF9)
+            end
+        end
+        if self.diff_enabled then
+            if unit.status.labors[labor] and not unit.orig_labors[labor] then
+                bg = COLOR_GREEN
+            elseif (not unit.status.labors[labor]) and unit.orig_labors[labor] then
+                bg = COLOR_RED
             end
         end
     else
@@ -358,6 +372,9 @@ function manipulator:onInput(keys)
             end
         end
         mgui.batch_ops({units = units}):show()
+    elseif keys.CUSTOM_D then
+        self.diff_enabled = not self.diff_enabled
+        self:draw_grid()
     elseif keys._MOUSE_L or keys._MOUSE_R then
         self:onMouseInput(gps.mouse_x, gps.mouse_y,
             {left = keys._MOUSE_L, right = keys._MOUSE_R}, dfhack.internal.getModifiers())
