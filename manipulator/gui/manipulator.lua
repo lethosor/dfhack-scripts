@@ -32,7 +32,6 @@ function manipulator:init(args)
     self.grid_idx = 1
     self.grid_rows = {}
     self.diff_enabled = storage.diff_enabled
-    skill_cache:clear()
     p_start('init units')
     for idx, u in pairs(self.units) do
         self.grid_rows[u] = penarray.new(#SKILL_COLUMNS, 1)
@@ -184,12 +183,12 @@ function manipulator:onRenderBody(p)
         end
         p:string(unit.status.labors[col.labor] and 'Enabled' or 'Not Enabled', {fg = COLOR_LIGHTBLUE})
     else
-        local skill = skill_cache:get(unit, col.skill)
-        local lvl = skill.rating
+        local lvl = skills.rating(unit, col.skill)
         local prof = df.job_skill.attrs[col.skill].caption_noun
         p:string((lvl > 0 and SKILL_LEVELS[lvl].name or 'Not') .. ' ' .. prof, {fg = COLOR_LIGHTBLUE})
         if lvl < #SKILL_LEVELS then
-            p:string(' '):string(('(%i/%i)'):format(skill.experience, SKILL_LEVELS[lvl > 0 and lvl or 1].points), {fg = COLOR_LIGHTBLUE})
+            p:string(' '):string(('(%i/%i)'):format(skills.experience(unit, col.skill),
+                SKILL_LEVELS[lvl > 0 and lvl or 1].points), {fg = COLOR_LIGHTBLUE})
         end
     end
     p:newline()
@@ -227,7 +226,7 @@ function manipulator:update_grid_tile(x, y)
     local skill = SKILL_COLUMNS[x].skill
     local labor = SKILL_COLUMNS[x].labor
     if skill ~= df.job_skill.NONE then
-        local level = skill_cache:get(unit, skill).rating
+        local level = skills.rating(unit, skill)
         c = level > 0 and SKILL_LEVELS[level].abbr or '-'
     end
     if labor ~= df.unit_labor.NONE then

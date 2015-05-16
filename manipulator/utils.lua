@@ -79,6 +79,20 @@ if dfhack.units.getKillCount == nil then
     end
 end
 
+skills = {}
+function skills.experience(unit, skill)
+    return dfhack.units.getExperience(unit._native, skill)
+end
+
+function skills.rating(unit, skill)
+    local rating = dfhack.units.getNominalSkill(unit._native, skill) + 1
+    local exp = skills.experience(unit, skill)
+    if exp == 0 and rating == 1 then
+        return 0
+    end
+    return rating
+end
+
 OutputString = dfhack.screen.paintString
 
 function OutputKeyString(pen, x, y, key, str)
@@ -199,23 +213,11 @@ function UnitAttrCache:clear()
     self.cache = {}
 end
 
-skill_cache = UnitAttrCache()
-function skill_cache:lookup(unit, skill)
-    local ret = {
-        rating = dfhack.units.getNominalSkill(unit._native, skill) + 1,
-        experience = dfhack.units.getExperience(unit._native, skill)
-    }
-    if ret.experience == 0 and ret.rating == 1 then
-        ret.rating = 0
-    end
-    return ret
-end
-
 sort = {
     skill = function(u1, u2, skill)
-        local level_diff = skill_cache:get(u2, skill).rating - skill_cache:get(u1, skill).rating
+        local level_diff = skills.rating(u2, skill) - skills.rating(u1, skill)
         if level_diff ~= 0 then return level_diff end
-        return skill_cache:get(u2, skill).experience - skill_cache:get(u1, skill).experience
+        return skills.experience(u2, skill) - skills.experience(u1, skill)
     end
 }
 
