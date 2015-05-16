@@ -85,6 +85,18 @@ function batch_ops:onInput(keys)
         self:callback(self.options[self.sel_idx][2])()
     elseif keys.CURSOR_UP or keys.CURSOR_DOWN then
         self.sel_idx = scroll_index(self.sel_idx, keys.CURSOR_UP and -1 or 1, 1, #self.options)
+    elseif keys._MOUSE_L then
+        local mx = gps.mouse_x
+        local my = gps.mouse_y
+        local startx = self.frame_inset + 1
+        local starty = self.frame_inset + 3
+        if my >= starty and my < starty + #self.options then
+            local sel_idx = my - starty + 1
+            if mx >= startx and mx < startx + #self.options[sel_idx][1] then
+                self.sel_idx = sel_idx
+                self:onInput{SELECT = true}
+            end
+        end
     end
 end
 
@@ -154,7 +166,7 @@ function name_editor:onRenderBody(p)
     local entry = self.entry
     draw_names(self.units)
     p:seek(0, 2):string('Custom ' .. self.name_desc .. ':')
-    p:newline(2)
+    p:newline()
     if #entry > max_width then
         entry = entry:sub(-max_width)
         p:seek(-1):string('<', COLOR_LIGHTCYAN)
