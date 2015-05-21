@@ -141,11 +141,22 @@ manipulator_columns.ATTRS = {
     frame_title = 'Dwarf Manipulator - Columns',
 }
 
+function mkscreen(parent, opts)
+    opts = opts or {}
+    opts.units = parent.units[parent.page]
+    opts.selected = parent.units[parent.page][parent.cursor_pos[parent.page]]
+    local scr = mgui.manipulator(opts)
+    scr:show()
+    return scr
+end
+
 function main()
     local scr = dfhack.gui.getCurViewscreen()
     if df.viewscreen_unitlistst:is_instance(scr) then
-        cur = mgui.manipulator{units = scr.units[scr.page], selected = scr.units[scr.page][scr.cursor_pos[scr.page]]}
-        cur:show()
+        cur = mkscreen(scr)
+    elseif dfhack.gui.getCurFocus() == 'dwarfmode/Default' then
+        gui.simulateInput(scr, 'D_UNITLIST')
+        cur = mkscreen(dfhack.gui.getCurViewscreen(), {dismiss_parent = true})
     else
         dfhack.printerr('Invalid context')
     end

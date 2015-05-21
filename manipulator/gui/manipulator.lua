@@ -19,6 +19,7 @@ function manipulator:init(args)
     for i, u in pairs(args.units) do
         self.units[i + 1] = unit_wrapper(u)
     end
+    self.dismiss_parent = args.dismiss_parent
     self.unit_max = #self.units
     self.bounds = {}
     self.gframe = 0
@@ -516,6 +517,9 @@ function manipulator:onDismiss(...)
     storage.default_columns = get_column_ids(self.columns)
     storage.diff_enabled = self.diff_enabled
     self.super.onDismiss(...)
+    if self.dismiss_parent then
+        dfhack.screen.dismiss(self._native.parent)
+    end
 end
 
 function manipulator:onGetSelectedUnit()
