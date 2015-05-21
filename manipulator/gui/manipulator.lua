@@ -215,6 +215,7 @@ function manipulator:onRenderBody(p)
         self.bounds.columns[id] = {col_start_x[id], self.list_top_margin + 1,
             col_start_x[id] + col.width - 1, self.list_top_margin + self.list_height}
     end
+    OutputString({fg=COLOR_BLACK, bg=COLOR_DARKGREY}, 2, gps.dimy - 1, "manipulator " .. VERSION)
 end
 
 function manipulator:update_grid_tile(x, y)
