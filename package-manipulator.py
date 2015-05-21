@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from __future__ import print_function
 import argparse, os, re, shutil, sys, zipfile
+from contextlib import contextmanager
 
 def die(*args):
     print(*args)
@@ -19,6 +20,15 @@ def zip_dir(path, dest):
         for f in files:
             zf.write(os.path.join(root, f))
     zf.close()
+
+@contextmanager
+def chdir(path):
+    oldcwd = os.getcwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(oldcwd)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-o', '--overwrite', action='store_true')
@@ -41,5 +51,6 @@ if os.path.exists(full_dirname + '.zip'):
 shutil.copytree('manipulator', full_dirname + '/manipulator')
 os.mkdir(full_dirname + '/gui')
 shutil.copy('gui/manipulator.lua', full_dirname + '/gui/manipulator.lua')
-zip_dir(full_dirname, full_dirname + '.zip')
+with chdir('pkg/manipulator'):
+    zip_dir(dirname, dirname + '.zip')
 shutil.rmtree(full_dirname)
