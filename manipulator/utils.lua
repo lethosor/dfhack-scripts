@@ -90,7 +90,7 @@ function skills.rating(unit, skill)
     if exp == 0 and rating == 1 then
         return 0
     end
-    return rating
+    return math.min(rating, #SKILL_LEVELS)
 end
 
 OutputString = dfhack.screen.paintString
