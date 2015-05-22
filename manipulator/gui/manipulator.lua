@@ -33,6 +33,7 @@ function manipulator:init(args)
     self.grid_idx = 1
     self.grid_rows = {}
     self.diff_enabled = storage.diff_enabled
+    self.labor_changes = {added = 0, removed = 0}
     p_start('init units')
     for idx, u in pairs(self.units) do
         self.grid_rows[u] = penarray.new(#SKILL_COLUMNS, 1)
@@ -64,6 +65,7 @@ function manipulator:init(args)
         for k, v in ipairs(u.status.labors) do
             u.orig_labors[k] = v
         end
+        u.labor_changes = {added = 0, removed = 0}
     end
     p_end('init units')
     self:draw_grid()
@@ -144,6 +146,12 @@ function manipulator:onRenderBody(p)
         self.list_start = self.list_start - d
         self.list_end = self.list_end - d
     end
+    for _, u in pairs(self.units) do
+        if u.dirty then
+            self:update_labor_changes()
+            break
+        end
+    end
     for i = self.list_start, self.list_end do
         local unit = self.units[i]
         if unit.dirty then
@@ -169,6 +177,31 @@ function manipulator:onRenderBody(p)
     end
     local unit = self.units[self.list_idx]
     local col = SKILL_COLUMNS[self.grid_idx]
+    do
+        local p = gui.Painter.new_wh(2, 1, gps.dimx - 3, 1)
+        p:pen{fg = COLOR_DARKGREY}
+        p:seek(0, 0):string('Labor changes: ')
+        if self.labor_changes.added ~= 0 or self.labor_changes.removed ~= 0 then
+            if self.labor_changes.added ~= 0 then
+                p:string('+' .. self.labor_changes.added, COLOR_GREEN)
+            end
+            if self.labor_changes.removed ~= 0 then
+                p:string('-' .. self.labor_changes.removed, COLOR_RED)
+            end
+        else
+            p:string('None')
+        end
+        if unit.labor_changes.added ~= 0 or unit.labor_changes.removed ~= 0 then
+            p:string(' (Unit: ')
+            if unit.labor_changes.added ~= 0 then
+                p:string('+' .. unit.labor_changes.added, COLOR_GREEN)
+            end
+            if unit.labor_changes.removed ~= 0 then
+                p:string('-' .. unit.labor_changes.removed, COLOR_RED)
+            end
+            p:string(')')
+        end
+    end
     p:pen{fg = COLOR_WHITE}
     p:seek(0, gps.dimy - self.list_bottom_margin - 1)
     p:string(dfhack.units.isMale(unit._native) and string.char(11) or string.char(12)):string(' ')
@@ -420,17 +453,44 @@ function manipulator:onMouseInput(x, y, buttons, mods)
 end
 
 function manipulator:sort_skill(skill, descending)
+    p_start('sort_skill')
     self.units = merge_sort(self.units, make_sort_order(sort.skill, descending, skill))
     self.selection_state = nil
+    p_end('sort_skill')
+end
+
+function manipulator:update_labor_changes()
+    p_start('update_labor_changes')
+    self.labor_changes.added = 0
+    self.labor_changes.removed = 0
+    for _, unit in pairs(self.units) do
+        unit.labor_changes.added = 0
+        unit.labor_changes.removed = 0
+        for labor, state in ipairs(unit.status.labors) do
+            if state and not unit.orig_labors[labor] then
+                self.labor_changes.added = self.labor_changes.added + 1
+                unit.labor_changes.added = unit.labor_changes.added + 1
+            elseif not state and unit.orig_labors[labor] then
+                self.labor_changes.removed = self.labor_changes.removed + 1
+                unit.labor_changes.removed = unit.labor_changes.removed + 1
+            end
+        end
+    end
+    p_end('update_labor_changes')
 end
 
 function manipulator:set_labor(x, y, state)
     local unit = self.units[y] or error('Invalid unit ID: ' .. y)
     local labor = SKILL_COLUMNS[x].labor or error('Invalid column id: ' .. x)
+    local changed = false
     local function cb(unit, labor, state)
         self:update_unit_grid_tile(unit, labors.get_column_index(labor))
+        changed = true
     end
     labors.set(unit, labor, state, cb)
+    if changed then
+        self:update_labor_changes()
+    end
 end
 
 function manipulator:toggle_labor(x, y)

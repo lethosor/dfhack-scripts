@@ -417,9 +417,11 @@ function labors.set(unit, labor, state, callback)
         end
         unit.military.pickup_flags.update = true
     end
-    unit.status.labors[labor] = state
-    if callback then
-        callback(unit, labor, state)
+    if unit.status.labors[labor] ~= state then
+        unit.status.labors[labor] = state
+        if callback then
+            callback(unit, labor, state)
+        end
     end
 end
 
