@@ -83,6 +83,7 @@ function batch_ops:onInput(keys)
     if self.empty then return end
     if keys.SELECT then
         self:callback(self.options[self.sel_idx][2])()
+        self:dismiss()
     elseif keys.CURSOR_UP or keys.CURSOR_DOWN then
         self.sel_idx = scroll_index(self.sel_idx, keys.CURSOR_UP and -1 or 1, 1, #self.options)
     elseif keys._MOUSE_L then
