@@ -243,10 +243,17 @@ function manipulator:onRenderBody(p)
     p:key('CUSTOM_SHIFT_C'):string(': Columns ')
     self.bounds.grid = {grid_start_x, self.list_top_margin + 1, gps.dimx - 2, self.list_top_margin + self.list_height}
     self.bounds.grid_header = {self.bounds.grid[1], 1, self.bounds.grid[3], 2}
+    self.bounds.all_columns = {self.left_margin, self.list_top_margin + 1,
+        grid_start_x - 2, self.list_top_margin + self.list_height}
+    self.bounds.all_column_headers = {self.left_margin, self.top_margin,
+        grid_start_x - 2, self.top_margin}
     self.bounds.columns = {}
+    self.bounds.column_headers = {}
     for id, col in pairs(self.columns) do
         self.bounds.columns[id] = {col_start_x[id], self.list_top_margin + 1,
             col_start_x[id] + col.width - 1, self.list_top_margin + self.list_height}
+        self.bounds.column_headers[id] = {col_start_x[id], self.list_top_margin - 1,
+            col_start_x[id] + col.width - 1, self.list_top_margin - 1}
     end
     OutputString({fg=COLOR_BLACK, bg=COLOR_DARKGREY}, 2, gps.dimy - 1, "manipulator " .. VERSION)
 end
@@ -437,16 +444,21 @@ function manipulator:onMouseInput(x, y, buttons, mods)
             self:update_grid_tile()
         end
     elseif in_bounds(x, y, self.bounds.grid_header) then
-        if buttons.right or mods.shift then
-            self:sort_skill(SKILL_COLUMNS[grid_col].skill, false)
-        else
-            self:sort_skill(SKILL_COLUMNS[grid_col].skill, true)
-        end
+        self:sort_skill(SKILL_COLUMNS[grid_col].skill, not (buttons.right or mods.shift))
         self:update_unit_grid_tile(old_unit, old_grid_col)
-    else
+    elseif in_bounds(x, y, self.bounds.all_column_headers) then
+        for id, col in pairs(self.columns) do
+            if in_bounds(x, y, self.bounds.column_headers[id]) then
+                self:sort_column(col, buttons.right or mods.shift)
+                self:update_unit_grid_tile(old_unit, old_grid_col)
+                break
+            end
+        end
+    elseif in_bounds(x, y, self.bounds.all_columns) then
         for id, col in pairs(self.columns) do
             if in_bounds(x, y, self.bounds.columns[id]) then
                 col.on_click(self.units[grid_row], buttons, mods)
+                break
             end
         end
     end
@@ -457,6 +469,12 @@ function manipulator:sort_skill(skill, descending)
     self.units = merge_sort(self.units, make_sort_order(sort.skill, descending, skill))
     self.selection_state = nil
     p_end('sort_skill')
+end
+
+function manipulator:sort_column(col, descending)
+    p_start('sort_column')
+    self.units = merge_sort(self.units, make_sort_order(sort.column, descending, col))
+    p_end('sort_column')
 end
 
 function manipulator:update_labor_changes()

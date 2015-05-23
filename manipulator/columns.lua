@@ -2,8 +2,9 @@
 By default, columns are ordered in the order they appear here
 
 Valid parameters to Column{}:
+- id (required): A unique (and meaningful) column id
 - callback (required): A function taking a unit and returning an appropriate
-         value to be displayed.
+         value to be displayed. See note below.
 - color (required): Either a color ID (e.g. COLOR_WHITE) or a function
         taking a unit and returning an appropriate color.
     NOTE: Use wrap() when using an existing function (e.g. dfhack.units.getProfessionColor)
@@ -16,6 +17,21 @@ Valid parameters to Column{}:
         unit is selected. Defaults to false.
 - right_align: Defaults to false.
 - max_width: Column maximum width. Defaults to 0 (no maximum width).
+- disable_cache: If true, values returned by callback() will never be cached.
+    Defaults to false.
+- disable_color_cache: If true, values returned by color() will never be cached.
+    Defaults to false.
+- on_click: A function called when a column value is clicked.
+    Arguments:
+        - unit: The unit corresponding to the row where the click occurred
+        - buttons: {right = true|false, left = true|false}
+        - mods: {ctrl = true|false, alt = true|false, shift = true|false}
+- compare_units|compare_values: A function that takes either two units or two
+    values returned from callback(), respectively, and returns 0 if the values
+    should be considered equal, anything less than 0 if the first should be
+    considered smaller, and anything greater than 0 if the first should be
+    considered larger.
+    If omitted, the standard comparison operators (< and >) are used.
 ]]
 
 if not Column then
@@ -44,6 +60,9 @@ Column{
         local scr = dfhack.gui.getCurViewscreen()
         gui.simulateInput(scr, 'SELECT')
         dfhack.screen.dismiss(scr)
+    end,
+    compare_values = function(a, b)
+        return tonumber(a) - tonumber(b)
     end
 }
 
@@ -76,6 +95,9 @@ Column{
         else
             manipulator.selection.start(unit)
         end
+    end,
+    compare_units = function(u1, u2)
+        return (u2.selected and 1 or 0) - (u1.selected and 1 or 0)
     end
 }
 

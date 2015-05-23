@@ -190,8 +190,8 @@ function make_sort_order(func, descending, ...)
     local args = {...}
     return function(a, b)
         local ret = func(a, b, table.unpack(args))
-        if descending then return ret <= 0
-        else return ret >= 0 end
+        if descending then return ret >= 0
+        else return ret <= 0 end
     end
 end
 
@@ -213,13 +213,23 @@ function UnitAttrCache:clear()
     self.cache = {}
 end
 
-sort = {
-    skill = function(u1, u2, skill)
-        local level_diff = skills.rating(u2, skill) - skills.rating(u1, skill)
-        if level_diff ~= 0 then return level_diff end
-        return skills.experience(u2, skill) - skills.experience(u1, skill)
+sort = {}
+function sort.skill(u1, u2, skill)
+    local level_diff = skills.rating(u1, skill) - skills.rating(u2, skill)
+    if level_diff ~= 0 then return level_diff end
+    return skills.experience(u1, skill) - skills.experience(u2, skill)
+end
+
+function sort.column(u1, u2, column)
+    return column:compare(u1, u2)
+end
+
+function basic_compare(a, b)
+    if a > b then return 1
+    elseif a < b then return -1
+    else return 0
     end
-}
+end
 
 Column = defclass(Column)
 
@@ -238,13 +248,15 @@ function Column:init(args)
     self.default = if_nil(args.default, false)
     self.highlight = if_nil(args.highlight, false)
     self.right_align = if_nil(args.right_align, false)
-    self.on_click = if_nil(args.on_click, function() end)
+    self.max_width = if_nil(args.max_width, 0)
     self.cache = {}
     self.color_cache = {}
     self.disable_cache = if_nil(args.disable_cache, false)
     self.disable_color_cache = if_nil(args.disable_color_cache, false)
     self.width = #self.title
-    self.max_width = if_nil(args.max_width, 0)
+    self.on_click = if_nil(args.on_click, function() end)
+    self.cmp_units = args.compare_units
+    self.cmp_values = args.compare_values
 end
 
 function Column:lookup(unit)
@@ -270,6 +282,16 @@ function Column:populate(units)
     for _, u in pairs(units) do
         self:lookup(u)
         self:lookup_color(u)
+    end
+end
+
+function Column:compare(u1, u2)
+    if self.cmp_units then
+        return self.cmp_units(u1, u2)
+    elseif self.cmp_values then
+        return self.cmp_values(self:lookup(u1), self:lookup(u2))
+    else
+        return basic_compare(self:lookup(u1), self:lookup(u2))
     end
 end
 
