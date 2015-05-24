@@ -36,6 +36,28 @@ function irange(a, b)
     end
 end
 
+function join_pairs(...)
+    -- Returns a generator with all key/value pairs from multiple tables
+    -- DFHack-generated userdata does not support next(), so it is necessary to
+    -- generate all key/value pairs beforehand
+    local data = {}
+    for _, tbl in pairs({...}) do
+        for k, v in pairs(tbl) do
+            -- Ensure that the original order returned by pairs() is preserved
+            table.insert(data, {k, v})
+        end
+    end
+    local k = nil
+    local v = nil
+    return function()
+        k, v = next(data, k)
+        if k == nil then
+            return
+        end
+        return table.unpack(v)
+    end
+end
+
 function scroll_index(index, delta, min, max, opts)
     if not opts then opts = {} end
     if opts.wrap == nil then opts.wrap = true end
@@ -359,7 +381,7 @@ function unit_wrapper(u)
     local t = {}
     local custom = {}
 
-    local function index(self, key)
+    local function __index(self, key)
         if key == '_native' then
             return u
         elseif unit_fields[key] then
@@ -369,7 +391,7 @@ function unit_wrapper(u)
         end
     end
 
-    local function newindex(self, key, value)
+    local function __newindex(self, key, value)
         if key == '_native' then
             error('Cannot set unit_wrapper._native')
         elseif unit_fields[key] then
@@ -379,11 +401,15 @@ function unit_wrapper(u)
         end
     end
 
-    local function tostring(self)
+    local function __tostring(self)
         return ('<unit wrapper: %s>'):format(u)
     end
 
-    setmetatable(t, {__index = index, __newindex = newindex, __tostring = tostring})
+    local function __pairs(self)
+        return join_pairs(u, custom)--, self
+    end
+
+    setmetatable(t, {__index = __index, __newindex = __newindex, __tostring = __tostring, __pairs = __pairs})
     return t
 end
 

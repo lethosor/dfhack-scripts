@@ -102,7 +102,10 @@ function m_module.autoloader(module_pattern, name_pattern)
         end
         return m_module.load(mod)[name]
     end
-    setmetatable(stub, {__index = index})
+    local function tostring(self)
+        return '<m_module.autoloader>'
+    end
+    setmetatable(stub, {__index = index, __tostring = tostring})
     return stub
 end
 
