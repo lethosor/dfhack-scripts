@@ -146,17 +146,19 @@ function manipulator:onRenderBody(p)
         self.list_start = self.list_start - d
         self.list_end = self.list_end - d
     end
+    local labors_dirty = false
     for _, u in pairs(self.units) do
-        if u.dirty then
-            self:update_labor_changes()
-            break
+        if u.labors_dirty then
+            labors_dirty = true
+            u.labors_dirty = false
+            self:draw_unit_row(u)
         end
+    end
+    if labors_dirty then
+        self:update_labor_changes()
     end
     for i = self.list_start, self.list_end do
         local unit = self.units[i]
-        if unit.dirty then
-            self:draw_unit_row(unit)
-        end
         for id, col in pairs(self.columns) do
             x = col_start_x[id]
             local fg = col:lookup_color(unit)
@@ -604,5 +606,6 @@ end
 function manipulator:onGetSelectedUnit()
     local u = self.units[self.list_idx]
     u.dirty = true
+    u.labors_dirty = true
     return u._native
 end

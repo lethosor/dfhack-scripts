@@ -37,7 +37,7 @@ name_callbacks = {
 function apply_batch(units, func, ...)
     for _, u in pairs(units) do
         func(u, ...)
-        u.dirty = true
+        u.labors_dirty = true
     end
 end
 
@@ -124,7 +124,7 @@ function batch_ops:set_all_labors(state)
             return
         end
         labors.set(unit, labor, state)
-        unit.dirty = true
+        unit.labors_dirty = true
     end
     self:handle_labors(cb)
 end
@@ -140,7 +140,7 @@ end
 function batch_ops:revert_changes()
     local function cb(unit, labor)
         labors.set(unit, labor, labors.get_orig(unit, labor))
-        unit.dirty = true
+        unit.labors_dirty = true
     end
     self:handle_labors(cb)
 end
