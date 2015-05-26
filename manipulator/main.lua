@@ -2,6 +2,7 @@
 
 gui = require 'gui'
 widgets = require 'gui.widgets'
+dialogs = require 'gui.dialogs'
 utils = require 'utils'
 enabler = df.global.enabler
 gps = df.global.gps
@@ -147,6 +148,10 @@ manipulator_columns.ATTRS = {
 function mkscreen(parent, opts)
     opts = opts or {}
     opts.units = parent.units[parent.page]
+    if #opts.units == 0 then
+        dialogs.showMessage('No units', 'No units to view', COLOR_LIGHTRED)
+        return
+    end
     opts.selected = parent.units[parent.page][parent.cursor_pos[parent.page]]
     local scr = mgui.manipulator(opts)
     scr:show()
