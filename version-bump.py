@@ -18,7 +18,7 @@ if len(sys.argv) < 3:
 path = sys.argv[1]
 if sys.argv[2] not in version_map:
     die('Argument 2 must be one of: ' + ', '.join(list(version_map.keys())))
-short_filename = os.path.splitext(os.path.split(path)[-1])[0]
+short_filename = os.path.splitext(path)[0]
 if not os.path.isfile(path):
     die('Not found: ' + path)
 
