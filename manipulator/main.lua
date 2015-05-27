@@ -149,7 +149,7 @@ function mkscreen(parent, opts)
     opts = opts or {}
     opts.units = parent.units[parent.page]
     if #opts.units == 0 then
-        dialogs.showMessage('No units', 'No units to view', COLOR_LIGHTRED)
+        derror('No units', 'No units to view')
         return
     end
     opts.selected = parent.units[parent.page][parent.cursor_pos[parent.page]]

@@ -60,14 +60,16 @@ batch_ops.ATTRS = {
 function batch_ops:init(args)
     self.units = check_nil(args.units)
     self.sel_idx = 1
-    self.empty = (#self.units == 0)
+end
+
+function batch_ops:onShow()
+    if #self.units == 0 then
+        self:dismiss()
+        derror('Empty selection', 'No units selected')
+    end
 end
 
 function batch_ops:onRenderBody(p)
-    if self.empty then
-        p:string('No dwarves selected!', COLOR_LIGHTRED)
-        return
-    end
     draw_names(self.units)
     for i = 1, #self.options do
         p:seek(0, i + 1):string(self.options[i][1], i == self.sel_idx and self.selection_pen or nil)
@@ -80,7 +82,6 @@ function batch_ops:onInput(keys)
         return
     end
     process_keys(keys)
-    if self.empty then return end
     if keys.SELECT then
         self:callback(self.options[self.sel_idx][2])()
         self:dismiss()

@@ -101,6 +101,18 @@ if dfhack.units.getKillCount == nil then
     end
 end
 
+function colored_dialog(color, default_title)
+    return function(title, desc)
+        if desc == nil then
+            desc = title
+            title = default_title or 'Error'
+        end
+        require('gui.dialogs').showMessage(title, desc, COLOR_LIGHTRED)
+    end
+end
+dwarn = colored_dialog(COLOR_YELLOW, 'Warning')
+derror = colored_dialog(COLOR_LIGHTRED, 'Error')
+
 skills = {}
 function skills.experience(unit, skill)
     return dfhack.units.getExperience(unit._native, skill)
