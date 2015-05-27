@@ -23,8 +23,8 @@ if not os.path.isfile(path):
     die('Not found: ' + path)
 
 # Avoid making changes in a dirty tree
-if len(subprocess.check_output(["git", "status", "--porcelain"])):
-    die("Tree is dirty - commit or stash changes first")
+if len(subprocess.check_output(["git", "status", "--porcelain", "--", path])):
+    die("File '%s' is dirty - commit or stash changes first" % path)
 
 with open(path, 'r') as f:
     contents = f.read()
