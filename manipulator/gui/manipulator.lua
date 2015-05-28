@@ -32,7 +32,7 @@ function manipulator:init(args)
     self.grid_width = 0   -- grid_end - grid_start + 1
     self.grid_idx = 1
     self.grid_rows = {}
-    self.diff_enabled = storage.diff_enabled
+    self.diff_enabled = if_nil(storage.diff_enabled, true)
     self.labor_changes = {added = 0, removed = 0}
     p_start('init units')
     for idx, u in pairs(self.units) do
