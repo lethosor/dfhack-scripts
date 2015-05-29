@@ -508,9 +508,7 @@ function manipulator:set_labor(x, y, state)
         changed = true
     end
     labors.set(unit, labor, state, cb)
-    if changed then
-        self:update_labor_changes()
-    end
+    unit.labors_dirty = true
 end
 
 function manipulator:toggle_labor(x, y)
