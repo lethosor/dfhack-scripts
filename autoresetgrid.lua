@@ -1,3 +1,5 @@
+local utils = require 'utils'
+
 if enabled == nil then
     enabled = false
     interval = 5
@@ -11,7 +13,13 @@ function tick()
 end
 
 args = {...}
+iargs = utils.invert(args)
+
 if args[1] == 'enable' then
+    if df.global.enabler.renderer:uses_opengl() and iargs['no-opengl'] then
+        enabled = false
+        return
+    end
     if not enabled then
         enabled = true
         tick()
