@@ -449,10 +449,15 @@ function init()
         cur_focus = dfhack.gui.getCurFocus()
         if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua/load_screen'
             and prev_focus ~= 'loadgame' and enabled then
-            load_screen():show()
+            mkscreen()
         end
         prev_focus = cur_focus
     end
+end
+
+function mkscreen()
+    scr = load_screen()
+    scr:show()
 end
 
 if initialized == nil then
@@ -472,7 +477,7 @@ if #args == 1 then
     if args[1] == 'enable' then
         enabled = true
         if dfhack.gui.getCurFocus() == 'loadgame' then
-            load_screen():show()
+            mkscreen()
         end
     elseif args[1] == 'disable' then enabled = false
     elseif args[1] == 'version' then print('load-screen version ' .. VERSION)
