@@ -290,6 +290,9 @@ function manipulator:update_grid_tile(x, y)
     else
         bg = COLOR_CYAN
     end
+    if df.profession.attrs[unit.profession].military then
+        fg = COLOR_MAGENTA
+    end
     if x == self.grid_idx and y == self.list_idx then
         fg = COLOR_LIGHTBLUE
     end
