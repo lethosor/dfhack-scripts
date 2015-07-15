@@ -3,6 +3,13 @@
 gui = require 'gui'
 
 storage = storage or {}
+function storage.get(name, default)
+    if storage[name] == nil then
+        return default
+    else
+        return storage[name]
+    end
+end
 
 mem = defclass(mem, gui.FramedScreen)
 mem.ATTRS = {
@@ -19,9 +26,10 @@ function mem:init()
     self:updateYAxis()
     self.tick = 0
     self.graph_tick = 0
-    self.speed = storage.speed or 2
-    self.show_parent = storage.show_parent or false
-    self.input_to_parent = storage.input_to_parent or false
+    self.speed = storage.get('speed', 2)
+    self.show_parent = storage.get('show_parent', false)
+    self.input_to_parent = false
+    self.show_graph = storage.get('show_graph', true)
 end
 
 function mem:getCount()
@@ -56,6 +64,9 @@ function mem:updateYAxis()
 end
 
 function mem:onIdle()
+    storage.speed = self.speed
+    storage.show_parent = self.show_parent
+    storage.show_graph = self.show_graph
     if self.tick > df.global.enabler.calculated_fps / self.speed then
         self.tick = 0
         table.remove(self.graph, 1)
@@ -80,7 +91,7 @@ function mem:onRenderBody(p)
         p:pen{fg = COLOR_WHITE, bg = COLOR_DARKGREY}
         p:key_pen{fg = COLOR_LIGHTGREEN, bg = COLOR_DARKGREY}
         for x = 0, p.width do
-            for y = 0, 1 do
+            for y = 0, 2 do
                 p:seek(x, y):string(' ')
             end
         end
@@ -90,35 +101,37 @@ function mem:onRenderBody(p)
     if self.input_to_parent then
         p:pen{fg = COLOR_GREY, bg = COLOR_DARKGREY}
     end
-    p:seek(10):key('CUSTOM_G'):string(': Collect garbage, ')
+    p:seek(10):key('CUSTOM_C'):string(': Collect garbage, ')
     p:key('CUSTOM_A'):key('CUSTOM_S'):string(': Speed = ' .. self.speed .. ', ')
     p:key('CUSTOM_I'):string(': Allocate garbage')
     p:newline(10)
     p:key('CUSTOM_P'):string(': Show parent ')
     draw_yn(self.show_parent)
     if self.show_parent then
-        if self.input_to_parent then
-            p:pen{fg = COLOR_WHITE, bg = COLOR_DARKGREY}
-        end
-        p:key('CUSTOM_ALT_P'):string(': Send input to parent ')
+        p:key('CUSTOM_ALT_P'):string(': Send input to parent ', COLOR_WHITE)
         draw_yn(self.input_to_parent)
     end
-    p:newline():newline():newline()
-    local top_y = p.y
-    local bottom_y
-    for i, v in pairs(self.y_axis) do
-        p:string(tostring(v))
-        if i == 5 then
-            bottom_y = p.y - 1
-        else
-            for _ = 1, 4 do p:newline() end
+    p:newline(10)
+    p:key('CUSTOM_G'):string(': Show graph ')
+    draw_yn(self.show_graph)
+    if self.show_graph then
+        p:newline():newline()
+        local top_y = p.y
+        local bottom_y
+        for i, v in pairs(self.y_axis) do
+            p:string(tostring(v), COLOR_WHITE)
+            if i == 5 then
+                bottom_y = p.y - 1
+            else
+                for _ = 1, 4 do p:newline() end
+            end
         end
-    end
-    for x, v in pairs(self.graph) do
-        p:pen{bg = COLOR_LIGHTGREEN - ((((x + self.graph_tick) % 3) % 2) * 8)}
-        local start_y = math.floor((1 - (v / self.max)) * (bottom_y - top_y + 1)) + top_y - 1
-        for y = start_y, bottom_y do
-            p:seek(x + 6, y):string(' ')
+        for x, v in pairs(self.graph) do
+            p:pen{bg = COLOR_LIGHTGREEN - ((((x + self.graph_tick) % 3) % 2) * 8)}
+            local start_y = math.floor((1 - (v / self.max)) * (bottom_y - top_y + 1)) + top_y - 1
+            for y = start_y, bottom_y do
+                p:seek(x + 6, y):string(' ')
+            end
         end
     end
 end
@@ -136,8 +149,10 @@ function mem:onInput(keys)
         gui.simulateInput(self._native.parent, keys)
         return
     end
-    if keys.CUSTOM_G then
+    if keys.CUSTOM_C then
         collectgarbage()
+    elseif keys.CUSTOM_G then
+        self.show_graph = not self.show_graph
     elseif keys.CUSTOM_A or keys.CUSTOM_S then
         self.speed = math.max(1, math.min(10, self.speed + (keys.CUSTOM_S and 1 or -1)))
     elseif keys.CUSTOM_I then
@@ -148,10 +163,7 @@ function mem:onInput(keys)
 end
 
 function mem:onDismiss()
-    storage.speed = self.speed
     storage.graph = self.graph
-    storage.show_parent = self.show_parent
-    storage.input_to_parent = self.input_to_parent
 end
 
 if not moduleMode then mem():show() end
