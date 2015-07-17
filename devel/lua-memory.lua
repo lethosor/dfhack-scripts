@@ -13,10 +13,14 @@ end
 
 mem = defclass(mem, gui.FramedScreen)
 mem.ATTRS = {
-    frame_title = 'Lua Memory Usage'
+    frame_title = 'Lua Memory Usage',
+    focus_path = 'lua-memory',
 }
 
 function mem:init()
+    if dfhack.gui.getCurFocus() == 'dfhack/lua/lua-memory' then
+        qerror('Already active')
+    end
     if storage.graph then
         self.graph = storage.graph
     else
