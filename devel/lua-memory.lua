@@ -114,6 +114,8 @@ function mem:onRenderBody(p)
     p:newline(10)
     p:key('CUSTOM_G'):string(': Show graph ')
     draw_yn(self.show_graph)
+    p:key('CUSTOM_Z'):string(': Auto-collect ')
+    draw_yn(collectgarbage('isrunning'))
     if self.show_graph then
         p:newline():newline()
         local top_y = p.y
@@ -159,6 +161,8 @@ function mem:onInput(keys)
         self:makeGarbage()
     elseif keys.CUSTOM_P then
         self.show_parent = not self.show_parent
+    elseif keys.CUSTOM_Z then
+        collectgarbage(collectgarbage('isrunning') and 'stop' or 'restart')
     end
 end
 
