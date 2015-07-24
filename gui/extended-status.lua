@@ -175,8 +175,8 @@ elseif args[1] == 'disable' then
 elseif subpage_classes[args[1]] then
     subpage_classes[args[1]]():show()
 else
-    print(([[Usage:
-        gui/extended-status enable|disable|help|subpage_names
-        enable|disable gui/extended-status
-    ]]):gsub('subpage_names', table.concat(subpage_names, '|')))
+    print((([[Usage:
+    gui/extended-status enable|disable|help|subpage_names
+    enable|disable gui/extended-status
+    ]]):gsub('subpage_names', table.concat(subpage_names, '|'))))
 end
