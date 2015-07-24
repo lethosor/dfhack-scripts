@@ -18,6 +18,22 @@ function derror(msg)
     dialogs.showMessage('Error', msg, COLOR_LIGHTRED)
 end
 
+subpage_classes = {}
+subpage_names = {}
+function defsubpage(name)
+    if subpage_classes[name] then
+        error('Duplicate definition of subpage ' .. name)
+    end
+    local class = defclass(_ENV[name], gui.FramedScreen)
+    class.ATTRS = {
+        focus_path = 'extended_status/' .. name,
+        frame_inset = 1,
+    }
+    subpage_classes[name] = class
+    table.insert(subpage_names, name)
+    _ENV[name] = class
+end
+
 status_overlay = defclass(status_overlay, gui.Screen)
 status_overlay.ATTRS = {
     focus_path = 'status_overlay'
@@ -76,12 +92,8 @@ function status_overlay:onInput(keys)
     end
 end
 
-bedroom_list = defclass(bedroom_list, gui.FramedScreen)
-bedroom_list.ATTRS = {
-    focus_path = 'extended_status/bedroom_list',
-    frame_title = 'Bedroom status',
-    frame_inset = 1,
-}
+defsubpage('bedroom_list')
+bedroom_list.ATTRS.frame_title = 'Bedroom status'
 
 function bedroom_list:init()
     self.data = {
@@ -160,9 +172,11 @@ if args[1] == 'enable' then
     enabled = true
 elseif args[1] == 'disable' then
     enabled = false
+elseif subpage_classes[args[1]] then
+    subpage_classes[args[1]]():show()
 else
-    print([[Usage:
-    gui/extended-status enable|disable|help
-    enable|disable gui/extended-status
-    ]])
+    print(([[Usage:
+        gui/extended-status enable|disable|help|subpage_names
+        enable|disable gui/extended-status
+    ]]):gsub('subpage_names', table.concat(subpage_names, '|')))
 end
