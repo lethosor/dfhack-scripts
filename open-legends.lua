@@ -5,6 +5,7 @@ gui = require 'gui'
 utils = require 'utils'
 
 Wrapper = defclass(Wrapper, gui.Screen)
+Wrapper.focus_path = 'legends'
 
 function Wrapper:onRender()
     self._native.parent:render()
