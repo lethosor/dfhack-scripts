@@ -37,7 +37,7 @@ function show(force)
     end
     local old_view = dfhack.gui.getCurViewscreen()
 
-    if not dfhack.world.isFortressMode() and not force then
+    if not dfhack.world.isFortressMode() and not dfhack.world.isAdventureMode() and not force then
         qerror('mode not tested: ' .. df.game_type[df.global.gametype] .. ' (use "force" to force)')
     end
 
