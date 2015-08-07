@@ -16,7 +16,7 @@ local gui = require 'gui'
 local dialog = require 'gui.dialogs'
 local widgets = require 'gui.widgets'
 
-function dialog.showError(title, text)
+function showError(title, text)
     if text == nil then title, text = 'Error', title end
     dialog.showMessage(title, text, COLOR_LIGHTRED)
 end
@@ -30,7 +30,7 @@ function keyStringLength(key, str)
 end
 function paintKeyString(x, y, key, str, opts)
     opts = opts or {}
-    key_str = gui.getKeyDisplay(df.interface_key[key])
+    local key_str = gui.getKeyDisplay(df.interface_key[key])
     paintString(opts.key_color or COLOR_LIGHTRED, x, y, key_str)
     paintString(COLOR_WHITE, x + #key_str, y, ": " .. str)
 end
@@ -51,13 +51,21 @@ function gametypeString(gametype, overrides)
     end
 end
 gametypeMap = (function()
-    gametypes = {'NONE', 'DWARF_MAIN', 'DWARF_RECLAIM', 'ADVENTURE_MAIN'}
-    ret = {}
+    local gametypes = {'NONE', 'DWARF_MAIN', 'DWARF_RECLAIM', 'ADVENTURE_MAIN'}
+    local ret = {}
     for i, t in pairs(gametypes) do
         ret[t] = gametypes[i + 1] or gametypes[1]
     end
     return ret
 end)()
+
+function copy_table(t)
+    local t2 = {}
+    for k, v in pairs(t) do
+        t2[k] = v
+    end
+    return t2
+end
 
 paintString = dfhack.screen.paintString
 function paintStringCenter(pen, y, str)
@@ -65,7 +73,7 @@ function paintStringCenter(pen, y, str)
         pen = math.max(0, math.min(15, pen))
         pen = {ch=' ', fg=pen}
     end
-    cols, rows = dfhack.screen.getWindowSize()
+    local cols, rows = dfhack.screen.getWindowSize()
     paintString(pen, math.floor((cols - #str) / 2), y, str)
 end
 function string:split(sep)
@@ -105,7 +113,7 @@ end
 
 function load_screen:init_saves()
     self.saves = {}
-    parent_saves = self._native.parent.saves
+    local parent_saves = self._native.parent.saves
     for i = 0, #parent_saves - 1 do
         table.insert(self.saves, parent_saves[i])
     end
@@ -113,7 +121,7 @@ end
 
 function load_screen:get_saves()
     if not self.saves then self:init_saves() end
-    saves = {}
+    local saves = {}
     for i = 1, #self.saves do
         save = self.saves[i]
         if (self:is_backup(save.folder_name) and self.opts.backups == 0) or
@@ -186,10 +194,10 @@ function load_screen:onRender()
     local min, max = self:visible_save_bounds()
     paintStringCenter(pen, 0, "Load game (DFHack)")
     paintString(pen, cols - #VERSION - 3, 0, "v" .. VERSION)
-    y = 0
-    max_x = 77
+    local y = 0
+    local max_x = 77
     for i = min, max do
-        save = saves[i]
+        local save = saves[i]
         pen.fg = COLOR_GREY
         if self:is_backup(save.folder_name) then pen.fg = COLOR_RED end
         if save.game_type == df.game_type.DWARF_RECLAIM then
@@ -203,7 +211,7 @@ function load_screen:onRender()
         pen.bg = (i == self.sel_idx and COLOR_BLUE) or COLOR_BLACK
 
         y = y + 2
-        year = save.year .. ''
+        local year = tostring(save.year)
         dfhack.screen.fillRect(pen, 2, y, max_x, y + 1)
         paintString(pen, 2, y, save.fort_name .. " - " .. gametypeString(save.game_type))
         paintString(pen, max_x - #save.world_name, y, save.world_name)
@@ -216,13 +224,13 @@ function load_screen:onRender()
         paintKeyString(1, 5, "CUSTOM_ALT_C",
             "Clear " .. (self.search_active and "search" or "filters"))
     end
-    label = self.opts.filter
+    local label = self.opts.filter
     if #label > 20 then
         label = '\027' .. label:sub(-20 + 1)
     end
     if self.search_active then
         paintKeyString(1, rows - 1, 'CUSTOM_S', label, {key_color = COLOR_RED})
-        x = keyStringLength('CUSTOM_S', label) + 1
+        local x = keyStringLength('CUSTOM_S', label) + 1
         paintString(COLOR_LIGHTGREEN, x, rows - 1, '_')
     else
         paintKeyString(1, rows - 1, 'CUSTOM_S', #label > 0 and label or "Search")
@@ -302,7 +310,7 @@ end
 function load_screen:scroll(dist)
     local old_idx = self.sel_idx
     self.sel_idx = self.sel_idx + dist
-    saves = self:get_saves()
+    local saves = self:get_saves()
     if self.sel_idx > #saves then
         if old_idx == #saves then
             self.sel_idx = 1
@@ -320,7 +328,7 @@ end
 
 function load_screen:load_game(folder_name)
     if not folder_name then return false end
-    parent = self._native.parent
+    local parent = self._native.parent
     if #parent.saves < 1 then return false end
     parent.sel_idx = 0
     parent.saves[0].folder_name = folder_name
@@ -401,27 +409,27 @@ function load_screen_options:validate_folders(old_folder, new_folder)
         return false
     end
     if (old_folder .. new_folder):match('[/\\:]') ~= nil then
-        dialog.showError('Invalid path!')
+        showError('Invalid path!')
         return false
     end
-    old_path = 'data/save/' .. old_folder
-    new_path = 'data/save/' .. new_folder
+    local old_path = 'data/save/' .. old_folder
+    local new_path = 'data/save/' .. new_folder
     if not dfhack.filesystem.isdir(old_path) then
-        dialog.showError('Folder missing', 'Cannot find ' .. old_path)
+        showError('Folder missing', 'Cannot find ' .. old_path)
         return false
     end
     if dfhack.filesystem.exists(new_path) then
-        dialog.showError('Destination folder exists', new_path .. ' already exists!')
+        showError('Destination folder exists', new_path .. ' already exists!')
         return false
     end
     return true, old_path, new_path
 end
 
 function load_screen_options:do_rename(new_folder)
-    ok, old_path, new_path = self:validate_folders(self.save.folder_name, new_folder)
+    local ok, old_path, new_path = self:validate_folders(self.save.folder_name, new_folder)
     if not ok then return false end
     if not os.rename(old_path, new_path) then
-        dialog.showError('Rename failed!')
+        showError('Rename failed!')
         return
     end
     self.save.folder_name = new_folder
@@ -430,9 +438,9 @@ function load_screen_options:do_rename(new_folder)
 end
 
 function load_screen_options:do_copy(new_folder)
-    ok, old_path, new_path = self:validate_folders(self.save.folder_name, new_folder)
+    local ok, old_path, new_path = self:validate_folders(self.save.folder_name, new_folder)
     if not ok then return false end
-    dialog.showError('Not implemented')
+    showError('Not implemented')
 end
 
 function load_screen_options:display(parent, save)
@@ -443,16 +451,21 @@ function load_screen_options:display(parent, save)
     self:show()
 end
 
-function init()
-    prev_focus = ''
-    dfhack.onStateChange.load_screen = function()
-        cur_focus = dfhack.gui.getCurFocus()
-        if cur_focus == 'loadgame' and prev_focus ~= 'dfhack/lua/load_screen'
-            and prev_focus ~= 'loadgame' and enabled then
-            mkscreen()
-        end
-        prev_focus = cur_focus
+focus_stack = focus_stack or {'', ''}
+function state_change_handler(evt)
+    if evt ~= SC_VIEWSCREEN_CHANGED then return end
+    table.remove(focus_stack, 1)
+    table.insert(focus_stack, dfhack.gui.getCurFocus())
+    cur_focus = dfhack.gui.getCurFocus()
+    if enabled and focus_stack[1] == 'title' and focus_stack[2] == 'loadgame' then
+        mkscreen()
     end
+end
+
+function init()
+    dfhack.onStateChange.load_screen = state_change_handler
+    -- populate focus_stack
+    state_change_handler(SC_VIEWSCREEN_CHANGED)
 end
 
 function mkscreen()
@@ -461,8 +474,9 @@ function mkscreen()
 end
 
 if initialized == nil then
-    if dfhack.getDFVersion():split('.')[2] ~= '40' then
-        qerror('This script only supports DF 0.40.xx!')
+    local major_version = tonumber(dfhack.getDFVersion():split('.')[2])
+    if not major_version or major_version < 40 then
+        qerror('gui/load-screen only supports DF 0.40.xx and above')
     end
     init()
     initialized = true
