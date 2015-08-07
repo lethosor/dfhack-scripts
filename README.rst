@@ -3,7 +3,7 @@ dfhack-scripts
 
 A collection of DFHack scripts
 
-Links: `Issue tracker <https://github.com/lethosor/dfhack-scripts/issues>`_ | 
+Links: `Issue tracker <https://github.com/lethosor/dfhack-scripts/issues>`_ |
 `Wiki <https://github.com/lethosor/dfhack-scripts/wiki>`_ |
 `Forum thread <http://www.bay12forums.com/smf/index.php?topic=143875.0>`_
 
@@ -23,7 +23,7 @@ Displays announcements and reports in the console.
 
 * ``annc-monitor enable|start``: Begins monitoring
 * ``annc-monitor disable|stop``: Stops monitoring
-* ``annc-monitor interval X``: Sets the delay between checks for new announcements to ``X`` frames 
+* ``annc-monitor interval X``: Sets the delay between checks for new announcements to ``X`` frames
 
 click-monitor
 -------------
