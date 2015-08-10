@@ -23,13 +23,13 @@ end
 function check_click()
     local s = ''
     local color = COLOR_RESET
-    if enabler.mouse_lbut ~= 0 and (last_x ~= gps.mouse_x or last_y ~= gps.mouse_y) then
+    if enabler.mouse_lbut_down ~= 0 and (last_x ~= gps.mouse_x or last_y ~= gps.mouse_y) then
         print(('-'):rep(20))
         print(gps.mouse_x, gps.mouse_y)
         printall(dfhack.screen.readTile(gps.mouse_x, gps.mouse_y))
         last_x = gps.mouse_x
         last_y = gps.mouse_y
-    elseif enabler.mouse_lbut == 0 then
+    elseif enabler.mouse_lbut_down == 0 then
         last_x = nil
     end
     if active then set_timeout() end
