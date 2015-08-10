@@ -45,21 +45,21 @@ end
 
 function status_overlay:onRender()
     local parent = self._native.parent
-    local top_p = gui.Painter.new_xy(1, 1, gps.dimx - 2, 3)
-    top_p:key_pen(COLOR_LIGHTRED)
     parent:render()
     if self.show_menu then
-        local p = gui.Painter.new_xy(2, 6, gps.dimx - 3, gps.dimy - 3)
+        dfhack.screen.paintString({fg=COLOR_BLACK, bg=COLOR_DARKGREY},
+            gps.dimx - 8, gps.dimy - 1, "DFHack")
+        local p = gui.Painter.new_xy(2, 2, gps.dimx - 3, gps.dimy - 3)
         p:key_pen(COLOR_LIGHTRED)
-        dfhack.screen.fillRect({}, top_p.x1, top_p.y1, top_p.x2, top_p.y2)
-        dfhack.screen.fillRect({}, p.x1 - 1, p.y1 - 1, p.x2 + 1, p.y2 + 1)
-        top_p:seek(3, 1):string('DFHack status options')
-            :newline(3):key('LEAVESCREEN'):string(': Back')
+        dfhack.screen.fillRect({}, 1, 1, gps.dimx - 2, gps.dimy - 2)
         for i, opt in pairs(subpages) do
             p:key(opt.key):string(': ' .. opt.desc):newline()
         end
+        p:seek(0, p.height - 1):key('LEAVESCREEN'):string(': Back')
     else
-        top_p:seek(3, 2):key('CUSTOM_X'):string(': Additional options (DFHack)')
+        local p = gui.Painter.new_xy(1, 1, gps.dimx - 2, 3)
+        p:key_pen(COLOR_LIGHTRED)
+        p:seek(3, 2):key('CUSTOM_X'):string(': Additional options (DFHack)')
     end
 end
 
@@ -165,7 +165,7 @@ dfhack.onStateChange['gui/extended-status'] = function(e)
 end
 
 args = {...}
-if dfhack_flags.enable then
+if dfhack_flags and dfhack_flags.enable then
     args = {dfhack_flags.enable_state and 'enable' or 'disable'}
 end
 if args[1] == 'enable' then
