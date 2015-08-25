@@ -180,45 +180,78 @@ function Parser_bbcode:parse_end(text)
 end
 
 function Parser_bbcode:color(fg, bg, br)
+    if not fg then return '' end
     self.last_color = {fg, bg, br}
     local out = ''
-    fg = tonumber(fg) + (tonumber(br) == 1 and 8 or 0)
-    if self.output:find('%[color') then
-        out = out .. '[/color]'
+    if (self.output:find('%[color') or 0) > (self.output:find('%[/color') or 0) then
+        out = out .. self:color_end()
     end
-    out = out .. ('[color=%s]'):format(COLORS[fg])
+    out = out .. self:color_start(fg, bg, br)
     return out
 end
 
+function Parser_bbcode:color_start(fg, bg, br)
+    fg = tonumber(fg) + (tonumber(br) == 1 and 8 or 0)
+    return ('[color=%s]'):format(COLORS[fg])
+end
+
+function Parser_bbcode:color_end()
+    return '[/color]'
+end
+
+function Parser_bbcode:color_restore()
+    return self:color_start(table.unpack(self.last_color or {}))
+end
+
+function Parser_bbcode:tmp_color(fg, bg, br, text)
+    local old_color = self.last_color or {}
+    return self:color(fg, bg, br) .. text .. self:color(table.unpack(old_color))
+end
+
+function Parser_bbcode:tmp_decolor(text)
+    return self:color_end() .. text .. self:color_restore()
+end
+
 function Parser_bbcode:link(dest, text)
-    local old_color = self.last_color
-    return self:color(COLOR_CYAN, 0, 0) .. '\n' ..  text ..
-        self:color(table.unpack(old_color))
+    return '\n' .. self:tmp_color(COLOR_CYAN, 0, 0, text)
 end
 
 function Parser_bbcode:title(text)
-    local old_color = self.last_color
-    return self:color(COLOR_WHITE, 0, 0) .. text .. self:color(table.unpack(old_color)) .. '\n\n'
+    return self:tmp_color(COLOR_WHITE, 0, 0, text) .. '\n\n'
 end
 
 function Parser_bbcode:ikey(key)
-    local old_color = self.last_color
-    return self:color(COLOR_LIGHTGREEN, 0, 0) .. Parser_bbcode.super.ikey(self, key) ..
-        self:color(table.unpack(old_color))
+    return self:tmp_color(COLOR_LIGHTGREEN, 0, 0, Parser_bbcode.super.ikey(self, key))
 end
 
 function Parser_bbcode:pause()
-    return '[hr]'
+    return self:tmp_decolor('[hr]')
 end
 
 function Parser_bbcode:newline2()
     return '\n'
 end
 
--- Script logic
 scr = getTextViewscreen()
-args = utils.processArgs({...})
-format = string.lower(args['format'] or qerror('No format specified'))
+args = {}
+iargs = {}
+for i, a in pairs{...} do
+    table.insert(args, a:gsub('[^A-Za-z]', ''):lower())
+    if i > 1 then
+        iargs[a] = true
+    end
+end
+if args[1] == 'help' then
+    print('Usage: text-export <format> [options]')
+    print('Available formats:')
+    for k in pairs(_ENV) do
+        if k:sub(1, 7) == 'Parser_' then
+            print('- ' .. k:sub(8))
+        end
+    end
+    return
+end
+format = string.lower(args[1] or qerror('No format specified'))
 if args['encoding'] then
     encoding = string.lower(args['encoding'])
     if encoding == 'cp437' or encoding == 'utf-8' then
