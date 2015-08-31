@@ -5,12 +5,16 @@ DFH_MOD_SHIFT = 1
 DFH_MOD_CTRL = 2
 DFH_MOD_ALT = 4
 
-function letterChars()
-    local i = string.byte('A') - 1
+KEYS = {}
+for c = string.byte('A'), string.byte('Z') do table.insert(KEYS, string.char(c)) end
+for c = string.byte('0'), string.byte('9') do table.insert(KEYS, string.char(c)) end
+
+function keys()
+    local i = 0
     return function()
         i = i + 1
-        if i <= string.byte('Z') then
-            return i, string.char(i)
+        if KEYS[i] then
+            return KEYS[i]
         end
     end
 end
@@ -50,7 +54,7 @@ function Scr:next()
     end
     if not self.triggered[self.want_modstate] then
         self.triggered[self.want_modstate] = {count=0}
-        for n, ch in letterChars() do
+        for ch in keys() do
             self.triggered[self.want_modstate][ch] = false
         end
     end
@@ -87,7 +91,7 @@ function Scr:export()
         local msg = modDesc(i, false, 'none') .. ': '
         local failed = {}
         local color
-        for n, ch in letterChars() do
+        for ch in keys() do
             if not self.triggered[i][ch] then
                 table.insert(failed, ch)
             end
@@ -121,19 +125,21 @@ function Scr:onRenderBody(p)
         end
         return
     end
+    local triggered = self.triggered[self.want_modstate]
     p:string('Press ' .. modDesc(self.want_modstate, false, 'no modifiers'),
         dfhack.internal.getModstate() == self.want_modstate and COLOR_LIGHTGREEN or
             (self.flash_timer % 2 == 0 and COLOR_LIGHTRED or COLOR_YELLOW)
-    ):newline():string(('group %i/8, %i/26 bindings (%.1f%%)'):format(
+    ):newline():string(('group %i/8, %i/%i bindings (%.1f%%)'):format(
         self.want_modstate + 1,
-        self.triggered[self.want_modstate].count,
-        self.triggered[self.want_modstate].count / 26 * 100
+        triggered.count,
+        #KEYS,
+        triggered.count / #KEYS * 100
     )):newline()
-    for n, ch in letterChars() do
+    for ch in keys() do
         p:string(ch, self.triggered[self.want_modstate][ch] and COLOR_LIGHTGREEN or COLOR_DARKGREY):string(' ')
     end
     p:newline():newline()
-    p:key('CURSOR_LEFT'):key('CURSOR_RIGHT'):string(' (cursor left/right): Navigate'):newline()
+    p:key('SEC_CHANGETAB'):string(', '):key('CHANGETAB'):string(': Navigate'):newline()
     p:key('LEAVESCREEN_ALL'):string(': Exit'):newline():newline()
     if self.want_modstate == DFH_MOD_CTRL then
         p:pen(COLOR_YELLOW)
@@ -146,12 +152,12 @@ function Scr:onRenderBody(p)
 end
 
 function Scr:onInput(keys)
-    if keys.CURSOR_LEFT then
+    if keys.SEC_CHANGETAB then
         self.want_modstate = math.max(0, self.want_modstate - 1)
         self.done = false
     elseif self.done or keys.LEAVESCREEN_ALL then
         self:dismiss()
-    elseif keys.CURSOR_RIGHT then
+    elseif keys.CHANGETAB then
         self:next()
     end
 end
@@ -167,11 +173,11 @@ if args[1] == 'trigger' then
     return
 end
 
-for ch = string.byte('A'), string.byte('Z') do
+for ch in keys() do
     for i = 0, 7 do
         dfhack.run_command{'keybinding', 'add',
-            modDesc(i, true) .. string.char(ch) .. '@dfhack/lua/keybinding-test',
-            'devel/keybinding-test trigger ' .. string.char(ch)
+            modDesc(i, true) .. ch .. '@dfhack/lua/keybinding-test',
+            'devel/keybinding-test trigger ' .. ch
         }
     end
 end
