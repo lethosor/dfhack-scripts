@@ -15,6 +15,10 @@ function Wrapper:onIdle()
     self._native.parent:logic()
 end
 
+function Wrapper:onHelp()
+    self._native.parent:help()
+end
+
 function Wrapper:onInput(keys)
     if self._native.parent.cur_page == 0 and keys.LEAVESCREEN then
         self:dismiss()
