@@ -104,7 +104,7 @@ function check(global, save)
     end
 end
 
-dfhack.onStateChange[_ENV] = function(event)
+dfhack.onStateChange.raw_lint = function(event)
     if not enabled then return end
     if event == SC_WORLD_LOADED then
         check(false, true)
