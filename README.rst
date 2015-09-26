@@ -1,5 +1,5 @@
-dfhack-scripts
-==============
+Lethosor's scripts
+==================
 
 A collection of DFHack scripts
 

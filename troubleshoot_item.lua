@@ -1,4 +1,4 @@
--- troubleshoot.lua
+-- troubleshoot_item.lua
 --@ module = true
 
 function find_specific_ref(object, type)
