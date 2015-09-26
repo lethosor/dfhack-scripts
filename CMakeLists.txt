@@ -1,12 +1,22 @@
-DFHACK_SCRIPTS(adv-max-skills.lua)
-DFHACK_SCRIPTS(annc-monitor.lua SUBDIRECTORY devel)
-DFHACK_SCRIPTS(click-monitor.lua SUBDIRECTORY devel)
-DFHACK_SCRIPTS(embark-skills.lua)
-DFHACK_SCRIPTS(manager-quantity.lua)
-DFHACK_SCRIPTS(modstate-monitor.lua SUBDIRECTORY devel)
-DFHACK_SCRIPTS(open-legends.lua)
-DFHACK_SCRIPTS(raw-lint.lua SUBDIRECTORY modtools)
-DFHACK_SCRIPTS(troubleshoot_item.lua)
-DFHACK_SCRIPTS(gui/extended-status.lua SUBDIRECTORY gui)
-DFHACK_SCRIPTS(gui/load-screen.lua SUBDIRECTORY gui)
-DFHACK_SCRIPTS(gui/settings-manager.lua SUBDIRECTORY gui)
+DFHACK_SCRIPTS(
+    adv-max-skills.lua
+    embark-skills.lua
+    open-legends.lua
+    troubleshoot-item.lua
+)
+DFHACK_SCRIPTS(
+    devel/annc-monitor.lua
+    devel/click-monitor.lua
+    devel/modstate-monitor.lua
+    SUBDIRECTORY devel
+)
+DFHACK_SCRIPTS(
+    gui/extended-status.lua
+    gui/load-screen.lua
+    gui/settings-manager.lua
+    SUBDIRECTORY gui
+)
+DFHACK_SCRIPTS(
+    modtools/raw-lint.lua
+    SUBDIRECTORY modtools
+)
