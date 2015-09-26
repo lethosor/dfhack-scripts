@@ -17,16 +17,16 @@ When setting up an adventurer, raises all changeable skills and attributes to th
 
 * ``adv-max-skills``
 
-annc-monitor
-------------
+devel/annc-monitor
+------------------
 Displays announcements and reports in the console.
 
 * ``annc-monitor enable|start``: Begins monitoring
 * ``annc-monitor disable|stop``: Stops monitoring
 * ``annc-monitor interval X``: Sets the delay between checks for new announcements to ``X`` frames
 
-click-monitor
--------------
+devel/click-monitor
+-------------------
 Displays the grid coordinates of mouse clicks in the console. Useful for plugin/script development.
 
 * ``click-monitor start`` to begin monitoring
@@ -72,8 +72,8 @@ A replacement for the "continue game" screen.
 * ``load-screen enable`` to enable
 * ``load-screen disable`` to disable
 
-raw-lint
---------
+modtools/raw-lint
+-----------------
 Checks for simple issues with raw files. Can be run automatically.
 
 settings-manager
