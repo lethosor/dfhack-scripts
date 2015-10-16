@@ -134,7 +134,7 @@ function mem:onRenderBody(p)
         end
         for x, v in pairs(self.graph) do
             p:pen{bg = COLOR_LIGHTGREEN - ((((x + self.graph_tick) % 3) % 2) * 8)}
-            local start_y = math.floor((1 - (v / self.max)) * (bottom_y - top_y + 1)) + top_y - 1
+            local start_y = math.floor((1 - (v / self.max)) * (bottom_y - top_y + 1)) + top_y
             for y = start_y, bottom_y do
                 p:seek(x + 6, y):string(' ')
             end
