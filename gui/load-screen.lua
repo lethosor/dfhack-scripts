@@ -21,10 +21,6 @@ function showError(title, text)
     dialog.showMessage(title, text, COLOR_LIGHTRED)
 end
 
-function gui.Painter:keyString(key, str)
-    self:string(gui.getKeyDisplay(df.interface_key[key]), COLOR_LIGHTRED)
-    self:string(": " .. str, COLOR_WHITE)
-end
 function keyStringLength(key, str)
     return #(gui.getKeyDisplay(df.interface_key[key]) .. ": " .. str)
 end
@@ -186,7 +182,6 @@ end
 
 function load_screen:onRender()
     local pen = {ch=' ', fg=COLOR_GREY}
-    local key_pen = {ch=' ', fg=COLOR_LIGHTRED}
     local saves = self:get_saves()
     self.sel_idx = math.max(1, math.min(#saves, self.sel_idx))
     dfhack.screen.clear()
@@ -349,6 +344,7 @@ load_screen_options = gui.FramedScreen{
 }
 
 function load_screen_options:onRenderBody(painter)
+    painter:key_pen(COLOR_LIGHTRED)
     if self.loading == true then
         self.loading = false
         self.parent:load_game(self.save.folder_name)
@@ -356,13 +352,13 @@ function load_screen_options:onRenderBody(painter)
         return
     end
     painter:seek(0, 0)
-    painter:keyString('CUSTOM_R', 'Rename')
-    painter:seek(0, 1)
-    painter:keyString('CUSTOM_C', 'Copy')
+    painter:key('CUSTOM_R'):string(': Rename')
+    -- painter:seek(0, 1)
+    -- painter:key('CUSTOM_C'):string(': Copy')
     painter:seek(0, self.frame_height - 1)
-    painter:keyString('LEAVESCREEN', 'Cancel')
+    painter:key('LEAVESCREEN'):string(': Cancel')
     painter:seek(self.frame_width - keyStringLength('SELECT', 'Play now'), self.frame_height - 1)
-    painter:keyString('SELECT', 'Play now')
+    painter:key('SELECT'):string(': Play now')
 end
 
 function load_screen_options:onInput(keys)
