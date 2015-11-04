@@ -1,9 +1,16 @@
 -- An in-game init file editor
---[[
-Sample usage:
+--[[=begin
+
+gui/settings-manager
+====================
+An in-game settings manager (init.txt/d_init.txt)
+
+Recommended for use as a keybinding::
+
     keybinding add Alt-S@title settings-manager
     keybinding add Alt-S@dwarfmode/Default settings-manager
-]]
+
+=end]]
 
 VERSION = '0.6.0'
 

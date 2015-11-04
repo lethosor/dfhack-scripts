@@ -1,5 +1,12 @@
 -- Check for common mistakes in raw files
 --@ enable = true
+--[[=begin
+
+modtools/raw-lint
+=================
+Checks for simple issues with raw files. Can be run automatically.
+
+=end]]
 
 utils = require 'utils'
 
