@@ -1,5 +1,15 @@
 -- Displays the mouse (grid) coordinates when the mouse is clicked
 --@ enable = true
+--[[=begin
+
+devel/click-monitor
+===================
+Displays the grid coordinates of mouse clicks in the console.
+Useful for plugin/script development.
+
+Usage: ``devel/click-monitor start|stop``
+
+=end]]
 
 VERSION = '0.2'
 

@@ -1,5 +1,17 @@
 -- Displays announcements in the DFHack console
 --@ enable = true
+--[[=begin
+
+devel/annc-monitor
+==================
+Displays announcements and reports in the console.
+
+:enable|start:      Begins monitoring
+:disable|stop:      Stops monitoring
+:interval X:        Sets the delay between checks for
+                    new announcements to ``X`` frames
+
+=end]]
 
 VERSION = '0.2'
 

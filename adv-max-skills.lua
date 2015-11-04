@@ -1,5 +1,12 @@
 -- Maximizes adventurer skills/attributes on creation
+--[[=begin
 
+adv-max-skills
+==============
+When creating an adventurer, raises all changeable skills and
+attributes to their maximum level.
+
+=end]]
 if dfhack.gui.getCurFocus() ~= 'setupadventure' then
     qerror('Must be called on adventure mode setup screen')
 end

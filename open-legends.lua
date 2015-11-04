@@ -1,5 +1,13 @@
 -- open legends screen when in fortress mode
 --@ module = true
+--[[=begin
+
+open-legends
+============
+Open a legends screen when in fortress mode.
+Compatible with `export-legends`.
+
+=end]]
 
 gui = require 'gui'
 utils = require 'utils'

@@ -1,5 +1,12 @@
--- troubleshoot_item.lua
+-- troubleshoot-item.lua
 --@ module = true
+--[[=begin
+
+troubleshoot-item
+=================
+Print various properties of the selected item.
+
+=end]]
 
 function find_specific_ref(object, type)
     for i, ref in pairs(object.specific_refs) do
