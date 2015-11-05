@@ -131,7 +131,7 @@ function load_screen:get_saves()
         save = self.saves[i]
         if (self:is_backup(save.folder_name) and self.opts.backups == 0) or
             (not self:is_backup(save.folder_name) and self.opts.backups == 2) or
-            (#self.opts.filter and not save.folder_name:lower():find(self.opts.filter:lower())) or
+            (#self.opts.filter and not save.folder_name:lower():find(self.opts.filter:lower(), 1, true)) or
             (self.opts.filter_mode ~= df.game_type.NONE and self.opts.filter_mode ~= save.game_type) then
             --pass
         else
