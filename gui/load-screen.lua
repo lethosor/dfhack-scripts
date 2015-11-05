@@ -10,7 +10,7 @@ Usage: ``gui/load-screen enable|disable``
 
 =end]]
 
-VERSION = '0.8.2'
+VERSION = '0.8.3'
 
 function usage()
     print([[Usage:
