@@ -46,7 +46,9 @@ function gametypeString(gametype, overrides)
     if gametype == df.game_type.DWARF_MAIN then
         return "Fortress mode"
     elseif gametype == df.game_type.DWARF_RECLAIM then
-        return "Reclaim fortress mode"
+        return "Reclaim fortress"
+    elseif gametype == df.game_type.DWARF_UNRETIRE then
+        return "Unretire fortress"
     elseif gametype == df.game_type.ADVENTURE_MAIN then
         return "Adventure mode"
     elseif gametype == df.game_type.NONE then
@@ -56,7 +58,7 @@ function gametypeString(gametype, overrides)
     end
 end
 gametypeMap = (function()
-    local gametypes = {'NONE', 'DWARF_MAIN', 'DWARF_RECLAIM', 'ADVENTURE_MAIN'}
+    local gametypes = {'NONE', 'DWARF_MAIN', 'DWARF_RECLAIM',  'DWARF_UNRETIRE', 'ADVENTURE_MAIN'}
     local ret = {}
     for i, t in pairs(gametypes) do
         ret[t] = gametypes[i + 1] or gametypes[1]
@@ -206,6 +208,8 @@ function load_screen:onRender()
         if self:is_backup(save.folder_name) then pen.fg = COLOR_RED end
         if save.game_type == df.game_type.DWARF_RECLAIM then
             pen.fg = COLOR_MAGENTA
+        elseif save.game_type == df.game_type.DWARF_UNRETIRE then
+            pen.fg = COLOR_GREEN
         elseif save.game_type == df.game_type.ADVENTURE_MAIN then
             pen.fg = COLOR_CYAN
         end
