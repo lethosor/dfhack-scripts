@@ -94,7 +94,7 @@ function check_folder(path)
     if files == nil then qerror('Failed to list directory: ' .. path) end
     for i, entry in ipairs(files) do
         if entry.isdir == false and entry.path:sub(-4) == '.txt' and
-                entry.path:find('/notes/') == nil and 
+                entry.path:find('/notes/') == nil and
                 entry.path:find('/text/') == nil and
                 entry.path:find('/examples and notes/') == nil then
             perr_prefix = entry.path
