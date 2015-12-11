@@ -5,7 +5,7 @@
 open-legends
 ============
 Open a legends screen when in fortress mode.
-Compatible with `export-legends`.
+Compatible with `exportlegends`.
 
 =end]]
 
