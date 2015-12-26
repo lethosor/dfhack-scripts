@@ -8,6 +8,7 @@ DFHACK_SCRIPTS(
     devel/annc-monitor.lua
     devel/click-monitor.lua
     devel/modstate-monitor.lua
+    devel/send-key.lua
     SUBDIRECTORY devel
 )
 DFHACK_SCRIPTS(
