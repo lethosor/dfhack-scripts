@@ -15,6 +15,8 @@ utils = require 'utils'
 Wrapper = defclass(Wrapper, gui.Screen)
 Wrapper.focus_path = 'legends'
 
+region_details_backup = {}
+
 function Wrapper:onRender()
     self._native.parent:render()
 end
@@ -29,6 +31,11 @@ end
 
 function Wrapper:onInput(keys)
     if self._native.parent.cur_page == 0 and keys.LEAVESCREEN then
+        local v = df.global.world.world_data.region_details
+        while (#v > 0) do v:erase(0) end
+        for _,item in pairs(region_details_backup) do
+            v:insert(0, item)
+        end
         self:dismiss()
         dfhack.screen.dismiss(self._native.parent)
         return
@@ -58,7 +65,13 @@ function show(force)
         dfhack.screen.show(df.viewscreen_legendsst:new())
         Wrapper():show()
     end)
-    if not ok then
+    if ok then
+        local v = df.global.world.world_data.region_details
+        while (#v > 0) do
+            table.insert(region_details_backup, 1, v[0])
+            v:erase(0)
+        end
+    else
         while dfhack.gui.getCurViewscreen(true) ~= old_view do
             dfhack.screen.dismiss(dfhack.gui.getCurViewscreen(true))
         end
