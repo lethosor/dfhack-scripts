@@ -61,6 +61,7 @@ function mem:updateYAxis()
     for _, v in pairs(self.graph) do
         self.max = math.max(v, self.max)
     end
+    self.max = math.ceil(self.max / 4000) * 4000
     self.y_axis = {}
     for i = 0, 4 do
         table.insert(self.y_axis, math.floor(self.max * (4 - i) / 4))
