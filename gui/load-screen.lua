@@ -10,7 +10,7 @@ Usage: ``gui/load-screen enable|disable``
 
 =end]]
 
-VERSION = '0.8.3'
+VERSION = '0.8.4'
 
 function usage()
     print([[Usage:
@@ -51,6 +51,10 @@ function gametypeString(gametype, overrides)
         return "Unretire fortress"
     elseif gametype == df.game_type.ADVENTURE_MAIN then
         return "Adventure mode"
+    elseif gametype == df.game_type.DWARF_ARENA then
+        return "Arena (fortress)"
+    elseif gametype == df.game_type.ADVENTURE_ARENA then
+        return "Arena (adventurer)"
     elseif gametype == df.game_type.NONE then
         return "None"
     else
@@ -221,7 +225,7 @@ function load_screen:onRender()
         y = y + 2
         local year = tostring(save.year)
         dfhack.screen.fillRect(pen, 2, y, max_x, y + 1)
-        paintString(pen, 2, y, save.fort_name .. " - " .. gametypeString(save.game_type))
+        paintString(pen, 2, y, save.fort_name .. (#save.fort_name > 0 and " - " or "") .. gametypeString(save.game_type))
         paintString(pen, max_x - #save.world_name, y, save.world_name)
         paintString(pen, 3, y + 1, "Folder: " .. save.folder_name)
         paintString(pen, max_x - #year, y + 1, year)
