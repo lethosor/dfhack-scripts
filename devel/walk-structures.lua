@@ -71,7 +71,11 @@ function get_addr(object)
 end
 
 function walk(name, value, prefix, depth, scanned)
-    if depth == nil then depth = 0 end
+    local start_time
+    if depth == nil then
+        depth = 0
+        start_time = os.clock()
+    end
     if scanned == nil then scanned = {} end
     depth = depth + 1
     if depth > MAX_DEPTH then
@@ -119,6 +123,9 @@ function walk(name, value, prefix, depth, scanned)
         count = count + 1
         walk(k, v, name, depth, scanned)
         ::continue::
+    end
+    if depth == 1 then
+        print(('- elapsed: %f seconds'):format(os.clock() - start_time))
     end
 end
 
