@@ -47,7 +47,19 @@ function eval(s)
     return f()
 end
 
-function safe_pairs(item)
+function safe_pairs(item, keys_only)
+    if keys_only then
+        local mt = debug.getmetatable(item)
+        if mt and mt._index_table then
+            local idx = 0
+            return function()
+                idx = idx + 1
+                if mt._index_table[idx] then
+                    return mt._index_table[idx]
+                end
+            end
+        end
+    end
     local ret = table.pack(pcall(function() return pairs(item) end))
     local ok = ret[1]
     table.remove(ret, 1)
@@ -101,7 +113,7 @@ function walk(name, value, prefix, depth, scanned)
     tostring(value)
     local count = 0
     local in_union = {}
-    for k in safe_pairs(value) do
+    for k in safe_pairs(value, true) do
         local faddr = get_field_addr(value, k)
         if faddr then
             if in_union[faddr] == nil then
