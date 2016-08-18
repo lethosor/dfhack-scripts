@@ -43,7 +43,7 @@ function handlers.viewscreen.titlest.field_change.sel_menu_line(screen, field, v
         [4] = 'Object Testing Arena',
         [5] = 'About DF',
         [6] = 'Quit',
-    })[value])
+    })[screen.menu_line_id[value]])
 end
 
 handlers.viewscreen.optionst.name = 'options menu'
