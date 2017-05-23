@@ -208,6 +208,7 @@ function MemoryViewer:updateData()
                 end
                 if self.data[addr - (2 * sizeof_ptr)] and not self.data[addr - (2 * sizeof_ptr)].vector_start and
                         self.data[addr - (2 * sizeof_ptr)].pointer and self.data[addr - sizeof_ptr].pointer and
+                        self.data[addr - (2 * sizeof_ptr)].pointer % 4 == 0 and self.data[addr].pointer % 4 == 0 and
                         self.data[addr - (2 * sizeof_ptr)].pointer <= self.data[addr - sizeof_ptr].pointer and
                         self.data[addr - sizeof_ptr].pointer <= self.data[addr].pointer then
                     local vector_start = self.data[addr - (2 * sizeof_ptr)].pointer
