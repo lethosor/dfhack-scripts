@@ -117,15 +117,19 @@ function PlantList:onInput(keys)
     if keys.LEAVESCREEN then
         return self:dismiss()
     elseif keys.SELECT then
-        local plant = dfhack.gui.getSelectedPlant()
-        printall(plant.pos)
+        local plant = dfhack.gui.getSelectedPlant(true)
+        if plant then
+            printall(plant.pos)
+        end
     end
     self:inputToSubviews(keys)
 end
 
 function PlantList:onGetSelectedPlant()
     local _, choice = self.subviews.list:getSelected()
-    return df.global.world.plants.all[choice.index]
+    if choice then
+        return df.global.world.plants.all[choice.index]
+    end
 end
 
 PlantList():show()
