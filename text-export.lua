@@ -232,6 +232,8 @@ function Parser_bbcode:newline2()
     return '\n'
 end
 
+Parser_text = defclass(Parser_text, Parser)
+
 scr = getTextViewscreen()
 args = {}
 iargs = {}
