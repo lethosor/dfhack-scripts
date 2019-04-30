@@ -104,11 +104,11 @@ function MSState:draw()
     for x, col in ipairs(self.grid) do
         for y, tile in ipairs(col) do
             if tile.marked then
-                pen = {bg = COLOR_DARKGREY, ch = 'X', fg = COLOR_GREEN}
+                pen = {bg = COLOR_DARKGREY, ch = 19, fg = COLOR_WHITE}
             elseif not tile.revealed then
                 pen = {bg = COLOR_DARKGREY, ch = ' '}
             elseif tile.mine then
-                pen = {fg = COLOR_LIGHTRED, ch = 'X'}
+                pen = {fg = COLOR_LIGHTRED, ch = 15}
             elseif tile.count == 0 then
                 pen = {fg = COLOR_GREY, ch = '.'}
             else
