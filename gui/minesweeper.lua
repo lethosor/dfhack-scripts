@@ -10,6 +10,11 @@ MSState.instance = MSState.instance or nil
 
 function MSState:init(opts)
     self.grid = self:make_grid(opts.width or 10, opts.height or 10)
+    self.counts = {
+        mine = 10,
+        revealed = 0,
+        marked = 0,
+    }
     self.has_mines = false
     self.draw_buffer = dfhack.penarray.new(opts.width or 10, opts.height or 10)
     self:draw()
@@ -85,6 +90,7 @@ function MSState:reveal(x, y)
         local cell = table.remove(queue, 1)
         if not cell.revealed and not cell.marked then
             cell.revealed = true
+            self.counts.revealed = self.counts.revealed + 1
             if not cell.mine and cell.count == 0 then
                 for _, neighbor in ipairs(self:cell_neighbors(cell)) do
                     if not neighbor.revealed then
@@ -100,6 +106,7 @@ function MSState:mark(x, y)
     local cell = self.grid[x][y]
     if not cell.revealed then
         cell.marked = not cell.marked
+        self.counts.marked = self.counts.marked + (cell.marked and 1 or -1)
     end
 end
 
@@ -133,15 +140,23 @@ function MSScreen:init()
 end
 
 function MSScreen:onRenderBody(p)
-    MSState.instance.draw_buffer:draw(p.x1 + 1, p.y1 + 1, p.x2, p.y2)
+    local state = MSState.instance
+    state.draw_buffer:draw(p.x1 + 1, p.y1 + 1, p.x2, p.y2)
     local ctile = dfhack.screen.readTile(p.x1 + self.cursor.x, p.y1 + self.cursor.y)
     ctile.bg = COLOR_YELLOW
     ctile.fg = COLOR_BLACK
     dfhack.screen.paintTile(ctile, p.x1 + self.cursor.x, p.y1 + self.cursor.y)
+
+    local gridx, gridy = state:grid_dims()
+    local sidebar = gui.Painter.new_xy(60, p.y1 + 1, p.x2 - 1, p.y2 - 1)
+    sidebar:string(('Mines: %d/%d'):format(state.counts.marked, state.counts.mine)):newline()
+    sidebar:string(('Revealed: %d/%d'):format(state.counts.revealed, gridx * gridy - state.counts.mine)):newline()
 end
 
 function MSScreen:onInput(keys)
     local state = MSState.instance
+    local gridx, gridy = state:grid_dims()
+
     if keys.LEAVESCREEN then
         self:dismiss()
     elseif keys.SELECT then
@@ -149,16 +164,15 @@ function MSScreen:onInput(keys)
     elseif keys.CUSTOM_X or keys.CUSTOM_M then
         state:mark(self.cursor.x, self.cursor.y)
     elseif keys.CUSTOM_R then
-        for x, col in pairs(state.grid) do
-            for y, tile in pairs(col) do
-                tile.revealed = true
+        for x = 1, gridx do
+            for y = 1, gridy do
+                state:reveal(x, y)
             end
         end
     elseif keys.CUSTOM_SHIFT_R then
         MSState.instance = MSState()
     end
 
-    local gridx, gridy = state:grid_dims()
     for k, _ in pairs(keys) do
         local dx, dy, dz = guidm.get_movement_delta(k, 1, 5)
         if dx then
