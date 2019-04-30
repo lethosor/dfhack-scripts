@@ -17,10 +17,10 @@ end
 
 function MSState:make_grid(x, y)
     local grid = {}
-    for _ = 1, x do
+    for xi = 1, x do
         local col = {}
-        for _ = 1, y do
-            table.insert(col, {mine = false, revealed = false, count = 0})
+        for yi = 1, y do
+            table.insert(col, {x = xi, y = yi, mine = false, revealed = false, count = 0})
         end
         table.insert(grid, col)
     end
@@ -29,6 +29,20 @@ end
 
 function MSState:grid_dims()
     return #self.grid, #self.grid[1]
+end
+
+function MSState:cell_neighbors(cell)
+    local x, y = cell.x, cell.y
+    local dimx, dimy = self:grid_dims()
+    local out = {}
+    for dx = -1, 1 do
+        for dy = -1, 1 do
+            if (dx ~= 0 or dy ~= 0) and (x + dx >= 1 and x + dx <= dimx) and (y + dy >= 1 and y + dy <= dimy) then
+                table.insert(out, self.grid[x + dx][y + dy])
+            end
+        end
+    end
+    return out
 end
 
 function MSState:add_mines(n, skipx, skipy)
@@ -44,19 +58,35 @@ function MSState:add_mines(n, skipx, skipy)
     for x = 1, dimx do
         for y = 1, dimy do
             local count = 0
-            for dx = -1, 1 do
-                for dy = -1, 1 do
-                    if (dx ~= 0 or dy ~= 0) and (x + dx >= 1 and x + dx <= dimx) and (y + dy >= 1 and y + dy <= dimy) then
-                        if self.grid[x + dx][y + dy].mine then
-                            count = count + 1
-                        end
-                    end
+            for _, neighbor in ipairs(self:cell_neighbors(self.grid[x][y])) do
+                if neighbor.mine then
+                    count = count + 1
                 end
             end
             self.grid[x][y].count = count
         end
     end
     self.has_mines = true
+end
+
+function MSState:reveal(x, y)
+    if not self.has_mines then
+        self:add_mines(10, x, y)
+    end
+    local queue = {self.grid[x][y]}
+    while #queue > 0 do
+        local cell = table.remove(queue, 1)
+        if not cell.revealed then
+            cell.revealed = true
+            if not cell.mine and cell.count == 0 then
+                for _, neighbor in ipairs(self:cell_neighbors(cell)) do
+                    if not neighbor.revealed then
+                        table.insert(queue, neighbor)
+                    end
+                end
+            end
+        end
+    end
 end
 
 function MSState:draw()
@@ -100,11 +130,7 @@ function MSScreen:onInput(keys)
     if keys.LEAVESCREEN then
         self:dismiss()
     elseif keys.SELECT then
-        local cell = state.grid[self.cursor.x][self.cursor.y]
-        cell.revealed = true
-        if not state.has_mines then
-            state:add_mines(10, self.cursor.x, self.cursor.y)
-        end
+        state:reveal(self.cursor.x, self.cursor.y)
     elseif keys.CUSTOM_R then
         for x, col in pairs(state.grid) do
             for y, tile in pairs(col) do
