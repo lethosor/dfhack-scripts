@@ -20,7 +20,14 @@ function MSState:make_grid(x, y)
     for xi = 1, x do
         local col = {}
         for yi = 1, y do
-            table.insert(col, {x = xi, y = yi, mine = false, revealed = false, count = 0})
+            table.insert(col, {
+                x = xi,
+                y = yi,
+                mine = false,
+                revealed = false,
+                marked = false,
+                count = 0,
+            })
         end
         table.insert(grid, col)
     end
@@ -76,7 +83,7 @@ function MSState:reveal(x, y)
     local queue = {self.grid[x][y]}
     while #queue > 0 do
         local cell = table.remove(queue, 1)
-        if not cell.revealed then
+        if not cell.revealed and not cell.marked then
             cell.revealed = true
             if not cell.mine and cell.count == 0 then
                 for _, neighbor in ipairs(self:cell_neighbors(cell)) do
@@ -89,10 +96,16 @@ function MSState:reveal(x, y)
     end
 end
 
+function MSState:mark(x, y)
+    self.grid[x][y].marked = not self.grid[x][y].marked
+end
+
 function MSState:draw()
     for x, col in ipairs(self.grid) do
         for y, tile in ipairs(col) do
-            if not tile.revealed then
+            if tile.marked then
+                pen = {bg = COLOR_DARKGREY, ch = 'X', fg = COLOR_GREEN}
+            elseif not tile.revealed then
                 pen = {bg = COLOR_DARKGREY, ch = ' '}
             elseif tile.mine then
                 pen = {fg = COLOR_LIGHTRED, ch = 'X'}
@@ -131,6 +144,8 @@ function MSScreen:onInput(keys)
         self:dismiss()
     elseif keys.SELECT then
         state:reveal(self.cursor.x, self.cursor.y)
+    elseif keys.CUSTOM_X or keys.CUSTOM_M then
+        state:mark(self.cursor.x, self.cursor.y)
     elseif keys.CUSTOM_R then
         for x, col in pairs(state.grid) do
             for y, tile in pairs(col) do
