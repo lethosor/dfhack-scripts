@@ -57,7 +57,7 @@ function MSState:add_mines(n, skipx, skipy)
     while n > 0 do
         local x = math.ceil(math.random() * dimx)
         local y = math.ceil(math.random() * dimy)
-        if x ~= skipx and y ~= skipy and not self.grid[x][y].mine then
+        if (x ~= skipx or y ~= skipy) and not self.grid[x][y].mine then
             self.grid[x][y].mine = true
             n = n - 1
         end
