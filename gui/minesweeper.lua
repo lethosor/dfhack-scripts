@@ -97,7 +97,10 @@ function MSState:reveal(x, y)
 end
 
 function MSState:mark(x, y)
-    self.grid[x][y].marked = not self.grid[x][y].marked
+    local cell = self.grid[x][y]
+    if not cell.revealed then
+        cell.marked = not cell.marked
+    end
 end
 
 function MSState:draw()
@@ -135,7 +138,6 @@ function MSScreen:onRenderBody(p)
     ctile.bg = COLOR_YELLOW
     ctile.fg = COLOR_BLACK
     dfhack.screen.paintTile(ctile, p.x1 + self.cursor.x, p.y1 + self.cursor.y)
-    -- MSState.instance.draw_buffer:draw(0, 0, 11, 11)
 end
 
 function MSScreen:onInput(keys)
