@@ -90,6 +90,10 @@ function MSState:add_mines(skipx, skipy)
     self.has_mines = true
 end
 
+function MSState:is_revealed(x, y)
+    return self.grid[x][y].revealed
+end
+
 function MSState:reveal(x, y)
     if self.lost then return end
     if not self.has_mines then
@@ -147,6 +151,22 @@ function MSState:mark_all()
                 cell.marked = true
                 self.counts.marked = self.counts.marked + 1
             end
+        end
+    end
+end
+
+function MSState:chord(x, y)
+    local cell = self.grid[x][y]
+    local neighbors = self:cell_neighbors(cell)
+    local n_unmarked = {}
+    for _, n_cell in ipairs(neighbors) do
+        if not n_cell.marked then
+            table.insert(n_unmarked, n_cell)
+        end
+    end
+    if #neighbors - #n_unmarked == cell.count then
+        for _, n_cell in ipairs(n_unmarked) do
+            self:reveal(n_cell.x, n_cell.y)
         end
     end
 end
@@ -215,9 +235,12 @@ end
 function MSScreen:onInput(keys)
     local state = MSState.instance
     local gridx, gridy = state:grid_dims()
+    local revealed = state:is_revealed(self.cursor.x, self.cursor.y)
 
     if keys.LEAVESCREEN then
         self:dismiss()
+    elseif (keys.SELECT or keys.D_PAUSE) and revealed then
+        state:chord(self.cursor.x, self.cursor.y)
     elseif keys.SELECT then
         state:reveal(self.cursor.x, self.cursor.y)
     elseif keys.D_PAUSE then
