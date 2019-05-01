@@ -1,3 +1,4 @@
+dlg = require 'gui.dialogs'
 gui = require 'gui'
 guidm = require 'gui.dwarfmode'
 
@@ -151,6 +152,8 @@ function MSScreen:onRenderBody(p)
     local sidebar = gui.Painter.new_xy(60, p.y1 + 1, p.x2 - 1, p.y2 - 1)
     sidebar:string(('Mines: %d/%d'):format(state.counts.marked, state.counts.mine)):newline()
     sidebar:string(('Revealed: %d/%d'):format(state.counts.revealed, gridx * gridy - state.counts.mine)):newline()
+    sidebar:newline()
+    sidebar:key_string('CUSTOM_SHIFT_N', 'New game')
 end
 
 function MSScreen:onInput(keys)
@@ -163,14 +166,16 @@ function MSScreen:onInput(keys)
         state:reveal(self.cursor.x, self.cursor.y)
     elseif keys.CUSTOM_X or keys.CUSTOM_M then
         state:mark(self.cursor.x, self.cursor.y)
-    elseif keys.CUSTOM_R then
+    elseif keys.CUSTOM_SHIFT_D then
         for x = 1, gridx do
             for y = 1, gridy do
                 state:reveal(x, y)
             end
         end
-    elseif keys.CUSTOM_SHIFT_R then
-        MSState.instance = MSState()
+    elseif keys.CUSTOM_SHIFT_N then
+        dlg.showYesNoPrompt('New game', 'Are you sure you want to start a new game? All progress will be lost.', COLOR_LIGHTRED, function()
+            MSState.instance = MSState()
+        end)
     end
 
     for k, _ in pairs(keys) do
