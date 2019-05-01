@@ -220,7 +220,7 @@ function MSScreen:onInput(keys)
         self:dismiss()
     elseif keys.SELECT then
         state:reveal(self.cursor.x, self.cursor.y)
-    elseif keys.CUSTOM_X or keys.CUSTOM_M then
+    elseif keys.D_PAUSE then
         state:mark(self.cursor.x, self.cursor.y)
     elseif keys.CUSTOM_SHIFT_D then
         state:reveal_all()
