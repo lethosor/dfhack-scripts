@@ -7,17 +7,21 @@ COLORS = {
 }
 
 MSState = defclass(MSState)
+MSState.ATTRS{
+    width = 10,
+    height = 10,
+    mines = 10,
+}
 MSState.instance = MSState.instance or nil
 
-function MSState:init(opts)
-    self.grid = self:make_grid(opts.width or 10, opts.height or 10)
+function MSState:init()
+    self.grid = self:make_grid(self.width, self.height)
     self.counts = {
-        mine = 10,
         revealed = 0,
         marked = 0,
     }
     self.has_mines = false
-    self.draw_buffer = dfhack.penarray.new(opts.width or 10, opts.height or 10)
+    self.draw_buffer = dfhack.penarray.new(self.width, self.height)
     self:draw()
 end
 
@@ -58,8 +62,9 @@ function MSState:cell_neighbors(cell)
     return out
 end
 
-function MSState:add_mines(n, skipx, skipy)
+function MSState:add_mines(skipx, skipy)
     local dimx, dimy = self:grid_dims()
+    local n = self.mines
     while n > 0 do
         local x = math.ceil(math.random() * dimx)
         local y = math.ceil(math.random() * dimy)
@@ -84,7 +89,7 @@ end
 
 function MSState:reveal(x, y)
     if not self.has_mines then
-        self:add_mines(10, x, y)
+        self:add_mines(x, y)
     end
     local queue = {self.grid[x][y]}
     while #queue > 0 do
@@ -150,8 +155,8 @@ function MSScreen:onRenderBody(p)
 
     local gridx, gridy = state:grid_dims()
     local sidebar = gui.Painter.new_xy(60, p.y1 + 1, p.x2 - 1, p.y2 - 1)
-    sidebar:string(('Mines: %d/%d'):format(state.counts.marked, state.counts.mine)):newline()
-    sidebar:string(('Revealed: %d/%d'):format(state.counts.revealed, gridx * gridy - state.counts.mine)):newline()
+    sidebar:string(('Mines: %d/%d'):format(state.counts.marked, state.mines)):newline()
+    sidebar:string(('Revealed: %d/%d'):format(state.counts.revealed, gridx * gridy - state.mines)):newline()
     sidebar:newline()
     sidebar:key_string('CUSTOM_SHIFT_N', 'New game')
 end
