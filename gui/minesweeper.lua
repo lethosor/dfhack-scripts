@@ -112,7 +112,7 @@ function MSState:reveal(x, y)
             end
         end
     end
-    if self.counts.revealed == self.safe_cells then
+    if self.counts.revealed == self.safe_cells and not self.lost then
         self:mark_all()
         self.won = true
     end
@@ -181,7 +181,7 @@ function MSScreen:init()
 end
 
 function MSScreen:new_game()
-    MSState.instance = MSState({width=20})
+    MSState.instance = MSState()
 end
 
 function MSScreen:onRenderBody(p)
