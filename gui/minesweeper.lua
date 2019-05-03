@@ -6,6 +6,12 @@ COLORS = {
     COLOR_LIGHTBLUE, COLOR_LIGHTGREEN, COLOR_LIGHTRED, COLOR_CYAN, COLOR_MAGENTA, COLOR_BROWN, COLOR_YELLOW, COLOR_LIGHTMAGENTA
 }
 
+LEVELS = {
+    {'Easy', {width = 10, height = 10, mines = 10}},
+    {'Medium', {width = 20, height = 20, mines = 50}},
+    {'Hard', {width = 50, height = 20, mines = 150}},
+}
+
 MSState = defclass(MSState)
 MSState.ATTRS{
     width = 10,
@@ -91,7 +97,9 @@ function MSState:add_mines(skipx, skipy)
 end
 
 function MSState:is_revealed(x, y)
-    return self.grid[x][y].revealed
+    if self.grid[x] and self.grid[x][y] then
+        return self.grid[x][y].revealed
+    end
 end
 
 function MSState:reveal(x, y)
@@ -193,6 +201,7 @@ end
 MSScreen = defclass(MSScreen, gui.FramedScreen)
 
 function MSScreen:init()
+    self.level = 1
     if not MSState.instance then
         self:new_game()
     end
@@ -201,7 +210,7 @@ function MSScreen:init()
 end
 
 function MSScreen:new_game()
-    MSState.instance = MSState()
+    MSState.instance = MSState(LEVELS[self.level][2])
 end
 
 function MSScreen:onRenderBody(p)
@@ -229,7 +238,8 @@ function MSScreen:onRenderBody(p)
     sidebar:string(('Mines: %d/%d'):format(state.counts.marked, state.mines)):newline()
     sidebar:string(('Revealed: %d/%d'):format(state.counts.revealed, gridx * gridy - state.mines)):newline()
     sidebar:newline()
-    sidebar:key_string('CUSTOM_SHIFT_N', 'New game')
+    sidebar:key('SECONDSCROLL_UP'):key('SECONDSCROLL_DOWN'):string(': ' .. LEVELS[self.level][1]):newline()
+    sidebar:key_string('CUSTOM_SHIFT_N', 'New game'):newline()
 end
 
 function MSScreen:onInput(keys)
@@ -247,6 +257,10 @@ function MSScreen:onInput(keys)
         state:mark(self.cursor.x, self.cursor.y)
     elseif keys.CUSTOM_SHIFT_D then
         state:reveal_all()
+    elseif keys.SECONDSCROLL_UP then
+        self.level = math.max(1, self.level - 1)
+    elseif keys.SECONDSCROLL_DOWN then
+        self.level = math.min(#LEVELS, self.level + 1)
     elseif keys.CUSTOM_SHIFT_N then
         if state.won or state.lost then
             self:new_game()
