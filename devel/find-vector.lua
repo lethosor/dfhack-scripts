@@ -11,6 +11,7 @@ ms = require 'memscan'
 data = ms.get_data_segment()
 length = math.floor(tonumber(({...})[1])) or qerror('bad length!')
 
+raw = nil
 rawstr = ({...})[2]
 if rawstr then
     rawtbl = {}
@@ -41,6 +42,9 @@ for i = 0, uptr.count - 3 do
         end
         print(('0x%x: start 0x%x, length %d, allocated %d'):format(
             addr, uptr.data[i], length, uptr.data[i + 2] - uptr.data[i]))
+        dfhack.run_command('vectors', ('0x%x'):format(addr), '24')
+        dfhack.run_command('memview', ('0x%x'):format(uptr.data[i]), '128')
+        print("")
     end
     ::next_vector::
 end
