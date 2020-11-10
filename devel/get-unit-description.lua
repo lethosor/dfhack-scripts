@@ -42,6 +42,7 @@ for _, line in ipairs(text_scr.formatted_text) do
         break
     end
 end
+dfhack.screen.dismiss(text_scr)
 
 desc = table.concat(desc_lines, ' '):gsub('  ', ' ')
 print(desc)
