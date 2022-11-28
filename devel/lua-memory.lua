@@ -83,6 +83,9 @@ function mem:onIdle()
         end
     end
     self.tick = self.tick + 1
+    if self.input_to_parent then
+        self._native.parent:logic()
+    end
 end
 
 function mem:onRenderBody(p)
